@@ -1,0 +1,50 @@
+[
+  {
+    "id": "general",
+    "title": "Umum",
+    "icon": "BookOpen"
+  },
+  {
+    "id": "science",
+    "title": "Sains",
+    "icon": "Microscope"
+  },
+  { 
+    "id": "mathematics",
+    "title": "Matematika",
+    "icon": "Calculator" },
+  { 
+    "id": "history",
+    "title": "Sejarah", 
+    "icon": "History" },
+  {
+    "id": "geography",
+    "title": "Geografi",
+    "icon": "Globe"
+  },
+  {
+    "id": "language",
+    "title": "Bahasa",
+    "icon": "Languages"
+  },
+  {
+    "id": "technology",
+    "title": "Teknologi",
+    "icon": "Laptop"
+  },
+  {
+    "id": "sports",
+    "title": "Olahraga",
+    "icon": "Dumbbell"
+  },
+  {
+    "id": "entertainment",
+    "title": "Hiburan",
+    "icon": "Film"
+  },
+  {
+    "id": "business",
+    "title": "Bisnis",
+    "icon": "Briefcase"
+  }
+]
