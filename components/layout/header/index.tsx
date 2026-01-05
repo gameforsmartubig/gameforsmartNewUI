@@ -20,13 +20,10 @@ export function SiteHeader() {
         <Button onClick={toggleSidebar} size="icon" variant="ghost">
           <PanelLeftIcon />
         </Button>
-        {/* <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
-        <Search /> */}
 
         <div className="ml-auto flex items-center gap-2">
           <Notifications />
           <ThemeSwitch />
-          <ThemeCustomizerPanel />
           <Separator orientation="vertical" className="mx-2 data-[orientation=vertical]:h-4" />
           <UserMenu />
         </div>

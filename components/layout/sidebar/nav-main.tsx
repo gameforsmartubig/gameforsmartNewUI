@@ -101,24 +101,24 @@ export const navItems: NavGroup[] = [
       },
       {
         title: "Friend",
-        href: "#",
+        href: "/friend",
         icon: HandshakeIcon,
       },
-      { title: "Group", href: "/dashboard/sales", icon: Users },
-      { title: "History", href: "/dashboard/crm", icon: History },
+      { title: "Group", href: "/group", icon: Users },
+      { title: "History", href: "/history", icon: History },
       {
         title: "Evaluation",
-        href: "/dashboard/website-analytics",
+        href: "/evaluation",
         icon: ChartBar
       },
       {
         title: "Notifications",
-        href: "/dashboard/project-management",
+        href: "/notifications",
         icon: Bell,
       },
       {
         title: "Reports",
-        href: "/dashboard/file-manager",
+        href: "/reports",
         icon: Flag
       }
     ]

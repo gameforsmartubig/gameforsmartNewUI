@@ -10,7 +10,7 @@ import { LocationSelector, LocationValue } from "@/components/ui/location-select
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase-browser";
 import { Loader2, Navigation } from "lucide-react";
 
 const useDebounce = (value: string, delay: number) => {
@@ -406,7 +406,7 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="flex items-center justify-center lg:h-screen my-32">
+    <div className="my-32 flex items-center justify-center lg:h-screen">
       <Card className="mx-auto w-96">
         <CardHeader>
           <div className="flex items-center justify-center">
@@ -533,26 +533,23 @@ export default function RegisterForm() {
               <LocationSelector value={location} onChange={setLocation} showDetectButton={false} />
 
               <Button
-                  type="button"
-                  variant="outline"
-                  onClick={detectLocation}
-                  disabled={detectingLocation || loading}
-                  className="w-full h-10 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 text-blue-700 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
-                >
-                  {detectingLocation ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      <span className="font-medium">Mendeteksi lokasi...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Navigation className="h-4 w-4" />
-                      <span className="font-medium">
-                        Deteksi Lokasi Otomatis
-                      </span>
-                    </>
-                  )}
-                </Button>
+                type="button"
+                variant="outline"
+                onClick={detectLocation}
+                disabled={detectingLocation || loading}
+                className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border-2 border-blue-200 text-sm text-blue-700 transition-colors hover:border-blue-400 hover:bg-blue-50">
+                {detectingLocation ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span className="font-medium">Mendeteksi lokasi...</span>
+                  </>
+                ) : (
+                  <>
+                    <Navigation className="h-4 w-4" />
+                    <span className="font-medium">Deteksi Lokasi Otomatis</span>
+                  </>
+                )}
+              </Button>
 
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
@@ -585,7 +582,7 @@ export default function RegisterForm() {
           </div>
           <div className="mt-4 text-center text-sm">
             already have an account?{" "}
-            <Link href="/dashboard/login" className="underline">
+            <Link href="/login" className="underline">
               Sign in
             </Link>
           </div>

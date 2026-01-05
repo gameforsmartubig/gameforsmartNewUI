@@ -1,6 +1,5 @@
 import type { CategoryIconName } from "./quiz-icons";
 
-
 export type Category = {
   id: string;
   title: string;
@@ -16,4 +15,9 @@ export type Quiz = {
   language: string;
   played: number;
   createdAt: string;
+  _raw?: {
+    isPublic: boolean;
+    creatorId: string;
+    isFavorite: boolean;
+  };
 };

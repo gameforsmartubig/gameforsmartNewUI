@@ -9,10 +9,10 @@ import { Label } from "@/components/ui/label";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase-browser";
 
 export default function LoginForm() {
-    const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
     emailOrUsername: "", // Changed to accept either email or username
@@ -94,7 +94,7 @@ export default function LoginForm() {
         } else if (redirectPath && gamePin) {
           router.push(`${redirectPath}?pin=${gamePin}`);
         } else {
-          router.push("/dashboard/common");
+          router.push("/dashboard/");
         }
       }
     } catch (error: any) {
@@ -226,7 +226,7 @@ export default function LoginForm() {
           </div>
           <div className="mt-4 text-center text-sm">
             Don&apos;t have an account?{" "}
-            <Link href="/dashboard/register" className="underline">
+            <Link href="/register" className="underline">
               Sign up
             </Link>
           </div>
