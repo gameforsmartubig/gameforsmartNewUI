@@ -17,7 +17,6 @@ export default function Page() {
         <div className="flex w-full items-center justify-between sm:w-auto">
           <h1 className="text-xl font-bold tracking-tight lg:text-2xl">Friend</h1>
         </div>
-        <SearchFriends />
       </div>
       <Friends />
     </div>

@@ -23,14 +23,14 @@ export function generateMeta({
   canonical: string;
 }): Metadata {
   return {
-    title: `${title} - Shadcn UI Kit`,
+    title: `${title} - GameForSmart`,
     description: description,
-    metadataBase: new URL(`https://shadcnuikit.com`),
+    metadataBase: new URL(`https://gameforsmart.com`),
     alternates: {
       canonical: `/dashboard${canonical}`
     },
     openGraph: {
-      images: [`/images/seo.jpg`]
+      images: [`logo.png`]
     }
   };
 }
@@ -85,7 +85,7 @@ const timeTranslations = {
     lastWeek: "Minggu lalu",
     lastMonth: "Bulan lalu",
     lastYear: "Tahun lalu",
-    ago: "yang lalu",
+    ago: "lalu",
     minute: "menit",
     minutes: "menit",
     hour: "jam",
@@ -181,11 +181,11 @@ export function formatTimeAgo(
   if (diffInHours < 24) {
     if (style === "short") {
       // Use abbreviated format: h for hour, j for jam
-      const abbrev = language === "id" ? "j" : "h";
+      const abbrev = language === "id" ? "Jam" : "hours";
       return `${diffInHours}${abbrev} ${t.ago}`;
     }
     if (style === "relative") {
-      const abbrev = language === "id" ? "j" : "h";
+      const abbrev = language === "id" ? "Jam" : "hours";
       return `${t.active} ${diffInHours}${abbrev} ${t.ago}`;
     }
     // Long format
@@ -203,11 +203,11 @@ export function formatTimeAgo(
   if (diffInDays < 7) {
     if (style === "short") {
       // Use abbreviated format: d for day, h for hari
-      const abbrev = language === "id" ? "h" : "d";
+      const abbrev = language === "id" ? "Hari" : "Days";
       return `${diffInDays}${abbrev} ${t.ago}`;
     }
     if (style === "relative") {
-      const abbrev = language === "id" ? "h" : "d";
+      const abbrev = language === "id" ? "Hari" : "Days";
       return `${t.lastSeen} ${diffInDays}${abbrev} ${t.ago}`;
     }
     return `${diffInDays} ${t.days} ${t.ago}`;
@@ -223,11 +223,11 @@ export function formatTimeAgo(
   if (diffInWeeks < 4) {
     if (style === "short") {
       // Use abbreviated format: w for week, m for minggu
-      const abbrev = language === "id" ? "m" : "w";
+      const abbrev = language === "id" ? "Minggu" : "Weeks";
       return `${diffInWeeks}${abbrev} ${t.ago}`;
     }
     if (style === "relative") {
-      const abbrev = language === "id" ? "m" : "w";
+      const abbrev = language === "id" ? "Minggu" : "Weeks";
       return `${t.lastSeen} ${diffInWeeks}${abbrev} ${t.ago}`;
     }
     return `${diffInWeeks} ${t.weeks} ${t.ago}`;
@@ -243,11 +243,11 @@ export function formatTimeAgo(
   if (diffInMonths < 12) {
     if (style === "short") {
       // Use abbreviated format: mo for month, b for bulan
-      const abbrev = language === "id" ? "b" : "mo";
+      const abbrev = language === "id" ? " Bulan" : " Months";
       return `${diffInMonths}${abbrev} ${t.ago}`;
     }
     if (style === "relative") {
-      const abbrev = language === "id" ? "b" : "mo";
+      const abbrev = language === "id" ? " Bulan" : " Months";
       return `${t.lastSeen} ${diffInMonths}${abbrev} ${t.ago}`;
     }
     return `${diffInMonths} ${t.months} ${t.ago}`;
@@ -262,11 +262,11 @@ export function formatTimeAgo(
   }
   if (style === "short") {
     // Use abbreviated format: y for year, t for tahun
-    const abbrev = language === "id" ? "t" : "y";
+    const abbrev = language === "id" ? " Tahun" : " Years";
     return `${diffInYears}${abbrev} ${t.ago}`;
   }
   if (style === "relative") {
-    const abbrev = language === "id" ? "t" : "y";
+    const abbrev = language === "id" ? " Tahun" : " Years";
     return `${t.lastSeen} ${diffInYears}${abbrev} ${t.ago}`;
   }
   return `${diffInYears} ${t.years} ${t.ago}`;
