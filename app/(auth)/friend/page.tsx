@@ -1,5 +1,7 @@
 import { generateMeta } from "@/lib/utils";
-import { SearchFriends, Friends } from "./component/friends";
+import { Friends } from "./component/friends";
+import { createClient } from "@/lib/supabase-server";
+import { redirect } from "next/navigation";
 
 export async function generateMetadata() {
   return generateMeta({
@@ -10,7 +12,27 @@ export async function generateMetadata() {
   });
 }
 
-export default function Page() {
+export default async function Page() {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/auth/login");
+  }
+
+  // Get profile id
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("auth_user_id", user.id)
+    .single();
+
+  if (!profile) {
+    return <div>Profile not found</div>;
+  }
+
   return (
     <div className="space-y-4">
       <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">
@@ -18,7 +40,7 @@ export default function Page() {
           <h1 className="text-xl font-bold tracking-tight lg:text-2xl">Friend</h1>
         </div>
       </div>
-      <Friends />
+      <Friends currentUserId={profile.id} />
     </div>
   );
 }
