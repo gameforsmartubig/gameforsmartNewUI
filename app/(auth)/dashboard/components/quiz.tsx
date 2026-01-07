@@ -5,9 +5,11 @@ import { TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tabs } from "@radix-ui/react-tabs";
 import { Button } from "@/components/ui/button";
 import {
+  BarChart3,
   ChevronDownIcon,
   CircleQuestionMark,
   ClockPlus,
+  Edit,
   Languages,
   Play,
   PlusIcon,
@@ -22,6 +24,9 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
+import { toast } from "sonner";
 
 import type { Category, Quiz } from "./types";
 import { categoryIconMap } from "./quiz-icons";
@@ -30,13 +35,16 @@ export function DashboardContent({
   publicQuizzes,
   myQuizzes,
   favoriteQuizzes,
-  categories
+  categories,
+  currentProfileId
 }: {
   publicQuizzes: Quiz[];
   myQuizzes: Quiz[];
   favoriteQuizzes: Quiz[];
   categories: Category[];
+  currentProfileId?: string;
 }) {
+  const router = useRouter();
   const categoryMap = Object.fromEntries(categories.map((c) => [c.id, c]));
   const [activeTab, setActiveTab] = useState("quiz");
 
@@ -73,6 +81,99 @@ export function DashboardContent({
 
   const handlePageChange = (tab: string, page: number) => {
     setPageState((prev) => ({ ...prev, [tab]: page }));
+  };
+
+  // Host Logic
+  const handleHostClick = async (quizId: string) => {
+    if (!currentProfileId) {
+      toast.error("Profil tidak ditemukan. Silakan login ulang.");
+      return;
+    }
+
+    try {
+      // 1. Fetch full quiz details for session
+      const { data: quizData, error: quizError } = await supabase
+        .from("quizzes")
+        .select(
+          `
+          id,
+          title,
+          description,
+          category,
+          language,
+          image_url,
+          profiles (
+            username,
+            avatar_url
+          )
+        `
+        )
+        .eq("id", quizId)
+        .single();
+
+      if (quizError || !quizData) {
+        toast.error("Quiz tidak ditemukan");
+        return;
+      }
+
+      // 2. Prepare Data
+      const profileData = Array.isArray(quizData.profiles)
+        ? quizData.profiles[0]
+        : quizData.profiles;
+
+      const gamePin = Math.floor(100000 + Math.random() * 900000).toString();
+
+      const quizDetail = {
+        title: quizData.title,
+        description: quizData.description || null,
+        category: quizData.category || "general",
+        language: quizData.language || "id",
+        image: quizData.image_url || null,
+        creator_username: profileData?.username || "Unknown",
+        creator_avatar: profileData?.avatar_url || null
+      };
+
+      const sessionData = {
+        quiz_id: quizId,
+        host_id: currentProfileId,
+        game_pin: gamePin,
+        status: "waiting",
+        game_end_mode: "first_finish",
+        allow_join_after_start: false,
+        question_limit: "5",
+        total_time_minutes: 5,
+        current_questions: [],
+        quiz_detail: quizDetail,
+        application: "gameforsmartNewUI" // Branding
+      };
+
+      // 3. Create Session
+      const { data: newSession, error: sessionError } = await supabase
+        .from("game_sessions")
+        .insert(sessionData)
+        .select()
+        .single();
+
+      if (sessionError || !newSession) {
+        console.error("Session creation error:", sessionError);
+        toast.error("Gagal membuat sesi game");
+        return;
+      }
+
+      // 4. Redirect
+      router.push(`/host/${newSession.id}/settings`);
+    } catch (error) {
+      console.error("Error creating session:", error);
+      toast.error("Terjadi kesalahan saat membuat session");
+    }
+  };
+
+  const handleEditClick = (quizId: string) => {
+    router.push(`/quiz/${quizId}/edit`);
+  };
+
+  const handleAnalyticClick = (quizId: string) => {
+    router.push(`/quiz/${quizId}/analytic`);
   };
 
   // Filter Logic
@@ -257,7 +358,7 @@ export function DashboardContent({
               ? categoryIconMap[category.icon] || categoryIconMap["BookOpen"]
               : categoryIconMap["BookOpen"];
             return (
-              <Card key={quiz.title}>
+              <Card key={quiz.id}>
                 <CardHeader>
                   <CardTitle>{quiz.title}</CardTitle>
                 </CardHeader>
@@ -291,9 +392,33 @@ export function DashboardContent({
                     </div>
                   </div>
                 </CardContent>
-                <CardFooter className="flex justify-end gap-2">
-                  <Button variant="outline">Host</Button>
-                  <Button variant="outline">Tryout</Button>
+                <CardFooter className="flex flex-wrap justify-end gap-2">
+                  {tabKey === "myQuiz" ? (
+                    <>
+                      <Button variant="outline" size="sm" onClick={() => handleEditClick(quiz.id)}>
+                        <Edit className="mr-1 h-4 w-4" /> Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAnalyticClick(quiz.id)}>
+                        <BarChart3 className="mr-1 h-4 w-4" /> Analytic
+                      </Button>
+                      <Button variant="outline" size="sm" onClick={() => handleHostClick(quiz.id)}>
+                        Host
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        Tryout
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button variant="outline" onClick={() => handleHostClick(quiz.id)}>
+                        Host
+                      </Button>
+                      <Button variant="outline">Tryout</Button>
+                    </>
+                  )}
                 </CardFooter>
               </Card>
             );
@@ -373,7 +498,7 @@ export function DashboardContent({
       {/* Tabs Layout */}
       <div className="flex flex-row items-center justify-between gap-2 sm:flex-row">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-4">
-          <div className="flex flex-col items-center justify-between space-y-2 sm:flex-row sm:space-y-0">
+          <div className="flex items-center justify-between">
             <TabsList>
               <TabsTrigger value="quiz">Quiz</TabsTrigger>
               <TabsTrigger value="myQuiz">My Quiz</TabsTrigger>
@@ -382,12 +507,12 @@ export function DashboardContent({
 
             <div className="flex w-full flex-row items-center justify-end gap-2 sm:w-auto">
               <Button variant="outline" className="">
-                <PlusIcon />
+                <PlusIcon className="hidden sm:block"/>
                 <span className="hidden sm:inline">Create Quiz</span>
                 <span className="inline sm:hidden">Create</span>
               </Button>
               <Button variant="outline" className="flex">
-                <Play />
+                <Play className="hidden sm:block"/>
                 <span className="hidden sm:inline">Join Quiz</span>
                 <span className="inline sm:hidden">Join</span>
               </Button>

@@ -77,6 +77,7 @@ export default async function Page() {
     const favorites = Array.isArray(q.favorite) ? q.favorite : [];
 
     return {
+      id: q.id,
       title: q.title,
       creator: profile?.username || "Unknown",
       creatorPicture: profile?.avatar_url || "/images/avatars/01.png",
@@ -112,6 +113,7 @@ export default async function Page() {
       myQuizzes={myQuizzes}
       favoriteQuizzes={favoriteQuizzes}
       categories={categories}
+      currentProfileId={currentProfileId}
     />
   );
 }

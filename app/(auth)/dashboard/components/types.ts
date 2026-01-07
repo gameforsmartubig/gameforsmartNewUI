@@ -7,6 +7,7 @@ export type Category = {
 };
 
 export type Quiz = {
+  id: string;
   title: string;
   creator: string;
   creatorPicture: string;
