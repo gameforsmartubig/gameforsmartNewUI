@@ -10,11 +10,16 @@ import {
   CircleQuestionMark,
   ClockPlus,
   Edit,
+  Ellipsis,
+  EllipsisVertical,
   Languages,
+  MoreHorizontal,
   Play,
   PlusIcon,
   Search,
-  User
+  User,
+  Star,
+  StarOff
 } from "lucide-react";
 import { useState } from "react";
 import { Input } from "@/components/ui/input";
@@ -22,10 +27,12 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
+import { supabaseRealtime } from "@/lib/supabase-realtime";
 import { toast } from "sonner";
 
 import type { Category, Quiz } from "./types";
@@ -147,7 +154,7 @@ export function DashboardContent({
         application: "gameforsmartNewUI" // Branding
       };
 
-      // 3. Create Session
+      // 3. Create Session in MAIN Database (for records/history)
       const { data: newSession, error: sessionError } = await supabase
         .from("game_sessions")
         .insert(sessionData)
@@ -155,12 +162,39 @@ export function DashboardContent({
         .single();
 
       if (sessionError || !newSession) {
-        console.error("Session creation error:", sessionError);
-        toast.error("Gagal membuat sesi game");
+        console.error("Session creation error (Main DB):", sessionError);
+        toast.error("Gagal membuat sesi game di database utama");
         return;
       }
 
-      // 4. Redirect
+      // 4. Create Session in REALTIME Database (for fast gameplay)
+      // 4. Create Session in REALTIME Database (optimized schema)
+      // Map data clearly to match table 'game_sessions_rt'
+      const sessionDataForRealtime = {
+        id: newSession.id,
+        game_pin: gamePin,
+        quiz_id: quizId,
+        host_id: currentProfileId,
+        status: "waiting",
+        total_time_minutes: 5,
+        game_end_mode: "first_finish",
+        allow_join_after_start: false,
+        question_limit: "5",
+        application: "gameforsmartNewUI"
+      };
+
+      const { error: realtimeError } = await supabaseRealtime
+        .from("game_sessions_rt")
+        .insert(sessionDataForRealtime);
+
+      if (realtimeError) {
+        console.error("Session creation error (Realtime DB):", realtimeError);
+        toast.warning(
+          "Sesi dibuat di DB utama tapi gagal di DB realtime. Game mungkin tidak berjalan optimal."
+        );
+      }
+
+      // 5. Redirect
       router.push(`/host/${newSession.id}/settings`);
     } catch (error) {
       console.error("Error creating session:", error);
@@ -174,6 +208,91 @@ export function DashboardContent({
 
   const handleAnalyticClick = (quizId: string) => {
     router.push(`/quiz/${quizId}/analytic`);
+  };
+
+  // Favorite Logic
+  const toggleFavoriteQuiz = async (quiz: Quiz) => {
+    if (!currentProfileId) {
+      toast.error("Silakan login untuk menyimpan favorit.");
+      return;
+    }
+
+    // Determine current state based on passed prop data (which should be fresh from server)
+    const isCurrentlyFavorited = quiz._raw?.isFavorite;
+
+    try {
+      // 1. Get current profile's favorites list
+      const { data: profile, error: profileError } = await supabase
+        .from("profiles")
+        .select("favorite_quiz")
+        .eq("id", currentProfileId)
+        .single();
+
+      if (profileError) throw profileError;
+
+      // Ensure favorites structure exists
+      let currentFavorites: string[] = [];
+      const favData = profile?.favorite_quiz as { favorites?: string[] } | null;
+      if (favData && Array.isArray(favData.favorites)) {
+        currentFavorites = favData.favorites;
+      }
+
+      // 2. Get quiz's favorite list (who favorited it)
+      const { data: quizData, error: quizDataError } = await supabase
+        .from("quizzes")
+        .select("favorite")
+        .eq("id", quiz.id)
+        .single();
+
+      if (quizDataError) throw quizDataError;
+
+      let quizFavoriteProfiles: string[] = [];
+      if (quizData?.favorite && Array.isArray(quizData.favorite)) {
+        quizFavoriteProfiles = quizData.favorite;
+      }
+
+      // 3. Toggle logic
+      let newFavorites: string[] = [];
+      let newQuizFavorites: string[] = [];
+
+      if (isCurrentlyFavorited) {
+        // Remove
+        newFavorites = currentFavorites.filter((id) => id !== quiz.id);
+        newQuizFavorites = quizFavoriteProfiles.filter((id) => id !== currentProfileId);
+        toast.info("Dihapus dari favorit");
+      } else {
+        // Add
+        // Use Set to prevent duplicates
+        newFavorites = Array.from(new Set([...currentFavorites, quiz.id]));
+        newQuizFavorites = Array.from(new Set([...quizFavoriteProfiles, currentProfileId]));
+        toast.success("Ditambahkan ke favorit");
+      }
+
+      // 4. Update Database
+      // Update Profile
+      const { error: updateProfileError } = await supabase
+        .from("profiles")
+        .update({ favorite_quiz: { favorites: newFavorites } })
+        .eq("id", currentProfileId);
+
+      if (updateProfileError) throw updateProfileError;
+
+      // Update Quiz
+      const { error: updateQuizError } = await supabase
+        .from("quizzes")
+        .update({ favorite: newQuizFavorites })
+        .eq("id", quiz.id);
+
+      if (updateQuizError) throw updateQuizError;
+
+      // Ideally trigger a refresh of the page data here.
+      // Since this is a client component receiving props from a server component,
+      // we navigate to current path to refresh server props.
+      router.refresh();
+    } catch (e) {
+      console.error("Error toggling favorite:", e);
+      toast.error("Gagal mengubah status favorit");
+    }
   };
 
   // Filter Logic
@@ -357,69 +476,110 @@ export function DashboardContent({
             const Icon = category
               ? categoryIconMap[category.icon] || categoryIconMap["BookOpen"]
               : categoryIconMap["BookOpen"];
+            const isFavorite = quiz._raw?.isFavorite;
+
             return (
-              <Card key={quiz.id}>
-                <CardHeader>
-                  <CardTitle>{quiz.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-4">
-                  <div className="flex flex-row items-center justify-start gap-3 text-sm">
-                    <div className="flex items-center gap-1">
-                      <User size={16} /> {quiz.creator}
+              <Card key={quiz.id} className="transition-colors hover:bg-neutral-50">
+                <CardContent className="flex flex-col gap-2 px-5 py-0">
+                  <div className="flex items-center justify-between">
+                    <div className="flex gap-1 text-gray-600">
+                      <div className="rounded-lg border border-gray-200 bg-blue-50 px-1.5 py-1 text-sm font-medium">
+                        {category?.title || "Umum"}
+                      </div>
+                      <div className="rounded-lg border border-gray-200 px-1.5 py-1 text-sm font-medium uppercase">
+                        {quiz.language}
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <ClockPlus size={16} /> {quiz.createdAt}
+                    {/* Common Dropdown Menu Logic */}
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                          <EllipsisVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => toggleFavoriteQuiz(quiz)}>
+                          {isFavorite ? (
+                            <>
+                              <StarOff className="mr-2 h-4 w-4" />
+                              <span>Unfavorite</span>
+                            </>
+                          ) : (
+                            <>
+                              <Star className="mr-2 h-4 w-4" />
+                              <span>Favorite</span>
+                            </>
+                          )}
+                        </DropdownMenuItem>
+                        {tabKey === "myQuiz" ? (
+                          <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem>Report</DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+
+                  <h1 className="line-clamp-1 text-lg font-bold" title={quiz.title}>
+                    {quiz.title}
+                  </h1>
+
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <User size={14} />
+                    <span className="line-clamp-1">{quiz.creator}</span>
+                  </div>
+
+                  <div className="mt-1 flex items-center gap-6 text-sm text-gray-500">
+                    <div className="flex items-center gap-1.5">
+                      <CircleQuestionMark size={14} />
+                      <div>{quiz.questions} Questions</div>
                     </div>
-                    <div className="flex items-center gap-1">
-                      <Languages size={16} /> {quiz.language}
+                    <div className="flex items-center gap-1.5">
+                      <Play size={14} />
+                      <div>{quiz.played} Plays</div>
                     </div>
                   </div>
-                  <div className="flex flex-row items-center justify-evenly gap-2 text-sm">
-                    <div className="flex flex-col items-center gap-1">
-                      <CircleQuestionMark size={32} />
-                      <div>{quiz.questions}</div>
-                      <div>Pertanyaan</div>
-                    </div>
-                    <div className="flex flex-col items-center gap-1">
-                      <Icon size={32} />
-                      <div>{category?.title || "Umum"}</div>
-                      <div>Kategori</div>
-                    </div>
-                    <div className="flex flex-col items-center gap-1">
-                      <Play size={32} />
-                      <div>{quiz.played}</div>
-                      <div>Dimainkan</div>
-                    </div>
+
+                  <div className="mt-auto flex flex-wrap justify-end gap-2 pt-4">
+                    {tabKey === "myQuiz" ? (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditClick(quiz.id)}>
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleAnalyticClick(quiz.id)}>
+                          Analytic
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleHostClick(quiz.id)}>
+                          Host
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          Tryout
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleHostClick(quiz.id)}>
+                          Host
+                        </Button>
+                        <Button variant="outline" size="sm">
+                          Tryout
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </CardContent>
-                <CardFooter className="flex flex-wrap justify-end gap-2">
-                  {tabKey === "myQuiz" ? (
-                    <>
-                      <Button variant="outline" size="sm" onClick={() => handleEditClick(quiz.id)}>
-                        <Edit className="mr-1 h-4 w-4" /> Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAnalyticClick(quiz.id)}>
-                        <BarChart3 className="mr-1 h-4 w-4" /> Analytic
-                      </Button>
-                      <Button variant="outline" size="sm" onClick={() => handleHostClick(quiz.id)}>
-                        Host
-                      </Button>
-                      <Button variant="outline" size="sm">
-                        Tryout
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <Button variant="outline" onClick={() => handleHostClick(quiz.id)}>
-                        Host
-                      </Button>
-                      <Button variant="outline">Tryout</Button>
-                    </>
-                  )}
-                </CardFooter>
               </Card>
             );
           })}
@@ -507,12 +667,12 @@ export function DashboardContent({
 
             <div className="flex w-full flex-row items-center justify-end gap-2 sm:w-auto">
               <Button variant="outline" className="">
-                <PlusIcon className="hidden sm:block"/>
+                <PlusIcon className="hidden sm:block" />
                 <span className="hidden sm:inline">Create Quiz</span>
                 <span className="inline sm:hidden">Create</span>
               </Button>
               <Button variant="outline" className="flex">
-                <Play className="hidden sm:block"/>
+                <Play className="hidden sm:block" />
                 <span className="hidden sm:inline">Join Quiz</span>
                 <span className="inline sm:hidden">Join</span>
               </Button>
