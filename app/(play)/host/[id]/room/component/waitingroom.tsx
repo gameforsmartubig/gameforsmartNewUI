@@ -377,7 +377,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
         </div>
 
         {/* Right Column: Controls & QR */}
-        <div className="order-1 p-4 pl-0">
+        <div className="order-1 p-4 sm:pl-0 pb-0">
         <Card className="h-full bg-white lg:order-2 ">
           <CardContent className="sticky top-0 flex h-full flex-col gap-6">
             {/* Branding */}
