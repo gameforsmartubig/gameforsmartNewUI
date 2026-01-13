@@ -51,7 +51,7 @@ function AuthCallbackPageContent() {
           setStatus("Gagal memverifikasi session");
           setIsError(true);
           setTimeout(() => {
-            router.push("/auth/login?error=Authentication failed");
+            router.push("/login?error=Authentication failed");
           }, 2000);
           return;
         }
@@ -118,7 +118,7 @@ function AuthCallbackPageContent() {
           setIsError(true);
           // Tidak ada session, kembali ke login
           setTimeout(() => {
-            router.push("/auth/login");
+            router.push("/login");
           }, 2000);
         }
       } catch (error) {
@@ -126,7 +126,7 @@ function AuthCallbackPageContent() {
         setStatus("Terjadi kesalahan saat memproses login");
         setIsError(true);
         setTimeout(() => {
-          router.push("/auth/login?error=Callback processing failed");
+          router.push("/login?error=Callback processing failed");
         }, 2000);
       }
     };

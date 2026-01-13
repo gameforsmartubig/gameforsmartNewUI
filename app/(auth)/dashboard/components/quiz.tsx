@@ -671,7 +671,7 @@ export function DashboardContent({
                 <span className="hidden sm:inline">Create Quiz</span>
                 <span className="inline sm:hidden">Create</span>
               </Button>
-              <Button variant="outline" className="flex">
+              <Button onClick={() => router.push("/join")} variant="outline" className="flex">
                 <Play className="hidden sm:block" />
                 <span className="hidden sm:inline">Join Quiz</span>
                 <span className="inline sm:hidden">Join</span>
