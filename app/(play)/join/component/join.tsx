@@ -26,11 +26,16 @@ function JoinGameContent() {
 
   useEffect(() => {
     const pin = searchParams.get("pin");
+    const pinFromLocalStorage = localStorage.getItem("pin");
     if (pin) {
       setGamePin(pin);
       // Optional: Auto join logic here if desired
     }
-  }, [searchParams]);
+    if (pinFromLocalStorage) {
+      setGamePin(pinFromLocalStorage);
+      localStorage.removeItem("pin");
+    }
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -183,25 +188,34 @@ function JoinGameContent() {
         user_id: profile_id,
         nickname: username_val || "Player",
         score: 0,
-        started: null,
+        started: new Date().toISOString(),
         ended: null
       };
 
+      const updatedParticipants = [...currentParticipants, newParticipant];
+
+      // 1. Update Main DB (Single source of truth first)
       const { error: updateError } = await supabase
         .from("game_sessions")
-        .update({ participants: [...currentParticipants, newParticipant] })
+        .update({ participants: updatedParticipants })
         .eq("id", session.id);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        throw new Error("Failed to join session in Main DB: " + updateError.message);
+      }
 
-      // Realtime DB Sync
+      // 2. Update Realtime DB (Best effort, non-blocking for critical path if Main DB succeeded, but wait for it to ensure consistency)
       if (isRealtimeDbConfigured) {
-        await addParticipantRT({
-          id: newParticipant.id,
-          session_id: session.id,
-          user_id: profile_id,
-          nickname: newParticipant.nickname
-        });
+        try {
+          await addParticipantRT({
+            id: newParticipant.id,
+            session_id: session.id,
+            user_id: profile_id,
+            nickname: newParticipant.nickname
+          });
+        } catch (rtError) {
+          console.error("Realtime DB join error (ignoring as Main DB succeeded):", rtError);
+        }
       }
 
       router.push(`/player/${session.id}/room/?participant=${newParticipant.id}`);

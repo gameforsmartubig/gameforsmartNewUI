@@ -462,7 +462,7 @@ export function DashboardContent({
 
     if (quizzes.length === 0) {
       return (
-        <div className="flex h-40 w-full flex-col items-center justify-center text-gray-500">
+        <div className="text-muted-foreground flex h-40 w-full flex-col items-center justify-center">
           <p>Tidak ada kuis yang ditemukan.</p>
         </div>
       );
@@ -479,14 +479,16 @@ export function DashboardContent({
             const isFavorite = quiz._raw?.isFavorite;
 
             return (
-              <Card key={quiz.id} className="transition-colors hover:bg-neutral-50">
+              <Card
+                key={quiz.id}
+                className="transition-colors hover:bg-neutral-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/50">
                 <CardContent className="flex flex-col gap-2 px-5 py-0">
                   <div className="flex items-center justify-between">
-                    <div className="flex gap-1 text-gray-600">
-                      <div className="rounded-lg border border-gray-200 bg-blue-50 px-1.5 py-1 text-sm font-medium">
+                    <div className="text-muted-foreground flex gap-1 dark:text-zinc-400">
+                      <div className="rounded-lg border border-gray-200 bg-blue-50 px-1.5 py-1 text-sm font-medium dark:border-zinc-700 dark:bg-blue-950/30 dark:text-blue-200">
                         {category?.title || "Umum"}
                       </div>
-                      <div className="rounded-lg border border-gray-200 px-1.5 py-1 text-sm font-medium uppercase">
+                      <div className="rounded-lg border border-gray-200 px-1.5 py-1 text-sm font-medium uppercase dark:border-zinc-700">
                         {quiz.language}
                       </div>
                     </div>
@@ -524,12 +526,12 @@ export function DashboardContent({
                     {quiz.title}
                   </h1>
 
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
                     <User size={14} />
                     <span className="line-clamp-1">{quiz.creator}</span>
                   </div>
 
-                  <div className="mt-1 flex items-center gap-6 text-sm text-gray-500">
+                  <div className="mt-1 flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
                     <div className="flex items-center gap-1.5">
                       <CircleQuestionMark size={14} />
                       <div>{quiz.questions} Questions</div>

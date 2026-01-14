@@ -17,24 +17,18 @@ function AuthCallbackPageContent() {
         setStatus("Memverifikasi session...");
 
         // Handle hash fragment from OAuth redirect
-        const hashParams = new URLSearchParams(
-          window.location.hash.substring(1)
-        );
+        const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get("access_token");
 
         console.log("🔥 Hash params:", window.location.hash);
-        console.log(
-          "🔥 Access token from hash:",
-          accessToken ? "Found" : "Not found"
-        );
+        console.log("🔥 Access token from hash:", accessToken ? "Found" : "Not found");
 
         // If we have access token in hash, exchange it for session
         if (accessToken) {
-          const { data: sessionData, error: sessionError } =
-            await supabase.auth.setSession({
-              access_token: accessToken,
-              refresh_token: hashParams.get("refresh_token") || "",
-            });
+          const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+            access_token: accessToken,
+            refresh_token: hashParams.get("refresh_token") || ""
+          });
 
           if (sessionError) {
             console.error("Error setting session from hash:", sessionError);
@@ -88,8 +82,9 @@ function AuthCallbackPageContent() {
             .single();
 
           // Check if profile needs completion (username or location missing)
-          const hasValidUsername = profile?.username && 
-            !profile.username.includes("@") && 
+          const hasValidUsername =
+            profile?.username &&
+            !profile.username.includes("@") &&
             !profile.username.startsWith("user_") &&
             profile.username.length >= 3;
           const hasLocation = profile?.country_id !== null && profile?.country_id !== undefined;
@@ -172,8 +167,7 @@ function AuthCallbackPageContent() {
         // Buat profil baru dengan semua field yang diperlukan
         // NOTE: Don't pass 'id' - the trigger will auto-generate XID
         // Pass 'auth_user_id' to link with auth.users table
-        const fullname =
-          user.user_metadata?.full_name || user.user_metadata?.name || username;
+        const fullname = user.user_metadata?.full_name || user.user_metadata?.name || username;
 
         const profileData: any = {
           auth_user_id: user.id,
@@ -181,12 +175,10 @@ function AuthCallbackPageContent() {
           email: user.email || "",
           fullname: fullname || null,
           avatar_url: user.user_metadata?.avatar_url || null,
-          created_at: new Date().toISOString(),
+          created_at: new Date().toISOString()
         };
 
-        const { error: insertError } = await supabase
-          .from("profiles")
-          .insert(profileData);
+        const { error: insertError } = await supabase.from("profiles").insert(profileData);
 
         if (insertError) {
           console.error("Error creating profile:", insertError);
@@ -205,18 +197,17 @@ function AuthCallbackPageContent() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
-      <div className="text-center max-w-md mx-auto p-6">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      <div className="mx-auto max-w-md p-6 text-center">
         {!isError ? (
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
         ) : (
-          <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
             <svg
-              className="w-6 h-6 text-red-600"
+              className="h-6 w-6 text-red-600"
               fill="none"
               stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
+              viewBox="0 0 24 24">
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -226,15 +217,9 @@ function AuthCallbackPageContent() {
             </svg>
           </div>
         )}
-        <p
-          className={`${
-            isError ? "text-red-600" : "text-blue-600"
-          } font-medium`}
-        >
-          {status}
-        </p>
+        <p className={`${isError ? "text-red-600" : "text-blue-600"} font-medium`}>{status}</p>
         {isError && (
-          <p className="text-gray-500 text-sm mt-2">
+          <p className="mt-2 text-sm text-gray-500">
             Anda akan diarahkan kembali dalam beberapa detik...
           </p>
         )}
@@ -247,14 +232,13 @@ export default function AuthCallbackPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+        <div className="flex min-h-screen items-center justify-center bg-white">
+          <div className="text-center">
+            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-purple-600"></div>
+            <p className="text-gray-600">Loading...</p>
+          </div>
         </div>
-      </div>
-      }
-    >
+      }>
       <AuthCallbackPageContent />
     </Suspense>
   );

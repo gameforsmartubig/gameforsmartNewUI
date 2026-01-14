@@ -24,7 +24,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Hourglass, Trophy } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { supabaseRealtime } from "@/lib/supabase-realtime";
+import { supabaseRealtime, isRealtimeDbConfigured } from "@/lib/supabase-realtime";
 import { toast } from "sonner";
 
 // Helper function to update realtime session
@@ -184,6 +184,13 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
 
       if (updateQError) throw updateQError;
 
+      // Update Realtime DB with selected questions
+      if (isRealtimeDbConfigured) {
+        await updateGameSessionRT(sessionId, {
+          current_questions: selectedQuestions || []
+        });
+      }
+
       toast.success("Pengaturan disimpan");
       router.push(`/host/${sessionId}/room`); // Redirect to waiting room (usually next step)
     } catch (err: any) {
@@ -202,19 +209,19 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <div className="flex items-center justify-center lg:h-screen">
-      <Card className="mx-auto w-full max-w-4xl border-0  shadow-lg backdrop-blur-sm">
+      <Card className="mx-auto w-full max-w-4xl border-0 bg-white shadow-lg backdrop-blur-sm dark:border dark:border-zinc-800 dark:bg-zinc-900">
         <CardHeader>
           <CardTitle className="text-xl font-bold tracking-tight lg:text-2xl">Settings</CardTitle>
           <CardDescription>{quizData?.title || "Quiz Title"}</CardDescription>
         </CardHeader>
-        <Separator/>
+        <Separator />
         <CardContent className="space-y-6 pt-6">
           <div className="flex flex-col gap-6 md:flex-row">
             {/* Duration Select */}
             <div className="w-full flex-1 space-y-2">
               <Label>Quiz Duration (Minutes)</Label>
               <Select value={totalTimeMinutes} onValueChange={setTotalTimeMinutes}>
-                <SelectTrigger className="w-full bg-white">
+                <SelectTrigger className="w-full bg-white dark:border-zinc-800 dark:bg-zinc-950">
                   <SelectValue placeholder="Select duration" />
                 </SelectTrigger>
                 <SelectContent>
@@ -231,7 +238,7 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
             <div className="flex-1 space-y-2">
               <Label>Total Questions</Label>
               <Select value={questionLimit} onValueChange={setQuestionLimit}>
-                <SelectTrigger className="w-full bg-white">
+                <SelectTrigger className="w-full bg-white dark:border-zinc-800 dark:bg-zinc-950">
                   <SelectValue placeholder="Select question limit" />
                 </SelectTrigger>
                 <SelectContent>
@@ -264,7 +271,7 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
               onValueChange={setGameEndMode}
               className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div
-                className={`flex cursor-pointer items-center gap-4 rounded-xl border px-4 py-3 transition-all ${gameEndMode === "first_finish" ? "border-primary bg-primary/5 ring-primary ring-1" : "hover:bg-gray-50"}`}>
+                className={`flex cursor-pointer items-center gap-4 rounded-xl border px-4 py-3 transition-all ${gameEndMode === "first_finish" ? "border-primary bg-primary/5 ring-primary dark:bg-primary/10 ring-1" : "hover:bg-gray-50 dark:border-zinc-800 dark:hover:bg-zinc-800"}`}>
                 <RadioGroupItem value="first_finish" id="first_finish" />
                 <div className="flex flex-1 flex-col pl-2">
                   <Label htmlFor="first_finish" className="cursor-pointer font-semibold">
@@ -278,7 +285,7 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
               </div>
 
               <div
-                className={`flex cursor-pointer items-center gap-4 rounded-xl border px-4 py-3 transition-all ${gameEndMode === "wait_timer" ? "border-primary bg-primary/5 ring-primary ring-1" : "hover:bg-gray-50"}`}>
+                className={`flex cursor-pointer items-center gap-4 rounded-xl border px-4 py-3 transition-all ${gameEndMode === "wait_timer" ? "border-primary bg-primary/5 ring-primary dark:bg-primary/10 ring-1" : "hover:bg-gray-50 dark:border-zinc-800 dark:hover:bg-zinc-800"}`}>
                 <RadioGroupItem value="wait_timer" id="wait_timer" />
                 <div className="flex flex-1 flex-col pl-2">
                   <Label htmlFor="wait_timer" className="cursor-pointer font-semibold">
@@ -294,7 +301,7 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
           </div>
 
           {/* Late Join */}
-          <div className="flex items-center gap-4 rounded-xl border bg-gray-50/50 p-4">
+          <div className="flex items-center gap-4 rounded-xl border bg-gray-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
             <Checkbox
               id="allow_late"
               checked={allowJoinAfterStart}
