@@ -90,90 +90,81 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   };
 
   // Start handling logic
+  // Start handling logic: Call Edge Function
   const handleStartGame = async () => {
     if (!gameSession) return;
     try {
-      // 1. Set countdown_started_at in DB (Status remains 'waiting' or whatever current status is)
-      const countdownStart = new Date().toISOString();
-      const updateData = {
-        countdown_started_at: countdownStart
-      };
+      const { error } = await supabase.functions.invoke("start-game", {
+        body: { sessionId }
+      });
 
-      // Update Realtime DB ONLY for countdown (skip Main DB to reduce latency/write load)
-      if (isRealtimeDbConfigured) {
-        await updateGameSessionRT(sessionId, updateData);
-      } else {
-        // Fallback: If no RT configured, we must update Main DB otherwise no one sees it
-        await supabase.from("game_sessions").update(updateData).eq("id", sessionId);
-      }
+      if (error) throw error;
 
-      // 2. Start Local Countdown
-      // Calculate offset immediately for local usage
-      calculateOffsetFromTimestamp(countdownStart);
-      setCountdownLeft(10);
+      toast.dismiss("start-game");
+      // UI will automatically update via Realtime subscription when countdown_started_at changes
+    } catch (error) {
+      console.error("Error starting game:", error);
+      toast.error("Failed to start game");
+      toast.dismiss("start-game");
+    }
+  };
 
-      const interval = setInterval(async () => {
-        setCountdownLeft((prev) => {
-          if (prev !== null && prev > 1) {
-            return prev - 1;
+  // Effect: Watch for Status Change -> Active
+  useEffect(() => {
+    if (gameSession?.status === "active" && quizData) {
+      const saveAndRedirect = async () => {
+        // Prepare Questions for LocalStorage
+        let questionsToStore = quizData.questions || [];
+        if (gameSession.question_limit && gameSession.question_limit !== "all") {
+          const limit = parseInt(gameSession.question_limit);
+          if (!isNaN(limit)) {
+            questionsToStore = questionsToStore.slice(0, limit);
           }
-
-          clearInterval(interval);
-          finishCountdownAndStart();
-          return 0;
-        });
-      }, 1000);
-    } catch (error) {
-      console.error("Error starting countdown:", error);
-      toast.error("Failed to start countdown");
-    }
-  };
-
-  const finishCountdownAndStart = async () => {
-    if (!gameSession || !quizData) return;
-
-    try {
-      // Prepare Questions for LocalStorage
-      let questionsToStore = quizData.questions || [];
-      if (gameSession.question_limit && gameSession.question_limit !== "all") {
-        const limit = parseInt(gameSession.question_limit);
-        if (!isNaN(limit)) {
-          questionsToStore = questionsToStore.slice(0, limit);
         }
-      }
 
-      // Store in LocalStorage to speed up Play page render
-      const storageData = {
-        questions: questionsToStore,
-        quiz: {
-          title: quizData.title,
-          description: quizData.description
-        },
-        session: gameSession
+        // Store in LocalStorage
+        const storageData = {
+          questions: questionsToStore,
+          quiz: {
+            title: quizData.title,
+            description: quizData.description
+          },
+          session: gameSession
+        };
+        localStorage.setItem(`host_game_data_${sessionId}`, JSON.stringify(storageData));
+
+        router.push(`/host/${sessionId}/play`);
       };
-      localStorage.setItem(`host_game_data_${sessionId}`, JSON.stringify(storageData));
-
-      // UPDATE STATUS TO ACTIVE
-      const updateData = {
-        status: "active",
-        started_at: new Date().toISOString()
-      };
-
-      // Update Main DB
-      await supabase.from("game_sessions").update(updateData).eq("id", sessionId);
-
-      // Update Realtime DB
-      if (isRealtimeDbConfigured) {
-        await updateGameSessionRT(sessionId, updateData);
-      }
-
-      toast.success("Game started!");
-      router.push(`/host/${sessionId}/play`);
-    } catch (error) {
-      console.error("Error finalizing game start:", error);
-      toast.error("Failed to transition to active game");
+      saveAndRedirect();
     }
-  };
+  }, [gameSession?.status, quizData, sessionId, router, gameSession?.question_limit]);
+
+  // Effect: Visual Countdown Logic (Read-Only)
+  useEffect(() => {
+    if (gameSession?.countdown_started_at && gameSession.status !== "active" && serverTimeReady) {
+      // Calculate offset ONCE when timestamp changes or server time becomes ready
+      // REMOVED: calculateOffsetFromTimestamp(gameSession.countdown_started_at);
+      // Logic relies on the global offset initialized in the first useEffect
+
+      const interval = setInterval(() => {
+        const now = getServerNow();
+        const start = new Date(gameSession.countdown_started_at).getTime();
+        const target = start + 10000; // 10s duration
+        const diffInMs = target - now;
+        const diffInSeconds = Math.ceil(diffInMs / 1000);
+
+        if (diffInSeconds > 0) {
+          setCountdownLeft((prev) => (prev !== diffInSeconds ? diffInSeconds : prev));
+        } else {
+          setCountdownLeft((prev) => (prev !== 0 ? 0 : prev));
+        }
+      }, 100); // Check frequently (100ms) for smoother updates upon tab focus
+
+      return () => clearInterval(interval);
+    } else if (gameSession?.status === "active" || !gameSession?.countdown_started_at) {
+      setCountdownLeft(null);
+    }
+  }, [gameSession?.countdown_started_at, gameSession?.status, serverTimeReady]);
 
   const handleKickPlayer = async () => {
     if (!participantToKick || !gameSession) return;
@@ -347,38 +338,6 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
       };
     }
   }, [gameSession, sessionId]);
-
-  // Resume countdown on refresh if applicable
-  useEffect(() => {
-    if (gameSession?.countdown_started_at && gameSession.status !== "active" && serverTimeReady) {
-      calculateOffsetFromTimestamp(gameSession.countdown_started_at);
-      const now = getServerNow();
-      const start = new Date(gameSession.countdown_started_at).getTime();
-      const diff = Math.ceil((start + 10000 - now) / 1000); // 10s duration
-
-      if (diff > 0) {
-        setCountdownLeft(diff);
-        const interval = setInterval(() => {
-          setCountdownLeft((prev) => {
-            if (prev !== null && prev > 1) return prev - 1;
-
-            clearInterval(interval);
-            finishCountdownAndStart();
-            return 0;
-          });
-        }, 1000);
-        return () => clearInterval(interval);
-      } else {
-        // If time passed but status not active (edge case), force start?
-        // Or maybe it was already processed.
-        // Let's safe guard:
-        if (diff > -5) {
-          // Only if recently finished
-          finishCountdownAndStart();
-        }
-      }
-    }
-  }, [gameSession, serverTimeReady]);
 
   if (isLoading || !quizData) {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;

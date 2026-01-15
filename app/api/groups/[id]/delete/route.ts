@@ -2,10 +2,9 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
 // Environment variables with fallbacks
-const supabaseUrl =
-  process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
 const supabaseServiceKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_SERVICE_ROLE_KEY ||
   process.env.SUPABASE_SERVICE_KEY ||
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
   "placeholder-key";
@@ -14,8 +13,8 @@ const supabaseServiceKey =
 const supabaseServer = createClient(supabaseUrl, supabaseServiceKey, {
   auth: {
     autoRefreshToken: false,
-    persistSession: false,
-  },
+    persistSession: false
+  }
 });
 
 // DELETE - Delete a group and all related data
@@ -27,10 +26,7 @@ export async function DELETE(
     // Get the authorization header
     const authHeader = request.headers.get("authorization");
     if (!authHeader?.startsWith("Bearer ")) {
-      return NextResponse.json(
-        { error: "No authorization token provided" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "No authorization token provided" }, { status: 401 });
     }
 
     const token = authHeader.split(" ")[1];
@@ -38,25 +34,19 @@ export async function DELETE(
     // Verify the user with the token
     const {
       data: { user },
-      error: authError,
+      error: authError
     } = await supabaseServer.auth.getUser(token);
 
     if (authError || !user) {
       console.error("Auth error:", authError);
-      return NextResponse.json(
-        { error: "Invalid or expired token" },
-        { status: 401 }
-      );
+      return NextResponse.json({ error: "Invalid or expired token" }, { status: 401 });
     }
 
     // Await params before accessing properties (Next.js 15+ requirement)
     const { id: groupId } = await params;
 
     if (!groupId) {
-      return NextResponse.json(
-        { error: "Group ID is required" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Group ID is required" }, { status: 400 });
     }
 
     // First, check if the group exists and get group info with members
@@ -67,10 +57,7 @@ export async function DELETE(
       .single();
 
     if (groupError || !group) {
-      return NextResponse.json(
-        { error: "Group not found or already deleted" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "Group not found or already deleted" }, { status: 404 });
     }
 
     // First get the user's profile ID from auth_user_id
@@ -81,10 +68,7 @@ export async function DELETE(
       .single();
 
     if (profileError || !profileData) {
-      return NextResponse.json(
-        { error: "User profile not found" },
-        { status: 404 }
-      );
+      return NextResponse.json({ error: "User profile not found" }, { status: 404 });
     }
 
     const userProfileId = profileData.id;
@@ -98,15 +82,10 @@ export async function DELETE(
     } else {
       // Check if user is in the members JSONB
       const members = group.members || [];
-      const userMember = members.find(
-        (member: any) => member.user_id === userProfileId
-      );
+      const userMember = members.find((member: any) => member.user_id === userProfileId);
 
       if (!userMember) {
-        return NextResponse.json(
-          { error: "You are not a member of this group" },
-          { status: 403 }
-        );
+        return NextResponse.json({ error: "You are not a member of this group" }, { status: 403 });
       }
 
       userRole = userMember.role;
@@ -123,31 +102,24 @@ export async function DELETE(
     // Get member count from JSONB for logging
     const memberCount = (group.members || []).length;
 
-    console.log(
-      `Deleting group "${group.name}" (ID: ${groupId}) with ${memberCount} members`
-    );
+    console.log(`Deleting group "${group.name}" (ID: ${groupId}) with ${memberCount} members`);
 
     // Delete the group - this will cascade delete all related data due to foreign key constraints
-    const { error: deleteError } = await supabaseServer
-      .from("groups")
-      .delete()
-      .eq("id", groupId);
+    const { error: deleteError } = await supabaseServer.from("groups").delete().eq("id", groupId);
 
     if (deleteError) {
       console.error("Error deleting group:", deleteError);
       return NextResponse.json(
         {
           error: "Failed to delete group",
-          details: deleteError.message,
+          details: deleteError.message
         },
         { status: 500 }
       );
     }
 
     // Log successful deletion
-    console.log(
-      `Successfully deleted group "${group.name}" and all related data`
-    );
+    console.log(`Successfully deleted group "${group.name}" and all related data`);
 
     // Return success response with deletion summary
     return NextResponse.json({
@@ -160,16 +132,16 @@ export async function DELETE(
           "group data",
           "group members (JSONB)",
           "join requests (JSONB)",
-          "group settings (JSONB)",
-        ],
-      },
+          "group settings (JSONB)"
+        ]
+      }
     });
   } catch (error: any) {
     console.error("Unexpected error during group deletion:", error);
     return NextResponse.json(
       {
         error: "Internal server error during group deletion",
-        details: error.message,
+        details: error.message
       },
       { status: 500 }
     );
