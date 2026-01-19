@@ -51,6 +51,7 @@ export interface GameSessionRT {
   started_at: string | null;
   ended_at: string | null;
   created_at: string;
+  current_questions: any[] | null;
 }
 
 export interface ParticipantResponseItem {

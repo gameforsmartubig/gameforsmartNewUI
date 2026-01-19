@@ -26,6 +26,12 @@ import {
   getCachedProfile,
   setCachedProfile
 } from "@/lib/supabase-realtime";
+import {
+  calculateServerTimeOffset,
+  getServerNow,
+  calculateOffsetFromTimestamp
+} from "@/lib/server-time";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface WaitingRoomProps {
   sessionId: string;
@@ -42,9 +48,21 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   const [loading, setLoading] = useState(true);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [countdownLeft, setCountdownLeft] = useState<number | null>(null);
+  const [serverTimeReady, setServerTimeReady] = useState(false);
 
   const lastStatusRef = useRef<string>("");
   const profileCache = useRef(new Map<string, any>());
+  const hasShuffledRef = useRef(false);
+
+  // Initialize server time
+  useEffect(() => {
+    const initServerTime = async () => {
+      await calculateServerTimeOffset();
+      setServerTimeReady(true);
+    };
+    initServerTime();
+  }, []);
 
   // Helper to fetch profiles for participants
   const fetchProfiles = async (userIds: string[]) => {
@@ -81,7 +99,8 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
             quizzes (
               id,
               title,
-              description
+              description,
+              questions
             )
           `
           )
@@ -98,29 +117,44 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
         // Ensure participant exists in JSONB for MainDB validation
         const currentParticipants = session.participants || [];
-        const exists = currentParticipants.some((p: any) => p.id === participantId);
-
-        if (!exists) {
-          // If not in Main DB yet, it might be sync latency.
-          // We will rely on the Realtime check later to confirm validity.
-          console.log("Participant not found in Main DB JSONB, waiting for Realtime check...");
-        }
+        // Note: For Main DB check, we rely on the realtime/session data.
+        // We act optimistically here.
 
         setGameSession(session);
         setQuizData(quiz);
         lastStatusRef.current = session.status;
+        setLoading(false);
 
-        // Check active/finished status immediately
-        if (session.status === "active") {
-          // Redirect to play
-          router.push(`/player/${sessionId}/play?participant=${participantId}`);
-        } else if (session.status === "finished") {
-          router.push(`/player/${sessionId}/results?participant=${participantId}`);
+        // Fetch user profiles for existing participants (if in main db JSONB)
+        const userIds = currentParticipants.map((p: any) => p.user_id).filter((id: any) => id);
+        if (userIds.length > 0) {
+          await fetchProfiles(userIds);
         }
 
-        setLoading(false);
+        // If RT available, initial fetch for RT participants
+        if (isRealtimeDbConfigured) {
+          const partsRT = await getParticipantsRT(sessionId);
+          // Fetch profiles
+          const rtUserIds = partsRT.map((p) => p.user_id).filter((id) => id) as string[];
+          await fetchProfiles(rtUserIds);
+
+          setParticipants(
+            partsRT.map((p) => ({
+              ...p,
+              avatar_url: p.user_id ? profileCache.current.get(p.user_id)?.avatar_url : null
+            }))
+          );
+        } else {
+          setParticipants(
+            currentParticipants.map((p: any) => ({
+              ...p,
+              avatar_url: p.user_id ? profileCache.current.get(p.user_id)?.avatar_url : null
+            }))
+          );
+        }
       } catch (err) {
-        console.error("Error loading session:", err);
+        console.error(err);
+        toast.error("Failed to load session");
         setLoading(false);
       }
     };
@@ -130,54 +164,49 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
   // 2. Realtime Subscription
   useEffect(() => {
-    if (!gameSession || !participantId) return;
+    if (loading) return;
 
     if (isRealtimeDbConfigured && supabaseRealtime) {
-      // Fetch initial RT participants
-      getParticipantsRT(sessionId).then(async (rtParts) => {
-        const userIds = rtParts.map((p) => p.user_id).filter((id): id is string => !!id);
-        await fetchProfiles(userIds);
-
-        const mapped = rtParts.map((p) => ({
-          id: p.id,
-          nickname: p.nickname,
-          user_id: p.user_id,
-          avatar_url: p.user_id ? profileCache.current.get(p.user_id)?.avatar_url : null
-        }));
-        setParticipants(mapped);
-
-        // Check if I exist
-        if (!mapped.find((p) => p.id === participantId)) {
-          handleKick();
-        }
-      });
-
       const channel = subscribeToGameRT(sessionId, {
-        onSessionChange: (payload) => {
-          if (payload.status === "active" && lastStatusRef.current === "waiting") {
-            router.push(`/player/${sessionId}/play?participant=${participantId}`);
-          }
-          if (payload.status === "finished") {
-            router.push(`/player/${sessionId}/results?participant=${participantId}`);
-          }
-          lastStatusRef.current = payload.status;
+        onSessionChange: (updatedSession) => {
+          // Handle status changes
+          if (updatedSession.status !== lastStatusRef.current) {
+            lastStatusRef.current = updatedSession.status;
 
-          // Update game session state locally
-          setGameSession((prev: any) => ({ ...prev, ...payload }));
+            // Sync session state
+            setGameSession((prev: any) => ({ ...prev, ...updatedSession }));
+
+            if (updatedSession.status === "active") {
+              router.push(`/player/${sessionId}/play?participant=${participantId}`);
+            } else if (updatedSession.status === "finished") {
+              router.push(`/player/${sessionId}/results?participant=${participantId}`);
+            }
+          }
+
+          // Also sync countdown_started_at even if status doesn't change
+          if (updatedSession.countdown_started_at) {
+            setGameSession((prev: any) => ({
+              ...prev,
+              countdown_started_at: updatedSession.countdown_started_at
+            }));
+          }
         },
-        onParticipantChange: async () => {
-          const rtParts = await getParticipantsRT(sessionId);
+        onParticipantChange: async ({ eventType, new: newPart, old: oldPart }) => {
+          // Refresh list on any change
+          const parts = await getParticipantsRT(sessionId);
 
-          // Check kick
-          if (!rtParts.find((p) => p.id === participantId)) {
+          // Check if WE were kicked
+          if (eventType === "DELETE" && oldPart && oldPart.id === participantId) {
             handleKick();
             return;
           }
 
-          const userIds = rtParts.map((p) => p.user_id).filter((id): id is string => !!id);
+          // Fetch profiles
+          const userIds = parts.map((p) => p.user_id).filter((id) => id) as string[];
           await fetchProfiles(userIds);
 
-          const mapped = rtParts.map((p) => ({
+          const mapped = parts.map((p) => ({
+            ...p,
             id: p.id,
             nickname: p.nickname,
             user_id: p.user_id,
@@ -205,8 +234,13 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
           (payload: any) => {
             const newSession = payload.new;
 
-            if (newSession.status === "active" && lastStatusRef.current === "waiting") {
-              router.push(`/player/${sessionId}/play?participant=${participantId}`);
+            if (newSession.status !== lastStatusRef.current) {
+              lastStatusRef.current = newSession.status;
+              setGameSession(newSession); // Sync fallback
+
+              if (newSession.status === "active") {
+                router.push(`/player/${sessionId}/play?participant=${participantId}`);
+              }
             }
 
             // Check Participants from JSONB
@@ -218,13 +252,15 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
             // Update list
             // Need to fetch profiles if new users
-            // simplified for fallback:
-            setParticipants(
-              parts.map((p: any) => ({
-                ...p,
-                avatar_url: p.user_id ? profileCache.current.get(p.user_id)?.avatar_url : null
-              }))
-            );
+            const userIds = parts.map((p: any) => p.user_id).filter((id: any) => id);
+            fetchProfiles(userIds).then(() => {
+              setParticipants(
+                parts.map((p: any) => ({
+                  ...p,
+                  avatar_url: p.user_id ? profileCache.current.get(p.user_id)?.avatar_url : null
+                }))
+              );
+            });
           }
         )
         .subscribe();
@@ -233,7 +269,75 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
         supabase.removeChannel(channel);
       };
     }
-  }, [gameSession, sessionId, participantId, router]);
+  }, [sessionId, participantId, router, loading]);
+
+  // Effect: Visual Countdown Logic (Read-Only) & Question Shuffling
+  useEffect(() => {
+    if (gameSession?.countdown_started_at && gameSession.status !== "active" && serverTimeReady) {
+      // Calculate offset ONCE when timestamp changes or server time becomes ready
+      // Logic relies on the global offset initialized in the first useEffect
+
+      // 1. Trigger Shuffle ONCE
+      if (!hasShuffledRef.current && isRealtimeDbConfigured && supabaseRealtime) {
+        hasShuffledRef.current = true;
+        const questionsToShuffle = gameSession.current_questions || quizData.questions || [];
+
+        const shuffleQuestions = async () => {
+          try {
+            const { data: shuffled, error } = await supabaseRealtime.rpc(
+              "shuffle_questions_for_player",
+              {
+                p_questions: questionsToShuffle,
+                p_participant_id: participantId
+              }
+            );
+
+            if (error) throw error;
+
+            if (shuffled) {
+              // Sanitize: ensure 'correct' key is removed even if RPC returned it
+              const sanitizedQuestions = shuffled.map((q: any) => {
+                const { correct, ...rest } = q;
+                return rest;
+              });
+
+              const storageData = {
+                sessionId,
+                questions: sanitizedQuestions,
+                participantId,
+                timestamp: new Date().toISOString()
+              };
+              localStorage.setItem(`player_game_data_${sessionId}`, JSON.stringify(storageData));
+              // console.log("Questions shuffled and saved (sanitized):", sanitizedQuestions);
+            }
+          } catch (err) {
+            console.error("Error shuffling questions:", err);
+            // Fallback? Maybe just save original if shuffle fails, but removing correct keys manually?
+            // For now, let's trust RPC or if it fails, the play page might need to handle empty data or refetch.
+          }
+        };
+        shuffleQuestions();
+      }
+
+      const interval = setInterval(() => {
+        const now = getServerNow();
+        const start = new Date(gameSession.countdown_started_at).getTime();
+        const target = start + 10000; // 10s duration
+        const diffInMs = target - now;
+        const diffInSeconds = Math.ceil(diffInMs / 1000);
+
+        if (diffInSeconds > 0) {
+          setCountdownLeft((prev) => (prev !== diffInSeconds ? diffInSeconds : prev));
+        } else {
+          setCountdownLeft((prev) => (prev !== 0 ? 0 : prev));
+        }
+      }, 100);
+
+      return () => clearInterval(interval);
+    } else if (gameSession?.status === "active" || !gameSession?.countdown_started_at) {
+      setCountdownLeft(null);
+    }
+  }, [gameSession?.countdown_started_at, gameSession?.status, serverTimeReady]);
 
   const handleKick = () => {
     toast.error("You have been removed from the game.");
@@ -284,6 +388,37 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
   return (
     <div className="h-screen overflow-y-auto bg-gray-50/50 dark:bg-zinc-950">
+      {/* Countdown Overlay */}
+      <AnimatePresence>
+        {countdownLeft !== null && countdownLeft > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm">
+            <div className="flex flex-col items-center gap-8">
+              <motion.div
+                key={countdownLeft}
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 1.5, opacity: 0 }}
+                transition={{ duration: 0.5 }}
+                className="relative">
+                <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-purple-600 to-blue-600 opacity-40 blur-lg"></div>
+                <div className="relative flex h-40 w-40 items-center justify-center rounded-full border-4 border-purple-500 bg-white shadow-2xl">
+                  <span className="bg-gradient-to-br from-purple-600 to-blue-600 bg-clip-text text-8xl font-black text-transparent">
+                    {countdownLeft}
+                  </span>
+                </div>
+              </motion.div>
+              <h2 className="animate-pulse text-4xl font-bold tracking-widest text-white uppercase">
+                Get Ready!
+              </h2>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="grid min-h-full grid-cols-1 lg:grid-cols-[1fr_480px]">
         {/* Left Column: Stats & Participants */}
         <div className="order-2 p-4 lg:order-1">
@@ -460,14 +595,16 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
             <DialogTitle className="flex items-center gap-2 text-red-600">
               <UserX size={20} /> Leave Room
             </DialogTitle>
-            <DialogDescription>Are you sure you want to leave the game?</DialogDescription>
+            <DialogDescription>
+              Are you sure you want to leave this game room? You can rejoin later using the PIN.
+            </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setLeaveDialogOpen(false)}>
               Cancel
             </Button>
             <Button variant="destructive" onClick={handleLeaveGame}>
-              Leave
+              Leave Game
             </Button>
           </DialogFooter>
         </DialogContent>

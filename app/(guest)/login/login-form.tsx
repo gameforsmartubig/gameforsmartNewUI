@@ -128,7 +128,7 @@ export default function LoginForm() {
         localStorage.setItem("oauth_game_pin", gamePin);
       }
 
-      const callbackUrl = `${window.location.origin}/auth/callback`;
+      const callbackUrl = `${window.location.origin}/callback`;
 
       console.log("🔥 Login - callbackUrl:", callbackUrl);
 

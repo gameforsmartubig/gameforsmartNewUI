@@ -93,6 +93,11 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   // Start handling logic: Call Edge Function
   const handleStartGame = async () => {
     if (!gameSession) return;
+
+    if (participants.length === 0) {
+      toast.error("Waiting for participants... Ask them to join!");
+      return;
+    }
     try {
       const { error } = await supabase.functions.invoke("start-game", {
         body: { sessionId }
@@ -111,33 +116,10 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
   // Effect: Watch for Status Change -> Active
   useEffect(() => {
-    if (gameSession?.status === "active" && quizData) {
-      const saveAndRedirect = async () => {
-        // Prepare Questions for LocalStorage
-        let questionsToStore = quizData.questions || [];
-        if (gameSession.question_limit && gameSession.question_limit !== "all") {
-          const limit = parseInt(gameSession.question_limit);
-          if (!isNaN(limit)) {
-            questionsToStore = questionsToStore.slice(0, limit);
-          }
-        }
-
-        // Store in LocalStorage
-        const storageData = {
-          questions: questionsToStore,
-          quiz: {
-            title: quizData.title,
-            description: quizData.description
-          },
-          session: gameSession
-        };
-        localStorage.setItem(`host_game_data_${sessionId}`, JSON.stringify(storageData));
-
-        router.push(`/host/${sessionId}/play`);
-      };
-      saveAndRedirect();
+    if (gameSession?.status === "active") {
+      router.push(`/host/${sessionId}/play`);
     }
-  }, [gameSession?.status, quizData, sessionId, router, gameSession?.question_limit]);
+  }, [gameSession?.status, sessionId, router]);
 
   // Effect: Visual Countdown Logic (Read-Only)
   useEffect(() => {

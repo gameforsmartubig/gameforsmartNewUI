@@ -9,7 +9,11 @@ import { Separator } from "@/components/ui/separator";
 import { Camera, ChevronRight, X } from "lucide-react";
 import Image from "next/image";
 import { supabase } from "@/lib/supabase";
-import { addParticipantRT, isRealtimeDbConfigured } from "@/lib/supabase-realtime";
+import {
+  addParticipantRT,
+  isRealtimeDbConfigured,
+  getParticipantsRT
+} from "@/lib/supabase-realtime";
 import { generateXID } from "@/lib/id-generator";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth-context";
@@ -134,7 +138,7 @@ function JoinGameContent() {
         // Fallback fetch if profileId not in context for some reason
         let { data: profile } = await supabase
           .from("profiles")
-          .select("id, username")
+          .select("id, username, nickname, fullname")
           .eq("auth_user_id", user.id)
           .single();
         if (!profile) {
@@ -143,15 +147,17 @@ function JoinGameContent() {
           return;
         }
         profile_id = profile.id;
-        username_val = profile.username;
+        const emailName = user.email?.split("@")[0] || "Player";
+        username_val = profile.nickname || profile.fullname || profile.username || emailName;
       } else {
         // Fetch username
         const { data: p } = await supabase
           .from("profiles")
-          .select("username")
+          .select("username, nickname, fullname")
           .eq("id", profile_id)
           .single();
-        username_val = p?.username || "Player";
+        const emailName = user.email?.split("@")[0] || "Player";
+        username_val = p?.nickname || p?.fullname || p?.username || emailName;
       }
 
       // Check Session
@@ -174,47 +180,54 @@ function JoinGameContent() {
       }
 
       // Check existing
-      const currentParticipants = session.participants || [];
-      const existing = currentParticipants.find((p: any) => p.user_id === profile_id);
+      let existing = null;
+      let currentParticipants = session.participants || [];
+
+      if (isRealtimeDbConfigured) {
+        // Check RT DB
+        const partsRT = await getParticipantsRT(session.id);
+        existing = partsRT.find((p) => p.user_id === profile_id);
+        // If found in RT, we are good.
+        // Note: We don't check Main DB if RT is active, assuming RT is source of truth for active session.
+      } else {
+        // Check Main DB
+        existing = currentParticipants.find((p: any) => p.user_id === profile_id);
+      }
 
       if (existing) {
         router.push(`/player/${session.id}/room/?participant=${existing.id}`);
         return;
       }
 
-      // Join
+      // Join Logic
       const newParticipant = {
         id: generateXID(),
         user_id: profile_id,
-        nickname: username_val || "Player",
+        nickname: username_val || user.email?.split("@")[0] || "Player",
         score: 0,
         started: new Date().toISOString(),
         ended: null
       };
 
-      const updatedParticipants = [...currentParticipants, newParticipant];
-
-      // 1. Update Main DB (Single source of truth first)
-      const { error: updateError } = await supabase
-        .from("game_sessions")
-        .update({ participants: updatedParticipants })
-        .eq("id", session.id);
-
-      if (updateError) {
-        throw new Error("Failed to join session in Main DB: " + updateError.message);
-      }
-
-      // 2. Update Realtime DB (Best effort, non-blocking for critical path if Main DB succeeded, but wait for it to ensure consistency)
       if (isRealtimeDbConfigured) {
-        try {
-          await addParticipantRT({
-            id: newParticipant.id,
-            session_id: session.id,
-            user_id: profile_id,
-            nickname: newParticipant.nickname
-          });
-        } catch (rtError) {
-          console.error("Realtime DB join error (ignoring as Main DB succeeded):", rtError);
+        // 1. Update Realtime DB ONLY
+        await addParticipantRT({
+          id: newParticipant.id,
+          session_id: session.id,
+          user_id: profile_id,
+          nickname: newParticipant.nickname
+        });
+        // We explicitly DO NOT update main DB 'participants' column here as requested.
+      } else {
+        // 2. Fallback: Update Main DB if RT not configured
+        const updatedParticipants = [...currentParticipants, newParticipant];
+        const { error: updateError } = await supabase
+          .from("game_sessions")
+          .update({ participants: updatedParticipants })
+          .eq("id", session.id);
+
+        if (updateError) {
+          throw new Error("Failed to join session in Main DB: " + updateError.message);
         }
       }
 
