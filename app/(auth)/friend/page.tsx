@@ -40,7 +40,7 @@ export default async function Page() {
           <h1 className="text-xl font-bold tracking-tight lg:text-2xl">Friend</h1>
         </div>
       </div>
-      <Friends currentUserId={profile.id} />
+      <Friends currentUserId={(profile as any).id} />
     </div>
   );
 }

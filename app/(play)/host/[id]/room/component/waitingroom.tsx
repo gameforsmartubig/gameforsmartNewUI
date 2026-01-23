@@ -118,6 +118,8 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   useEffect(() => {
     if (gameSession?.status === "active") {
       router.push(`/host/${sessionId}/play`);
+    } else if (gameSession?.status === "finished") {
+      router.push(`/result/${sessionId}`);
     }
   }, [gameSession?.status, sessionId, router]);
 
@@ -326,9 +328,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   }
 
   const joinLink =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/join?pin=${gameSession.game_pin}`
-      : "";
+    typeof window !== "undefined" ? `${window.location.origin}/join/${gameSession.game_pin}` : "";
 
   return (
     <div className="relative h-screen overflow-y-auto bg-rose-50 dark:bg-zinc-950">

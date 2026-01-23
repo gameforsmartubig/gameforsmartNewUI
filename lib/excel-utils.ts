@@ -1,3 +1,5 @@
+"use client";
+
 import * as XLSX from 'xlsx';
 import { saveAs } from 'file-saver';
 
@@ -317,7 +319,7 @@ export function parseExcelFile(file: File): Promise<ExcelQuizData> {
         const workbook = XLSX.read(data, { type: 'array' });
         
         // Parse Quiz Data sheet
-        const quizSheetName = workbook.SheetNames.find(name => 
+        const quizSheetName = workbook.SheetNames.find((name: string) => 
           name.toLowerCase().includes('quiz') || name.toLowerCase().includes('data')
         ) || workbook.SheetNames[0];
         
@@ -326,7 +328,7 @@ export function parseExcelFile(file: File): Promise<ExcelQuizData> {
         
         // Parse Metadata sheet (optional)
         let metadata: any = {};
-        const metadataSheetName = workbook.SheetNames.find(name => 
+        const metadataSheetName = workbook.SheetNames.find((name: string) => 
           name.toLowerCase().includes('metadata') || name.toLowerCase().includes('meta')
         );
         

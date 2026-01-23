@@ -21,7 +21,7 @@ export default async function Page() {
   const {
     data: { user }
   } = await supabase.auth.getUser();
-  let currentProfileId = null;
+  let currentProfileId: string | undefined = undefined;
 
   if (user) {
     const { data: profile } = await supabase
@@ -29,7 +29,9 @@ export default async function Page() {
       .select("id")
       .eq("auth_user_id", user.id)
       .single();
-    currentProfileId = profile?.id;
+    if (profile) {
+      currentProfileId = (profile as any).id;
+    }
   }
 
   // 2. Fetch Quizzes (Base Data)
@@ -44,7 +46,9 @@ export default async function Page() {
   }
 
   // 3. Prepare IDs for batch fetching
-  const creatorIds = quizzesData.map((q) => q.creator_id).filter(Boolean); // Filter nulls
+  // Force cast to any[] or specific type to avoid 'never' error if type inference failed
+  const safeQuizzes = (quizzesData || []) as any[];
+  const creatorIds = safeQuizzes.map((q) => q.creator_id).filter(Boolean); // Filter nulls
 
   // 4. Fetch Related Data in Parallel
   const [profilesResult] = await Promise.all([

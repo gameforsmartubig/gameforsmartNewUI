@@ -246,6 +246,94 @@ export async function addParticipantRT(data: {
   return participant;
 }
 
+export async function updateParticipantResponseRT(
+  sessionId: string,
+  participantId: string,
+  questionId: string,
+  answerId: string
+): Promise<boolean> {
+  if (!supabaseRealtime) return false;
+
+  // We use an RPC to atomically append/update the response in the JSONB array
+  // This prevents race conditions if multiple updates happen quickly, though simpler overwrite for single user might work.
+  // Ideally, we'd have an RPC like 'update_participant_response'.
+  // If no RPC, we have to fetch-modify-update, which is risky for concurrency but okay for single-player context.
+
+  // Let's assume we use a fetch-modify-update for now as creating a new RPC might be out of scope or complex to deploy without migrations.
+  // OR, better: Does Supabase have a way to update JSONB path? Yes, but usually via raw SQL or nice helpers.
+  // Simple approach:
+
+  try {
+    const { data: participant, error: fetchError } = await supabaseRealtime
+      .from("game_participants_rt")
+      .select("responses")
+      .eq("id", participantId)
+      .single();
+
+    if (fetchError || !participant) {
+      console.error("Error fetching participant for response update:", fetchError);
+      return false;
+    }
+
+    let responses = participant.responses || [];
+    // Remove existing response for this question if any
+    responses = responses.filter((r: any) => r.question_id !== questionId);
+    // Add new response
+    responses.push({ question_id: questionId, answer_id: answerId });
+
+    const { error: updateError } = await supabaseRealtime
+      .from("game_participants_rt")
+      .update({ responses })
+      .eq("id", participantId);
+
+    if (updateError) {
+      console.error("Error updating participant response:", updateError);
+      return false;
+    }
+
+    return true;
+  } catch (err) {
+    console.error("Exception in updateParticipantResponseRT:", err);
+    return false;
+  }
+}
+
+export async function updateParticipantStartRT(participantId: string): Promise<boolean> {
+  if (!supabaseRealtime) return false;
+
+  try {
+    // Check if already started to avoid overwriting (optional, but good practice)
+    // Or just update if null? The query below updates only if it is null logic could be complex in one go without RPC.
+    // For now, simpler: just update. The client usage should check if it needs to update or we do it here.
+    // Let's do a check first.
+
+    const { data: current, error: fetchError } = await supabaseRealtime
+      .from("game_participants_rt")
+      .select("started")
+      .eq("id", participantId)
+      .single();
+
+    if (fetchError) return false;
+
+    if (current && !current.started) {
+      const { error } = await supabaseRealtime
+        .from("game_participants_rt")
+        .update({ started: new Date().toISOString() })
+        .eq("id", participantId);
+
+      if (error) {
+        console.error("Error updating participant start time:", error);
+        return false;
+      }
+    }
+
+    return true;
+  } catch (err) {
+    console.error("Exception in updateParticipantStartRT:", err);
+    return false;
+  }
+}
+
 // ============================================================
 // Realtime Subscription Helpers
 // ============================================================

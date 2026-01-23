@@ -1,7 +1,7 @@
 import { use } from "react";
-import Play from "./component/play";
+import Results from "./component/results";
 
 export default function Page(props: { params: Promise<{ id: string }> }) {
   const params = use(props.params);
-  return <Play sessionId={params.id} />;
+  return <Results sessionId={params.id} />;
 }

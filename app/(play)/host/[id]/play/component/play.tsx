@@ -102,7 +102,7 @@ export default function Play({ sessionId }: PlayProps) {
       onSessionChange: (updatedSession) => {
         setSession((prev) => (prev ? { ...prev, ...updatedSession } : null));
         if (updatedSession.status === "finished") {
-          router.push(`/host/${sessionId}/results`);
+          router.push(`/result/${sessionId}`);
         }
       },
       onParticipantChange: async () => {

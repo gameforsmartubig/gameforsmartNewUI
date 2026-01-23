@@ -82,8 +82,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (!error && data) {
-        setProfile(data as ProfileData);
-        setProfileId(data.id);
+        // Type assertion needed because query result type inference might be truncated
+        const safeData = data as unknown as ProfileData;
+
+        // Store PROFILE ID (not auth_user_id) to localStorage as requested
+        localStorage.setItem("user_id", safeData.id);
+
+        setProfile(safeData);
+        setProfileId(safeData.id);
       }
     } catch (err) {
       console.error("Error fetching profile:", err);
@@ -102,6 +108,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
+        // localStorage.setItem("user_id", session.user.id); // REMOVE: We want profile.id, not auth user id
         fetchProfile(session.user.id);
       }
       setLoading(false);
@@ -114,8 +121,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
+        // localStorage.setItem("user_id", session.user.id); // REMOVE: We want profile.id, not auth user id
         fetchProfile(session.user.id);
       } else {
+        localStorage.removeItem("user_id"); // Clear from localStorage
         setProfile(null);
         setProfileId(null);
       }

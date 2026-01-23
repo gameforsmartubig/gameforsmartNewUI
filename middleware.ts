@@ -61,7 +61,7 @@ export async function middleware(request: NextRequest) {
     const suspiciousCheck = detectSuspiciousActivity(request);
     if (suspiciousCheck.isSuspicious) {
       console.warn("Suspicious activity detected:", {
-        ip: request.ip,
+        ip: (request as any).ip,
         pathname,
         userAgent: request.headers.get("user-agent"),
         reasons: suspiciousCheck.reasons

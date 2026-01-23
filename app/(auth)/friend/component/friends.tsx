@@ -103,8 +103,12 @@ export function Friends({ currentUserId }: { currentUserId: string }) {
     setUsers([]);
 
     try {
+      // Cast activeTab to a known key of both objects to satisfy TS index signature
+      // The state initialization ensures keys match.
       const currentTab = activeTab as keyof typeof locationFilters;
-      const currentSearch = searchQueries[currentTab] || "";
+      // We also need to ensure it matches searchQueries keys if they differ, but here they seem to align.
+      // If searchQueries has same structure:
+      const currentSearch = searchQueries[currentTab as keyof typeof searchQueries] || "";
       const currentFilter = locationFilters[currentTab];
 
       let data: Profile[] = [];
@@ -331,7 +335,7 @@ function UserCard({
 
   return (
     <Card className="relative overflow-hidden">
-      <div className="absolute top-0 left-0 bottom-0 w-1.5 bg-orange-500"></div>
+      <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-orange-500"></div>
       <CardContent className="flex flex-row items-center justify-between gap-4">
         <div>
           <img

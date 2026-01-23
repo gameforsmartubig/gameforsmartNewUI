@@ -40,7 +40,51 @@ interface WaitingRoomProps {
 export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const participantId = searchParams.get("participant");
+  // const participantId = searchParams.get("participant"); // REMOVED
+  const [participantId, setParticipantId] = useState<string | null>(null);
+
+  useEffect(() => {
+    // Find our participant ID based on the logged-in user_id (profile id)
+    const findMyParticipantId = async () => {
+      const userId = localStorage.getItem("user_id");
+      if (!userId) {
+        toast.error("User ID not found in storage");
+        router.push("/join");
+        return;
+      }
+
+      // Try RT first
+      if (isRealtimeDbConfigured) {
+        const parts = await getParticipantsRT(sessionId);
+        const myPart = parts.find((p: any) => p.user_id === userId);
+        if (myPart) {
+          setParticipantId(myPart.id);
+          return;
+        }
+      }
+
+      // Try Main DB
+      const { data: session } = await supabase
+        .from("game_sessions")
+        .select("participants")
+        .eq("id", sessionId)
+        .single();
+
+      if (session) {
+        const parts = session.participants || [];
+        const myPart = parts.find((p: any) => p.user_id === userId);
+        if (myPart) {
+          setParticipantId(myPart.id);
+          return;
+        }
+      }
+
+      toast.error("You happen not to be in this game");
+      router.push("/join");
+    };
+
+    findMyParticipantId();
+  }, [sessionId]);
 
   const [gameSession, setGameSession] = useState<any>(null);
   const [quizData, setQuizData] = useState<any>(null);
@@ -84,11 +128,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   // 1. Initial Data Fetch
   useEffect(() => {
     const fetchSessionData = async () => {
-      if (!participantId) {
-        toast.error("Participant ID missing");
-        router.push("/join");
-        return;
-      }
+      if (!participantId) return; // Wait for ID to be resolved
 
       try {
         const { data: session, error } = await supabase
@@ -177,9 +217,9 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
             setGameSession((prev: any) => ({ ...prev, ...updatedSession }));
 
             if (updatedSession.status === "active") {
-              router.push(`/player/${sessionId}/play?participant=${participantId}`);
+              router.push(`/player/${sessionId}/play`);
             } else if (updatedSession.status === "finished") {
-              router.push(`/player/${sessionId}/results?participant=${participantId}`);
+              router.push(`/result/${sessionId}`);
             }
           }
 
@@ -239,7 +279,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
               setGameSession(newSession); // Sync fallback
 
               if (newSession.status === "active") {
-                router.push(`/player/${sessionId}/play?participant=${participantId}`);
+                router.push(`/player/${sessionId}/play`);
               }
             }
 
@@ -284,7 +324,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
         const shuffleQuestions = async () => {
           try {
-            const { data: shuffled, error } = await supabaseRealtime.rpc(
+            const { data: shuffled, error } = await supabaseRealtime!.rpc(
               "shuffle_questions_for_player",
               {
                 p_questions: questionsToShuffle,

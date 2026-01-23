@@ -217,7 +217,7 @@ export default function RegisterForm() {
         }
 
         const usernameExists = existingUsers?.some(
-          (profile) => profile.username.toLowerCase() === username.toLowerCase()
+          (profile) => (profile as any).username.toLowerCase() === username.toLowerCase()
         );
 
         if (usernameExists) {
@@ -297,7 +297,7 @@ export default function RegisterForm() {
       } else {
         // Only check if query was successful
         const usernameExists = existingUsers?.some(
-          (profile) => profile.username.toLowerCase() === formData.username.toLowerCase()
+          (profile) => (profile as any).username.toLowerCase() === formData.username.toLowerCase()
         );
 
         if (usernameExists) {

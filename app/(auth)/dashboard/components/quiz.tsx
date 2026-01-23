@@ -183,6 +183,11 @@ export function DashboardContent({
         application: "gameforsmartNewUI"
       };
 
+      if (!supabaseRealtime) {
+        toast.error("Koneksi realtime tidak tersedia.");
+        return;
+      }
+
       const { error: realtimeError } = await supabaseRealtime
         .from("game_sessions_rt")
         .insert(sessionDataForRealtime);

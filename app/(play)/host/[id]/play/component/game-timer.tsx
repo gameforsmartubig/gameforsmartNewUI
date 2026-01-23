@@ -14,7 +14,12 @@ interface GameTimerBaseProps {
 }
 
 // Custom hook to share timer logic
-function useGameTimer({ startedAt, totalTimeMinutes, onTimeUp, status }: GameTimerBaseProps) {
+export function useGameTimer({
+  startedAt,
+  totalTimeMinutes,
+  onTimeUp,
+  status
+}: GameTimerBaseProps) {
   const [timeLeft, setTimeLeft] = useState(0);
   const [progress, setProgress] = useState(100);
   const onTimeUpCallable = useRef(true);
@@ -64,7 +69,7 @@ export function GameTimer({ startedAt, totalTimeMinutes, onTimeUp, status }: Gam
   return (
     <div className="flex items-center justify-center gap-4">
       <Card className="border-none bg-white/80 shadow-sm backdrop-blur">
-        <CardContent className="px-8 sm:py-4 text-center sm:px-16 w-32 sm:w-48">
+        <CardContent className="w-32 px-8 text-center sm:w-48 sm:px-16 sm:py-4">
           <p className="text-3xl font-bold sm:text-5xl">
             {Math.floor(timeLeft / 60)
               .toString()
@@ -74,7 +79,7 @@ export function GameTimer({ startedAt, totalTimeMinutes, onTimeUp, status }: Gam
       </Card>
       <span className="text-3xl font-bold sm:text-5xl">:</span>
       <Card className="border-none bg-white/80 shadow-sm backdrop-blur">
-        <CardContent className="px-8 sm:py-4 text-center sm:px-16 w-32 sm:w-48">
+        <CardContent className="w-32 px-8 text-center sm:w-48 sm:px-16 sm:py-4">
           <p className="text-3xl font-bold sm:text-5xl">
             {(timeLeft % 60).toString().padStart(2, "0")}
           </p>

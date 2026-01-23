@@ -54,7 +54,7 @@ export default function LoginForm() {
           throw new Error("Username tidak ditemukan");
         }
 
-        emailToUse = profileData.email;
+        emailToUse = (profileData as any).email;
         console.log("Found email for username:", emailToUse);
       }
 
@@ -67,19 +67,31 @@ export default function LoginForm() {
       if (error) throw error;
 
       if (data.user) {
+        // Save user ID to localStorage -> MOVED below to use profile.id
+        // localStorage.setItem("user_id", data.user.id);
+
+        // Check if profile needs completion
         // Check if profile needs completion
         const { data: profile } = await supabase
           .from("profiles")
-          .select("username, country_id")
+          .select("id, username, country_id")
           .eq("auth_user_id", data.user.id)
           .single();
 
+        const safeProfile = profile as any;
+
+        // Save USER PROFILE ID to localStorage (not auth ID)
+        if (safeProfile?.id) {
+          localStorage.setItem("user_id", safeProfile.id);
+        }
+
         const hasValidUsername =
-          profile?.username &&
-          !profile.username.includes("@") &&
-          !profile.username.startsWith("user_") &&
-          profile.username.length >= 3;
-        const hasLocation = profile?.country_id !== null && profile?.country_id !== undefined;
+          safeProfile?.username &&
+          !safeProfile.username.includes("@") &&
+          !safeProfile.username.startsWith("user_") &&
+          safeProfile.username.length >= 3;
+        const hasLocation =
+          safeProfile?.country_id !== null && safeProfile?.country_id !== undefined;
 
         const redirectPath = searchParams.get("redirect");
         const gamePin = searchParams.get("pin");
@@ -94,7 +106,7 @@ export default function LoginForm() {
         } else if (redirectPath && gamePin) {
           router.push(`${redirectPath}?pin=${gamePin}`);
         } else {
-          router.push("/dashboard/");
+          router.push("/dashboard");
         }
       }
     } catch (error: any) {
@@ -128,7 +140,7 @@ export default function LoginForm() {
         localStorage.setItem("oauth_game_pin", gamePin);
       }
 
-      const callbackUrl = `${window.location.origin}/callback`;
+      const callbackUrl = `${window.location.origin}/auth/callback`;
 
       console.log("🔥 Login - callbackUrl:", callbackUrl);
 

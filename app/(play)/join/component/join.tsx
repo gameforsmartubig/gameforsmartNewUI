@@ -195,7 +195,7 @@ function JoinGameContent() {
       }
 
       if (existing) {
-        router.push(`/player/${session.id}/room/?participant=${existing.id}`);
+        router.push(`/player/${session.id}/room`);
         return;
       }
 
@@ -231,7 +231,7 @@ function JoinGameContent() {
         }
       }
 
-      router.push(`/player/${session.id}/room/?participant=${newParticipant.id}`);
+      router.push(`/player/${session.id}/room`);
     } catch (err: any) {
       console.error(err);
       toast.error(err.message || "Gagal join game");
