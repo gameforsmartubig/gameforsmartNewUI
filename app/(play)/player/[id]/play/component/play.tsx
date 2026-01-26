@@ -26,7 +26,8 @@ import {
   updateParticipantStartRT,
   getParticipantsRT,
   isRealtimeDbConfigured,
-  GameSessionRT
+  GameSessionRT,
+  supabaseRealtime
 } from "@/lib/supabase-realtime";
 import { supabase } from "@/lib/supabase";
 // Import hook from host component (adjust path as needed)
@@ -272,13 +273,36 @@ export default function Play({ sessionId }: PlayProps) {
     }
   };
 
-  const handleSubmit = () => {
-    // Redirect to results or set status 'finished' for this participant?
-    // Typically we just redirect. The RT updates are already sent individually.
-    // Some implementations mark a 'finished_at' field for the participant.
-    // For now, redirect to waiting/results page.
-    // Assuming 'results' page handles "waiting for others" if game not ended.
-    router.push(`/result/${sessionId}`);
+  const handleSubmit = async () => {
+    // Call Edge Function 'submit-game' with action 'submit'
+    try {
+      if (!supabaseRealtime) throw new Error("Realtime client not initialized");
+
+      setLoading(true); // Show loading state briefly
+      const { data, error } = await supabaseRealtime.functions.invoke("submit-game", {
+        body: {
+          action: "submit",
+          sessionId,
+          participantId
+        }
+      });
+
+      if (error) throw error;
+
+      // Handle response - logic handled by RT subscription for redirect usually,
+      // but 'submit' might return status immediately if we need to redirect explicitly?
+      // Edge function implementation returns: { status: "active" | "finished", mode: ... }
+
+      // If wait_timer mode and active, we might wait on specific waiting screen or result screen?
+      // Requirement: "Jika game_end_mode = wait_timer ... Jika belum semua selesai ... session tetap active ... Player diarahkan ke halaman result."
+      // So regardless of status, player goes to result page (which acts as waiting room for results if session not finished).
+
+      router.push(`/result/${sessionId}`);
+    } catch (err: any) {
+      console.error("Submit Error:", err);
+      toast.error("Failed to submit: " + err.message);
+      setLoading(false);
+    }
   };
 
   if (loading || !session) {
