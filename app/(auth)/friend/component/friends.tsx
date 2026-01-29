@@ -2,7 +2,7 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, forwardRef } from "react";
 import {
   Funnel,
   Loader2,
@@ -52,12 +52,64 @@ interface Profile {
   cities?: { name: string } | null;
 }
 
+import { useSearchParams, useRouter } from "next/navigation";
+
+const DUMMY_USERS: Profile[] = [
+  { id: "1", username: "alex_g", fullname: "Alex Garrett", nickname: "Alex", avatar_url: null, country_id: null, state_id: null, city_id: null, cities: { name: "New York" }, states: { name: "NY" }, countries: { name: "USA" } },
+  { id: "2", username: "sarah_m", fullname: "Sarah Miller", nickname: "Sarah", avatar_url: null, country_id: null, state_id: null, city_id: null, cities: { name: "Los Angeles" }, states: { name: "CA" }, countries: { name: "USA" } },
+  { id: "3", username: "jhon_d", fullname: "Jhon Doe", nickname: "Jhon", avatar_url: null, country_id: null, state_id: null, city_id: null, cities: { name: "Chicago" }, states: { name: "IL" }, countries: { name: "USA" } },
+  { id: "4", username: "emily_r", fullname: "Emily Rose", nickname: "Em", avatar_url: null, country_id: null, state_id: null, city_id: null, cities: { name: "Houston" }, states: { name: "TX" }, countries: { name: "USA" } },
+  { id: "5", username: "michael_b", fullname: "Michael Brown", nickname: "Mike", avatar_url: null, country_id: null, state_id: null, city_id: null, cities: { name: "Phoenix" }, states: { name: "AZ" }, countries: { name: "USA" } },
+];
+
 export function Friends({ currentUserId }: { currentUserId: string }) {
-  const [activeTab, setActiveTab] = useState("friends");
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const initialTab = searchParams.get("tab") || "friends";
+
+  const [activeTab, setActiveTabState] = useState(initialTab);
   const [loading, setLoading] = useState(false);
+
+  // Sync state with URL
+  const setActiveTab = (tab: string) => {
+    setActiveTabState(tab);
+    router.push(`?tab=${tab}`);
+  };
 
   // Data States
   const [users, setUsers] = useState<Profile[]>([]);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      const isInput =
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target as HTMLElement).isContentEditable;
+
+      const triggerSearch = () => {
+        e.preventDefault();
+        const input = document.getElementById("friends-search-input");
+        if (input) {
+          input.focus();
+        } else if (searchInputRef.current) {
+          searchInputRef.current.focus();
+        }
+      };
+
+      if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) {
+        triggerSearch();
+        return;
+      }
+
+      if (e.key.toLowerCase() === "k" && !isInput && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        triggerSearch();
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
   // Track followed users for "Find People" tab and "Follower" tab
   const [followedIds, setFollowedIds] = useState<string[]>([]);
 
@@ -191,10 +243,19 @@ export function Friends({ currentUserId }: { currentUserId: string }) {
       }
 
       data = (res as any) || [];
-      setUsers(data);
+
+      // Fallback to dummy data if empty as requested
+      if (data.length === 0) {
+        setUsers(DUMMY_USERS);
+      } else {
+        setUsers(data);
+      }
+
     } catch (err) {
       console.error("Error fetching data:", err);
-      toast.error("Gagal memuat data");
+      // Fallback to dummy data on error too
+      setUsers(DUMMY_USERS);
+      toast.error("Gagal memuat data, menampilkan data dummy");
     } finally {
       setLoading(false);
     }
@@ -217,28 +278,20 @@ export function Friends({ currentUserId }: { currentUserId: string }) {
           <TabsTrigger value="follower">Follower</TabsTrigger>
           <TabsTrigger value="find">Find People</TabsTrigger>
         </TabsList>
-        <div className="hidden w-full items-center justify-end sm:flex sm:w-auto">
+        <div className="flex w-full items-center justify-end sm:w-auto">
           <SearchFriends
+            ref={searchInputRef}
             activeTab={activeTab}
             onSearch={handleSearch}
             locationFilter={currentLocationFilter}
             setLocationFilter={updateLocationFilter}
-            onApplyFilter={() => {}}
+            onApplyFilter={() => { }}
           />
         </div>
       </div>
 
       {["friends", "following", "follower", "find"].map((tab) => (
         <TabsContent key={tab} value={tab} className="space-y-4">
-          <div className="sm:hidden">
-            <SearchFriends
-              activeTab={activeTab}
-              onSearch={handleSearch}
-              locationFilter={currentLocationFilter}
-              setLocationFilter={updateLocationFilter}
-              onApplyFilter={() => {}}
-            />
-          </div>
 
           {loading ? (
             <div className="flex justify-center p-8">
@@ -440,101 +493,103 @@ interface SearchProps {
   onApplyFilter: () => void;
 }
 
-export function SearchFriends({
-  activeTab,
-  onSearch,
-  locationFilter,
-  setLocationFilter,
-  onApplyFilter
-}: SearchProps) {
-  const [inputValue, setInputValue] = useState("");
-  const [tempLocation, setTempLocation] = useState<LocationValue>(locationFilter);
+export const SearchFriends = forwardRef<HTMLInputElement, SearchProps>(
+  ({ activeTab, onSearch, locationFilter, setLocationFilter, onApplyFilter }, ref) => {
+    const [inputValue, setInputValue] = useState("");
+    const [tempLocation, setTempLocation] = useState<LocationValue>(locationFilter);
 
-  useEffect(() => {
-    setInputValue("");
-  }, [activeTab]);
+    useEffect(() => {
+      setInputValue("");
+    }, [activeTab]);
 
-  useEffect(() => {
-    setTempLocation(locationFilter);
-  }, [locationFilter]);
+    useEffect(() => {
+      setTempLocation(locationFilter);
+    }, [locationFilter]);
 
-  const handleSearchTrigger = () => {
-    onSearch(inputValue);
-  };
+    const handleSearchTrigger = () => {
+      onSearch(inputValue);
+    };
 
-  const handleApplyLocation = () => {
-    setLocationFilter(tempLocation);
-  };
+    const handleApplyLocation = () => {
+      setLocationFilter(tempLocation);
+    };
 
-  const handleResetLocation = () => {
-    setTempLocation({
-      countryId: null,
-      stateId: null,
-      cityId: null,
-      countryName: "",
-      stateName: "",
-      cityName: "",
-      latitude: null,
-      longitude: null
-    });
-  };
+    const handleResetLocation = () => {
+      setTempLocation({
+        countryId: null,
+        stateId: null,
+        cityId: null,
+        countryName: "",
+        stateName: "",
+        cityName: "",
+        latitude: null,
+        longitude: null
+      });
+    };
 
-  return (
-    <div className="flex w-full items-center space-x-2">
-      <div className="relative w-full flex-1 sm:w-auto sm:flex-none">
-        <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
-        <Input
-          placeholder={`Search ${activeTab}...`}
-          className="pl-8 sm:w-[250px]"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && handleSearchTrigger()}
-        />
-        <button
-          onClick={handleSearchTrigger}
-          className="bg-primary text-primary-foreground hover:bg-primary/90 absolute top-1 right-1 ml-auto flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:cursor-pointer">
-          <Search className="h-4 w-4" />
-        </button>
-      </div>
-
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button variant="outline">
-            <Funnel className="h-4 w-4" />
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              Filter Location <MapPin size={16} />
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4">
-            <LocationSelector
-              value={tempLocation}
-              onChange={setTempLocation}
-              layout="vertical"
-              showDetectButton={false}
-            />
+    return (
+      <div className="flex w-full items-center space-x-2">
+        <div className="relative w-full flex-1 sm:w-auto sm:flex-none">
+          <Input
+            ref={ref}
+            id="friends-search-input"
+            placeholder={`Search ${activeTab}...`}
+            className="pr-20 sm:w-[250px]"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearchTrigger()}
+          />
+          <div className="text-muted-foreground pointer-events-none absolute top-2 right-10 hidden items-center gap-1 rounded border bg-neutral-100 px-1.5 py-1 font-mono text-[10px] font-medium opacity-100 sm:flex dark:bg-zinc-800">
+            <span className="text-xs">⌘</span>K
           </div>
-          <DialogFooter className="flex w-full flex-row items-center justify-between sm:justify-between">
-            <Button variant="outline" onClick={handleResetLocation}>
-              <RotateCcw className="mr-2 h-4 w-4" />
-              Reset
+          <button
+            onClick={handleSearchTrigger}
+            className="bg-primary text-primary-foreground hover:bg-primary/90 absolute top-1 right-1 ml-auto flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:cursor-pointer">
+            <Search className="h-4 w-4" />
+          </button>
+        </div>
+
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button variant="outline">
+              <Funnel className="h-4 w-4" />
             </Button>
-            <div className="flex items-center gap-2">
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <DialogClose asChild>
-                <Button variant="default" onClick={handleApplyLocation}>
-                  Apply
-                </Button>
-              </DialogClose>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                Filter Location <MapPin size={16} />
+              </DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <LocationSelector
+                value={tempLocation}
+                onChange={setTempLocation}
+                layout="vertical"
+                showDetectButton={false}
+              />
             </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
-}
+            <DialogFooter className="flex w-full flex-row items-center justify-between sm:justify-between">
+              <Button variant="outline" onClick={handleResetLocation}>
+                <RotateCcw className="mr-2 h-4 w-4" />
+                Reset
+              </Button>
+              <div className="flex items-center gap-2">
+                <DialogClose asChild>
+                  <Button variant="outline">Cancel</Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button variant="default" onClick={handleApplyLocation}>
+                    Apply
+                  </Button>
+                </DialogClose>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    );
+  }
+);
+
+SearchFriends.displayName = "SearchFriends";

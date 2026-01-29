@@ -19,9 +19,10 @@ import {
   Search,
   User,
   Star,
-  StarOff
+  StarOff,
+  Calendar
 } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
@@ -34,6 +35,12 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { supabaseRealtime } from "@/lib/supabase-realtime";
 import { toast } from "sonner";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar as UICalendar } from "@/components/ui/calendar";
+import { format, addDays } from "date-fns";
+import { id } from "date-fns/locale";
+import { DateRange } from "react-day-picker";
+import { cn } from "@/lib/utils";
 
 import type { Category, Quiz } from "./types";
 import { categoryIconMap } from "./quiz-icons";
@@ -59,6 +66,38 @@ export function DashboardContent({
   const [searchQuery, setSearchQuery] = useState("");
   const [searchInputValue, setSearchInputValue] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      const isInput =
+        e.target instanceof HTMLInputElement ||
+        e.target instanceof HTMLTextAreaElement ||
+        (e.target as HTMLElement).isContentEditable;
+
+      // Global shortcut: Ctrl+K or Cmd+K
+      if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+        return;
+      }
+
+      // Pro shortcut: Just "k" (if not in an input)
+      if (e.key.toLowerCase() === "k" && !isInput && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+
+    document.addEventListener("keydown", down);
+    return () => document.removeEventListener("keydown", down);
+  }, []);
+
+  // Date Range State
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(),
+    to: new Date()
+  });
 
   // Pagination State
   const [pageState, setPageState] = useState<Record<string, number>>({
@@ -98,7 +137,6 @@ export function DashboardContent({
     }
 
     try {
-      // 1. Fetch full quiz details for session
       const { data: quizData, error: quizError } = await supabase
         .from("quizzes")
         .select(
@@ -123,7 +161,6 @@ export function DashboardContent({
         return;
       }
 
-      // 2. Prepare Data
       const profileData = Array.isArray(quizData.profiles)
         ? quizData.profiles[0]
         : quizData.profiles;
@@ -151,10 +188,9 @@ export function DashboardContent({
         total_time_minutes: 5,
         current_questions: [],
         quiz_detail: quizDetail,
-        application: "gameforsmartNewUI" // Branding
+        application: "gameforsmartNewUI"
       };
 
-      // 3. Create Session in MAIN Database (for records/history)
       const { data: newSession, error: sessionError } = await supabase
         .from("game_sessions")
         .insert(sessionData)
@@ -167,9 +203,6 @@ export function DashboardContent({
         return;
       }
 
-      // 4. Create Session in REALTIME Database (for fast gameplay)
-      // 4. Create Session in REALTIME Database (optimized schema)
-      // Map data clearly to match table 'game_sessions_rt'
       const sessionDataForRealtime = {
         id: newSession.id,
         game_pin: gamePin,
@@ -199,7 +232,6 @@ export function DashboardContent({
         );
       }
 
-      // 5. Redirect
       router.push(`/host/${newSession.id}/settings`);
     } catch (error) {
       console.error("Error creating session:", error);
@@ -222,11 +254,9 @@ export function DashboardContent({
       return;
     }
 
-    // Determine current state based on passed prop data (which should be fresh from server)
     const isCurrentlyFavorited = quiz._raw?.isFavorite;
 
     try {
-      // 1. Get current profile's favorites list
       const { data: profile, error: profileError } = await supabase
         .from("profiles")
         .select("favorite_quiz")
@@ -235,14 +265,12 @@ export function DashboardContent({
 
       if (profileError) throw profileError;
 
-      // Ensure favorites structure exists
       let currentFavorites: string[] = [];
       const favData = profile?.favorite_quiz as { favorites?: string[] } | null;
       if (favData && Array.isArray(favData.favorites)) {
         currentFavorites = favData.favorites;
       }
 
-      // 2. Get quiz's favorite list (who favorited it)
       const { data: quizData, error: quizDataError } = await supabase
         .from("quizzes")
         .select("favorite")
@@ -256,25 +284,19 @@ export function DashboardContent({
         quizFavoriteProfiles = quizData.favorite;
       }
 
-      // 3. Toggle logic
       let newFavorites: string[] = [];
       let newQuizFavorites: string[] = [];
 
       if (isCurrentlyFavorited) {
-        // Remove
         newFavorites = currentFavorites.filter((id) => id !== quiz.id);
         newQuizFavorites = quizFavoriteProfiles.filter((id) => id !== currentProfileId);
         toast.info("Dihapus dari favorit");
       } else {
-        // Add
-        // Use Set to prevent duplicates
         newFavorites = Array.from(new Set([...currentFavorites, quiz.id]));
         newQuizFavorites = Array.from(new Set([...quizFavoriteProfiles, currentProfileId]));
         toast.success("Ditambahkan ke favorit");
       }
 
-      // 4. Update Database
-      // Update Profile
       const { error: updateProfileError } = await supabase
         .from("profiles")
         .update({ favorite_quiz: { favorites: newFavorites } })
@@ -282,7 +304,6 @@ export function DashboardContent({
 
       if (updateProfileError) throw updateProfileError;
 
-      // Update Quiz
       const { error: updateQuizError } = await supabase
         .from("quizzes")
         .update({ favorite: newQuizFavorites })
@@ -290,9 +311,6 @@ export function DashboardContent({
 
       if (updateQuizError) throw updateQuizError;
 
-      // Ideally trigger a refresh of the page data here.
-      // Since this is a client component receiving props from a server component,
-      // we navigate to current path to refresh server props.
       router.refresh();
     } catch (e) {
       console.error("Error toggling favorite:", e);
@@ -389,7 +407,6 @@ export function DashboardContent({
 
     const renderItems = [];
 
-    // Previous
     renderItems.push(
       <Button
         key="prev"
@@ -402,7 +419,6 @@ export function DashboardContent({
       </Button>
     );
 
-    // Number Logic
     if (totalPages <= 7) {
       for (let i = 1; i <= totalPages; i++) renderItems.push(renderPageButton(i));
     } else {
@@ -443,7 +459,6 @@ export function DashboardContent({
       renderItems.push(renderPageButton(totalPages));
     }
 
-    // Next
     renderItems.push(
       <Button
         key="next"
@@ -497,7 +512,6 @@ export function DashboardContent({
                         {quiz.language}
                       </div>
                     </div>
-                    {/* Common Dropdown Menu Logic */}
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
@@ -610,10 +624,10 @@ export function DashboardContent({
 
         <div className="flex w-full items-center space-x-2 sm:w-auto">
           <div className="relative w-full sm:w-auto">
-            <Search className="text-muted-foreground absolute top-2.5 left-2 h-4 w-4" />
             <Input
+              ref={searchInputRef}
               placeholder="Search"
-              className="w-full pl-8 sm:w-[200px]"
+              className="w-full pl-3 pr-20 sm:w-[250px]"
               value={searchInputValue}
               onChange={(e) => setSearchInputValue(e.target.value)}
               onKeyDown={(e) => {
@@ -622,6 +636,9 @@ export function DashboardContent({
                 }
               }}
             />
+            <div className="text-muted-foreground pointer-events-none absolute top-2 right-10 hidden items-center gap-1 rounded border bg-neutral-100 px-1.5 py-1 font-mono text-[10px] font-medium opacity-100 sm:flex dark:bg-zinc-800">
+              <span className="text-xs">⌘</span>K
+            </div>
             <Button
               variant="default"
               className="absolute top-1 right-1 h-7 w-7 p-2"
@@ -629,6 +646,45 @@ export function DashboardContent({
               <Search size={20} />
             </Button>
           </div>
+
+          <div className="grid gap-2">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  id="date"
+                  variant={"outline"}
+                  className={cn(
+                    "bg-background h-9 w-full justify-start text-left font-normal sm:w-auto",
+                    !date && "text-muted-foreground"
+                  )}>
+                  <Calendar className="mr-2 h-4 w-4 opacity-50" />
+                  {date?.from ? (
+                    date.to && date.to.getTime() !== date.from.getTime() ? (
+                      <>
+                        {format(date.from, "dd MMM yyyy", { locale: id })} -{" "}
+                        {format(date.to, "dd MMM yyyy", { locale: id })}
+                      </>
+                    ) : (
+                      format(date.from, "dd MMM yyyy", { locale: id })
+                    )
+                  ) : (
+                    <span>Pilih tanggal</span>
+                  )}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <UICalendar
+                  initialFocus
+                  mode="range"
+                  defaultMonth={date?.from}
+                  selected={date}
+                  onSelect={setDate}
+                  numberOfMonths={1}
+                />
+              </PopoverContent>
+            </Popover>
+          </div>
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">
