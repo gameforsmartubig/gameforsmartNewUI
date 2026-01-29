@@ -264,6 +264,14 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
       }
 
       setIsLoading(false);
+
+      // Save to localStorage for result page fallback (in case auth session is missing)
+      if (profileId) {
+        localStorage.setItem(`game_host_${session.id}`, profileId);
+        localStorage.setItem("current_game_session", session.id);
+        localStorage.setItem("current_profile_id", profileId);
+        localStorage.setItem("current_host_id", profileId);
+      }
     };
 
     if (user && profileId) {

@@ -231,6 +231,13 @@ function JoinGameContent() {
         }
       }
 
+      // Save to localStorage for result page fallback (in case auth session is missing)
+      if (profile_id) {
+        localStorage.setItem(`game_participant_${session.id}`, profile_id);
+        localStorage.setItem("current_game_session", session.id);
+        localStorage.setItem("current_profile_id", profile_id);
+      }
+
       router.push(`/player/${session.id}/room`);
     } catch (err: any) {
       console.error(err);
@@ -262,7 +269,7 @@ function JoinGameContent() {
             <Input
               value={gamePin}
               onChange={(e) => setGamePin(e.target.value.replace(/\D/g, "").slice(0, 6))}
-              placeholder="Please Enter The Room Code"
+              placeholder="123456"
               maxLength={6}
               required
               className="h-14 bg-gray-50 text-center text-sm font-black tracking-[0.2em] transition-colors sm:text-3xl dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
