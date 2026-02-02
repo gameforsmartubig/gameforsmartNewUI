@@ -56,11 +56,13 @@ export async function GET(request: Request) {
         });
 
         // 2. Fetch State manually
-        const { data: stateData, error: stateError } = await supabase
+        const { data: rawStateData, error: stateError } = await supabase
             .from("states")
             .select("*")
             .eq("id", closest.state_id)
             .single();
+
+        const stateData = rawStateData as any;
 
         if (stateError) {
             console.error("Error fetching state:", stateError);
