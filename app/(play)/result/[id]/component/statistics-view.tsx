@@ -1,5 +1,5 @@
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,17 +11,24 @@ import {
   LayoutDashboard, 
   Users, 
   Check,
-  HelpCircle
+  HelpCircle,
+  FileQuestion,
+  MessageSquare,
+  Trophy
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { cn } from "@/lib/utils";
+import { useEffect } from "react";
 
 interface Question {
   id: string;
   question: string;
+  correct?: string; // ID of the correct answer
   answers: {
     id: string;
-    text: string;
-    isCorrect: boolean;
+    text?: string;
+    answer?: string;
+    isCorrect?: boolean;
   }[];
 }
 
@@ -55,6 +62,18 @@ export function StatisticsView({
 }: StatisticsViewProps) {
   const router = useRouter();
 
+  // Lock body scroll when open to prevent double scrollbars
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [open]);
+
   if (!open) return null;
 
   // --- STATS CALCULATION ---
@@ -65,9 +84,11 @@ export function StatisticsView({
   // Total correct answers across all players
   const totalCorrectAnswers = players.reduce((acc, p) => {
     const playerCorrectCount = (p.responses || []).filter(r => {
-      const q = questions.find(q => q.id === r.question_id);
-      const correctAns = q?.answers.find(a => a.isCorrect);
-      return r.answer_id === correctAns?.id;
+      // Robust ID comparison
+      const q = questions.find(q => String(q.id).trim() === String(r.question_id).trim());
+      if (!q) return false;
+      // Check correct ID from question root or fallback to answer property
+      return String(r.answer_id).trim() === String(q.correct).trim() || q.answers.find(a => String(a.id).trim() === String(r.answer_id).trim())?.isCorrect;
     }).length;
     return acc + playerCorrectCount;
   }, 0);
@@ -80,13 +101,17 @@ export function StatisticsView({
     let correctCount = 0;
 
     players.forEach((p) => {
-      const response = p.responses?.find((r) => r.question_id === questionId);
+      const response = p.responses?.find((r) => String(r.question_id).trim() === String(questionId).trim());
       if (response) {
         participantCount++;
-        const question = questions.find((q) => q.id === questionId);
-        const correctAnswer = question?.answers.find((a) => a.isCorrect);
-        if (response.answer_id === correctAnswer?.id) {
-          correctCount++;
+        const question = questions.find((q) => String(q.id).trim() === String(questionId).trim());
+        if (question) {
+             const isAnsCorrect = String(response.answer_id).trim() === String(question.correct).trim() || 
+                                  question.answers.find(a => String(a.id).trim() === String(response.answer_id).trim())?.isCorrect;
+                                  
+             if (isAnsCorrect) {
+               correctCount++;
+             }
         }
       }
     });
@@ -104,31 +129,32 @@ export function StatisticsView({
     const me = players.find((p) => p.id === currentPlayerId);
     if (!me) return { status: 'unanswered', userAnswerId: null, correctAnswerId: undefined };
 
-    const response = me.responses?.find((r) => r.question_id === questionId);
+    const response = me.responses?.find((r) => String(r.question_id).trim() === String(questionId).trim());
     if (!response) return { status: 'unanswered', userAnswerId: null, correctAnswerId: undefined };
 
-    const question = questions.find((q) => q.id === questionId);
-    const correctAnswer = question?.answers.find((a) => a.isCorrect);
-    
-    const isCorrect = response.answer_id === correctAnswer?.id;
+    const question = questions.find((q) => String(q.id).trim() === String(questionId).trim());
+    if (!question) return { status: 'unanswered', userAnswerId: null, correctAnswerId: undefined };
+
+    const isCorrect = String(response.answer_id).trim() === String(question.correct).trim() || 
+                      question.answers.find(a => String(a.id).trim() === String(response.answer_id).trim())?.isCorrect;
+                      
     return { 
       status: isCorrect ? 'correct' : 'incorrect', 
       userAnswerId: response.answer_id,
-      correctAnswerId: correctAnswer?.id
+      correctAnswerId: question.correct
     };
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-slate-50/95 flex flex-col overflow-hidden animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 bg-background flex flex-col overflow-hidden animate-in fade-in duration-200">
       
       {/* 1. Header Navigation */}
       <header className="bg-background border-b px-6 h-16 shrink-0 flex items-center justify-between shadow-sm z-10">
         <div>
           <h1 className="text-xl font-bold flex items-center gap-2">
             <BarChart3 className="w-6 h-6 text-primary" />
-            {isHost ? "Question Statistics" : "My Performance"}
+            Game Summary
           </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Session Analysis</p>
         </div>
         <div className="flex items-center gap-3">
           <Button variant="outline" onClick={() => onOpenChange(false)} className="gap-2">
@@ -143,43 +169,57 @@ export function StatisticsView({
       </header>
       
       {/* 2. Scrollable Content Area */}
-      {/* We use h-[calc(100vh-4rem)] because header is 4rem (h-16) */}
-      <div className="flex-1 overflow-hidden bg-slate-50/30">
-        <ScrollArea className="h-full w-full">
+      {/* Remove double scroll by using simple overflow-y-auto instead of ScrollArea which might conflict */}
+      <div className="flex-1 overflow-y-auto bg-slate-50/30">
             <div className="container mx-auto max-w-6xl p-6 space-y-8 pb-20">
             
             {/* Summary Cards (Host Only) */}
+            {/* Summary Cards (Host Only) */}
             {isHost && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card className="border-none shadow-sm ring-1 ring-slate-200">
-                <CardContent className="flex flex-col items-center justify-center p-6 py-8">
-                  <span className="text-4xl font-bold text-blue-600 mb-2">{totalQuestions}</span>
-                  <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total Questions</span>
-                </CardContent>
-              </Card>
-              <Card className="border-none shadow-sm ring-1 ring-slate-200">
-                <CardContent className="flex flex-col items-center justify-center p-6 py-8">
-                  <span className="text-4xl font-bold text-purple-600 mb-2">{totalAnswers}</span>
-                  <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Total Answers</span>
-                </CardContent>
-              </Card>
-              <Card className="border-none shadow-sm ring-1 ring-slate-200">
-                <CardContent className="flex flex-col items-center justify-center p-6 py-8">
-                  <span className="text-4xl font-bold text-green-600 mb-2">{totalCorrectAnswers}</span>
-                  <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider">Correct Answers</span>
-                </CardContent>
-              </Card>
-            </div>
-          )}
+                <div className="grid grid-cols-3 gap-3 md:gap-4">
+                  {/* Questions Card */}
+                  <Card className="border-none shadow-sm bg-blue-50/50 hover:bg-blue-50 transition-colors !py-2.5 !gap-2">
+                    <CardContent className="p-3 flex flex-col md:flex-row items-center md:items-start justify-between gap-1.5 md:gap-4">
+                      <div className="flex flex-col items-center md:items-start order-2 md:order-1">
+                          <span className="text-[10px] md:text-xs font-semibold text-blue-600/70 uppercase tracking-wider">Questions</span>
+                          <div className="text-xl md:text-3xl font-black text-slate-900 leading-none mt-0.5">{totalQuestions}</div>
+                      </div>
+                      <div className="h-7 w-7 md:h-10 md:w-10 rounded-full bg-blue-100 flex items-center justify-center shrink-0 order-1 md:order-2">
+                        <FileQuestion className="h-3.5 w-3.5 md:h-5 md:w-5 text-blue-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                  
+                  {/* Answers Card */}
+                  <Card className="border-none shadow-sm bg-amber-50/50 hover:bg-amber-50 transition-colors !py-2.5 !gap-2">
+                    <CardContent className="p-3 flex flex-col md:flex-row items-center md:items-start justify-between gap-1.5 md:gap-4">
+                      <div className="flex flex-col items-center md:items-start order-2 md:order-1">
+                          <span className="text-[10px] md:text-xs font-semibold text-amber-600/70 uppercase tracking-wider">Answers</span>
+                          <div className="text-xl md:text-3xl font-black text-slate-900 leading-none mt-0.5">{totalAnswers}</div>
+                      </div>
+                      <div className="h-7 w-7 md:h-10 md:w-10 rounded-full bg-amber-100 flex items-center justify-center shrink-0 order-1 md:order-2">
+                        <MessageSquare className="h-3.5 w-3.5 md:h-5 md:w-5 text-amber-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
 
-          {/* 3. Section Title */}
-          <div className="flex items-center gap-2 pt-2">
-            <BarChart3 className="w-5 h-5 text-purple-500" />
-            <h2 className="text-lg font-bold text-slate-800">
-              {isHost ? "Question Statistics Details" : "Question Review"}
-            </h2>
-          </div>
+                  {/* Correct Card */}
+                  <Card className="border-none shadow-sm bg-green-50/50 hover:bg-green-50 transition-colors !py-2.5 !gap-2">
+                     <CardContent className="p-3 flex flex-col md:flex-row items-center md:items-start justify-between gap-1.5 md:gap-4">
+                      <div className="flex flex-col items-center md:items-start order-2 md:order-1">
+                          <span className="text-[10px] md:text-xs font-semibold text-green-600/70 uppercase tracking-wider">Correct</span>
+                          <div className="text-xl md:text-3xl font-black text-slate-900 leading-none mt-0.5">{totalCorrectAnswers}</div>
+                      </div>
+                      <div className="h-7 w-7 md:h-10 md:w-10 rounded-full bg-green-100 flex items-center justify-center shrink-0 order-1 md:order-2">
+                        <CheckCircle2 className="h-3.5 w-3.5 md:h-5 md:w-5 text-green-600" />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
 
+          {/* 3. Section Title (Removed) */}
+          
           {/* 4. Question Cards List */}
           <div className="space-y-6">
             {questions.map((q, index) => {
@@ -200,12 +240,12 @@ export function StatisticsView({
                 <Card key={q.id} className="border-none shadow-sm ring-1 ring-slate-200 overflow-hidden">
                   <CardContent className="p-0">
                     {/* Header Row */}
-                    <div className="p-6 pb-4 flex items-start justify-between gap-4">
-                        <div className="space-y-3 flex-1">
-                            <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-100 px-3 py-1 text-sm font-medium rounded-md">
+                    <div className="p-4 pb-2 flex items-start justify-between gap-4">
+                        <div className="space-y-2 flex-1">
+                            <Badge variant="secondary" className="bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-100 px-2 py-0.5 text-xs font-medium rounded-md">
                                 Question {index + 1}
                             </Badge>
-                            <h3 className="text-lg font-medium leading-relaxed text-slate-800">
+                            <h3 className="text-base font-medium leading-relaxed text-slate-800">
                                 {q.question}
                             </h3>
                         </div>
@@ -242,35 +282,63 @@ export function StatisticsView({
                          )}
                     </div>
 
-                    {/* Answer Key Box (Green Box) */}
-                    <div className="px-6 pb-6">
-                        <div className="bg-green-50/80 border border-green-100 rounded-lg p-4 flex flex-col gap-1.5">
-                            <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-green-700">
-                                <CheckCircle2 className="w-4 h-4" />
-                                <span>Correct Answer:</span>
-                            </div>
-                            <p className="text-green-800 font-medium text-base pl-6">
-                                {correctAnswerText}
-                            </p>
+                    {/* Answer Options List */}
+                    <div className="px-4 pb-4 pt-2">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {q.answers.map((ans: any, idx) => {
+                                // Handle potential different property names for correctness
+                                // Check if q.correct (string ID) matches ans.id OR if ans.isCorrect is strictly true
+                                const isCorrect = (q.correct !== undefined && String(q.correct) === String(ans.id)) || 
+                                                  (ans.isCorrect === true) || 
+                                                  (ans.is_correct === true);
+
+                                const optionLabel = String.fromCharCode(65 + idx); // A, B, C, D
+                                // Handle potential different property names for the answer text
+                                const answerText = ans.text || ans.answer || ans.option || ans.label || "";
+                                
+                                return (
+                                    <div 
+                                        key={ans.id || idx} 
+                                        className={cn(
+                                            "relative flex items-center gap-3 p-3 rounded-md border text-sm transition-colors",
+                                            isCorrect 
+                                                ? "bg-green-50 border-green-200 text-green-900 ring-1 ring-green-100" 
+                                                : "bg-white border-slate-200 text-slate-600"
+                                        )}
+                                    >
+                                        <span className={cn(
+                                            "flex items-center justify-center w-6 h-6 rounded text-xs font-bold shrink-0",
+                                            isCorrect ? "bg-green-200 text-green-800" : "bg-slate-100 text-slate-500"
+                                        )}>
+                                            {optionLabel}
+                                        </span>
+                                        <span className="font-medium leading-tight flex-1">{answerText}</span>
+                                        
+                                        {isCorrect && (
+                                            <CheckCircle2 className="w-4 h-4 text-green-600 absolute right-3" />
+                                        )}
+                                    </div>
+                                );
+                            })}
                         </div>
                     </div>
 
                     {/* Footer: Progress / Stats */}
                     {isHost && stats && (
-                        <div className="bg-slate-50 border-t px-6 py-4 space-y-2">
-                           <div className="flex items-center justify-between text-sm font-medium text-slate-600">
-                                <span>Accuracy Level</span>
-                                <span>{stats.percentCorrect}%</span>
+                        <div className="px-4 pb-4 pt-0 space-y-2">
+                           <div className="flex items-center justify-between text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                                <span>Accuracy</span>
+                                <span className="text-slate-900 font-bold">{stats.percentCorrect}%</span>
                            </div>
                            <Progress 
                                 value={stats.percentCorrect} 
-                                className="h-2.5 bg-slate-200"
+                                className="h-2" 
                                 indicatorColor={
                                     stats.percentCorrect > 75 ? "bg-green-500" :
                                     stats.percentCorrect > 40 ? "bg-yellow-500" : "bg-red-500"
                                 }
                            />
-                           <div className="flex justify-between text-xs text-muted-foreground pt-1">
+                           <div className="flex justify-between text-[10px] text-muted-foreground">
                                <span>{stats.correctCount} correct</span>
                                <span>{stats.incorrectCount} incorrect</span>
                            </div>
@@ -297,7 +365,6 @@ export function StatisticsView({
           </div>
 
         </div>
-      </ScrollArea>
       </div>
     </div>
   );

@@ -11,6 +11,7 @@ import { Progress } from "@/components/ui/progress";
 import { generateXID } from "@/lib/id-generator";
 import { toast } from "sonner";
 import { StatisticsView } from "./statistics-view";
+import { createGameSessionRT, isRealtimeDbConfigured } from "@/lib/supabase-realtime";
 
 // ========== TYPES & INTERFACES ==========
 interface Player {
@@ -54,26 +55,34 @@ function HeaderNav({ isHost, onDashboard, onRestart, onExport, onStatistics }: H
         </div>
 
         {/* Actions - Different for Host vs Player */}
-        {isHost ? (
-          <div className="flex items-center gap-2">
-            <Button variant="ghost" size="sm" className="hidden sm:flex gap-2" onClick={onDashboard}>
-              <LayoutDashboard className="h-4 w-4" />
-              Dashboard
+        {/* Actions - Different for Host vs Player */}
+        <div className="flex items-center gap-2">
+          {isHost ? (
+            <>
+              <Button variant="ghost" size="sm" className="gap-2" onClick={onDashboard}>
+                <LayoutDashboard className="h-4 w-4" />
+                <span className="hidden sm:inline">Dashboard</span>
+              </Button>
+              <Button variant="ghost" size="sm" className="gap-2" onClick={onStatistics}>
+                <BarChart3 className="h-4 w-4" />
+                <span className="hidden sm:inline">Statistics</span>
+              </Button>
+              <Button variant="outline" size="sm" className="gap-2" onClick={onRestart}>
+                <RotateCcw className="h-4 w-4" />
+                <span className="hidden sm:inline">Restart</span>
+              </Button>
+              <Button size="sm" className="gap-2" onClick={onExport}>
+                <Download className="h-4 w-4" />
+                <span className="hidden sm:inline">Export</span>
+              </Button>
+            </>
+          ) : (
+            <Button variant="secondary" size="sm" className="gap-2 shadow-sm bg-white hover:bg-slate-50 border" onClick={onStatistics}>
+              <BarChart3 className="h-4 w-4 text-primary" />
+              <span className="font-medium">Statistics</span>
             </Button>
-            <Button variant="ghost" size="sm" className="hidden sm:flex gap-2" onClick={onStatistics}>
-              <BarChart3 className="h-4 w-4" />
-              Statistics
-            </Button>
-            <Button variant="outline" size="sm" className="gap-2" onClick={onRestart}>
-              <RotateCcw className="h-4 w-4" />
-              <span className="hidden sm:inline">Restart</span>
-            </Button>
-            <Button size="sm" className="gap-2" onClick={onExport}>
-              <Download className="h-4 w-4" />
-              <span className="hidden sm:inline">Export</span>
-            </Button>
-          </div>
-        ) : null}
+          )}
+        </div>
       </div>
     </header>
   );
@@ -122,83 +131,83 @@ function HostLeaderboard({ players }: HostLeaderboardProps) {
       <div className="mx-auto w-full max-w-7xl flex flex-col lg:flex-row gap-8 lg:gap-12">
         
         {/* Left Side: Podium (Takes full width on mobile, 2/3 on desktop) */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col justify-center min-h-[50vh]">
           {/* Header */}
-          <div className="text-center space-y-2 mb-4 md:mb-8">
-            <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Leaderboard</h1>
+          <div className="text-center space-y-1 mb-2 md:mb-6">
+            <h1 className="text-2xl md:text-4xl font-bold tracking-tight">Leaderboard</h1>
           </div>
 
-          {/* Podium Section - with extra top padding for crown */}
-          <div className="flex items-end justify-center pt-8 md:pt-12 pb-8 md:pb-12">
-            <div className="flex items-end justify-center gap-4 md:gap-8 w-full max-w-3xl px-4">
+          {/* Podium Section - Compact Scale */}
+          <div className="flex items-end justify-center pt-2 md:pt-6 pb-4 md:pb-8">
+            <div className="flex items-end justify-center gap-2 md:gap-6 w-full max-w-3xl px-4">
               
               {/* Rank 2 (Silver) - Left */}
               {top2 && (
-                <div className="flex flex-col items-center gap-3 md:gap-4 w-1/3">
+                <div className="flex flex-col items-center gap-2 md:gap-3 w-1/3">
                   <div className="relative">
-                    <Avatar className="h-16 w-16 md:h-24 md:w-24 border-4 border-slate-300 shadow-xl">
+                    <Avatar className="h-14 w-14 md:h-20 md:w-20 border-4 border-slate-300 shadow-xl">
                       <AvatarImage src={top2.image || ""} alt={top2.name} />
-                      <AvatarFallback className="text-sm md:text-base bg-slate-100">{top2.name[0]}</AvatarFallback>
+                      <AvatarFallback className="text-xs md:text-sm bg-slate-100">{top2.name[0]}</AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full text-xs font-bold shadow-sm border border-slate-300 z-20">
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm border border-slate-300 z-20">
                       <span>2</span>
                     </div>
                   </div>
-                  <div className="text-center mt-1">
-                    <h3 className="font-semibold text-sm md:text-lg line-clamp-1">{top2.name}</h3>
-                    <div className="text-lg md:text-2xl font-bold text-slate-500">{top2.normalizedScore}</div>
+                  <div className="text-center mt-0.5">
+                    <h3 className="font-semibold text-xs md:text-base line-clamp-1">{top2.name}</h3>
+                    <div className="text-sm md:text-xl font-bold text-slate-500">{top2.normalizedScore}</div>
                   </div>
-                  <div className="w-full h-20 md:h-40 bg-gradient-to-t from-slate-300 to-slate-100 rounded-t-xl border-x border-t border-slate-300 flex items-end justify-center pb-3 md:pb-4 shadow-lg shadow-slate-300/20">
-                    <Medal className="h-8 w-8 md:h-12 md:w-12 text-slate-400 opacity-80" />
+                  <div className="w-full h-16 md:h-32 bg-gradient-to-t from-slate-300 to-slate-100 rounded-t-xl border-x border-t border-slate-300 flex items-end justify-center pb-2 md:pb-4 shadow-lg shadow-slate-300/20">
+                    <Medal className="h-6 w-6 md:h-10 md:w-10 text-slate-400 opacity-80" />
                   </div>
                 </div>
               )}
 
               {/* Rank 1 (Gold) - Center */}
               {top1 && (
-                <div className="flex flex-col items-center gap-3 md:gap-4 w-1/3 z-10">
+                <div className="flex flex-col items-center gap-2 md:gap-3 w-1/3 z-10">
                   {/* Crown - positioned above avatar, not absolute */}
                   <div className="flex flex-col items-center">
-                    <Crown className="h-8 w-8 md:h-12 md:w-12 text-yellow-500 mb-2 animate-bounce" />
+                    <Crown className="h-6 w-6 md:h-10 md:w-10 text-yellow-500 mb-1 animate-bounce" />
                     <div className="relative">
-                      <Avatar className="h-20 w-20 md:h-32 md:w-32 border-4 border-yellow-400 shadow-2xl ring-4 ring-yellow-400/20">
+                      <Avatar className="h-16 w-16 md:h-28 md:w-28 border-4 border-yellow-400 shadow-2xl ring-4 ring-yellow-400/20">
                         <AvatarImage src={top1.image || ""} alt={top1.name} />
-                        <AvatarFallback className="text-lg md:text-2xl bg-yellow-50">{top1.name[0]}</AvatarFallback>
+                        <AvatarFallback className="text-base md:text-xl bg-yellow-50">{top1.name[0]}</AvatarFallback>
                       </Avatar>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 px-2.5 py-0.5 rounded-full text-xs md:text-sm font-bold shadow-sm border border-yellow-500 flex items-center gap-1 z-20">
-                        <Trophy className="h-3 w-3" />
+                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 px-2.5 py-0.5 rounded-full text-[10px] md:text-xs font-bold shadow-sm border border-yellow-500 flex items-center gap-1 z-20">
+                        <Trophy className="h-2.5 w-2.5" />
                         <span>1</span>
                       </div>
                     </div>
                   </div>
-                  <div className="text-center mt-1">
-                    <h3 className="font-bold text-base md:text-2xl line-clamp-1">{top1.name}</h3>
-                    <div className="text-2xl md:text-5xl font-black text-primary">{top1.normalizedScore}</div>
+                  <div className="text-center mt-0.5">
+                    <h3 className="font-bold text-sm md:text-xl line-clamp-1">{top1.name}</h3>
+                    <div className="text-xl md:text-4xl font-black text-primary">{top1.normalizedScore}</div>
                   </div>
-                  <div className="w-full h-28 md:h-56 bg-gradient-to-t from-yellow-300 to-yellow-100 rounded-t-xl border-x border-t border-yellow-400 flex items-end justify-center pb-4 md:pb-6 shadow-xl shadow-yellow-500/20">
-                    <Trophy className="h-10 w-10 md:h-16 md:w-16 text-yellow-600 opacity-80" />
+                  <div className="w-full h-24 md:h-48 bg-gradient-to-t from-yellow-300 to-yellow-100 rounded-t-xl border-x border-t border-yellow-400 flex items-end justify-center pb-3 md:pb-6 shadow-xl shadow-yellow-500/20">
+                    <Trophy className="h-8 w-8 md:h-14 md:w-14 text-yellow-600 opacity-80" />
                   </div>
                 </div>
               )}
 
               {/* Rank 3 (Bronze) - Right */}
               {top3 && (
-                <div className="flex flex-col items-center gap-3 md:gap-4 w-1/3">
+                <div className="flex flex-col items-center gap-2 md:gap-3 w-1/3">
                   <div className="relative">
-                    <Avatar className="h-14 w-14 md:h-24 md:w-24 border-4 border-orange-300 shadow-xl">
+                    <Avatar className="h-12 w-12 md:h-16 md:w-16 border-4 border-orange-300 shadow-xl">
                       <AvatarImage src={top3.image || ""} alt={top3.name} />
-                      <AvatarFallback className="text-sm md:text-base bg-orange-50">{top3.name[0]}</AvatarFallback>
+                      <AvatarFallback className="text-xs md:text-sm bg-orange-50">{top3.name[0]}</AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-orange-200 text-orange-800 px-2 py-0.5 rounded-full text-xs font-bold shadow-sm border border-orange-300 z-20">
+                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-orange-200 text-orange-800 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm border border-orange-300 z-20">
                       <span>3</span>
                     </div>
                   </div>
-                  <div className="text-center mt-1">
-                    <h3 className="font-semibold text-sm md:text-lg line-clamp-1">{top3.name}</h3>
-                    <div className="text-lg md:text-2xl font-bold text-orange-600">{top3.normalizedScore}</div>
+                  <div className="text-center mt-0.5">
+                    <h3 className="font-semibold text-xs md:text-base line-clamp-1">{top3.name}</h3>
+                    <div className="text-sm md:text-xl font-bold text-orange-600">{top3.normalizedScore}</div>
                   </div>
-                  <div className="w-full h-16 md:h-28 bg-gradient-to-t from-orange-300 to-orange-100 rounded-t-xl border-x border-t border-orange-300 flex items-end justify-center pb-3 md:pb-4 shadow-lg shadow-orange-300/20">
-                    <Medal className="h-7 w-7 md:h-12 md:w-12 text-orange-500 opacity-80" />
+                  <div className="w-full h-14 md:h-24 bg-gradient-to-t from-orange-300 to-orange-100 rounded-t-xl border-x border-t border-orange-300 flex items-end justify-center pb-2 md:pb-3 shadow-lg shadow-orange-300/20">
+                    <Medal className="h-5 w-5 md:h-9 md:w-9 text-orange-500 opacity-80" />
                   </div>
                 </div>
               )}
@@ -369,10 +378,15 @@ export default function Leaderboard() {
     try {
       toast.info("Preparing new game session...");
       
-      // 1. Get current session settings
+      // 1. Get current session settings AND fetch fresh questions from the Quiz table
       const { data: currentSession, error: fetchError } = await supabase
         .from("game_sessions")
-        .select("*")
+        .select(`
+          *,
+          quizzes (
+            questions
+          )
+        `)
         .eq("id", id)
         .single();
 
@@ -380,6 +394,24 @@ export default function Leaderboard() {
         console.error("Fetch current session error:", fetchError);
         toast.error("Could not retrieve session data");
         return;
+      }
+
+      // Ensure we have valid questions from the quiz source
+      // Handle array or single object response logic for foreign key (it's usually single, but defensive check)
+      const quizData = Array.isArray(currentSession.quizzes) ? currentSession.quizzes[0] : currentSession.quizzes;
+      let freshQuestions = quizData?.questions || currentSession.current_questions || [];
+
+      if (!freshQuestions || freshQuestions.length === 0) {
+          toast.error("Error: No questions found for this quiz source.");
+          return;
+      }
+      
+      // APPLY QUESTION LIMIT
+      const limit = parseInt(currentSession.question_limit);
+      if (!isNaN(limit) && limit > 0 && limit < freshQuestions.length) {
+          // Shuffle questions (optional but good for restarts) or just take first N
+          // For consistency with original logic, let's just slice for now to respect the limit
+          freshQuestions = freshQuestions.slice(0, limit);
       }
 
       // 2. Generate new session data
@@ -399,7 +431,8 @@ export default function Leaderboard() {
         difficulty: currentSession.difficulty,
         application: currentSession.application,
         created_at: new Date().toISOString(),
-        participants: [] // Explicitly empty
+        participants: [], // Explicitly empty
+        current_questions: freshQuestions // use the freshly fetched questions
       };
 
       // 3. Create new session
@@ -410,6 +443,12 @@ export default function Leaderboard() {
       if (createError) {
         console.error("Create session error:", createError);
         throw createError;
+      }
+
+      // 3.5 Create Session in Realtime DB if configured
+      if (isRealtimeDbConfigured) {
+        const { participants, ...rtSessionData } = newSession;
+        await createGameSessionRT(rtSessionData);
       }
       
       toast.success("New session created!");
@@ -536,13 +575,29 @@ export default function Leaderboard() {
           setIsHost(hostCheck);
 
           // Extract questions
+          // Extract questions
           const quiz = Array.isArray(session.quizzes) ? session.quizzes[0] : session.quizzes;
-          const quizQuestions = quiz?.questions || [];
-          setQuestions(quizQuestions);
+          const fullQuestions = quiz?.questions || [];
+          
+          // Use current_questions if available (most accurate source of truth for session), 
+          // otherwise fallback to full source list
+          let activeQuestions = session.current_questions && session.current_questions.length > 0
+              ? session.current_questions
+              : fullQuestions;
+
+          // Apply question limit explicitly
+          // Even if current_questions is used, we ensure it respects the limit stored in session
+          const questionLimit = parseInt(session.question_limit);
+          if (!isNaN(questionLimit) && questionLimit > 0 && questionLimit < activeQuestions.length) {
+              activeQuestions = activeQuestions.slice(0, questionLimit);
+          }
+          
+          setQuestions(activeQuestions);
 
           const participants = (session.participants as any[]) || [];
-          const questionLimit = parseInt(session.question_limit) || quizQuestions.length || 0;
-          console.log("Participants count:", participants.length, "Question limit:", questionLimit);
+          // Use activeQuestions.length as the definitive total questions count
+          const totalQ = activeQuestions.length;
+          console.log("Participants count:", participants.length, "Active Questions:", totalQ);
           
           if (participants.length > 0) {
             setIsSyncing(false); // Data ready!
@@ -568,16 +623,46 @@ export default function Leaderboard() {
             }
             
             // Map participants to players with full data
+            // NEW LOGIC: Support both embedded responses (Legacy) and separated responses (New Clean Mode)
+            const allSessionResponses = (session.responses as any[]) || [];
+            
             const mappedPlayers: Player[] = participants.map((p) => {
-              const responsesCount = Array.isArray(p.responses) ? p.responses.length : 0;
+              // Get responses for THIS participant from the centralized responses array
+              const separateResponses = allSessionResponses.filter(r => r.participant_id === p.id || r.participant_id === p.user_id);
+              
+              // Fallback to embedded responses if available (Hybrid/Legacy), otherwise use separate
+              const embeddedResponses = Array.isArray(p.responses) ? p.responses : [];
+              
+              // Prefer separate responses if available (newer source of truth), else legacy
+              const responses = separateResponses.length > 0 ? separateResponses : embeddedResponses;
+              
+              const responsesCount = responses.length;
               const totalQ = questionLimit;
-              const rawScore = p.score || 0;
               
-              // Calculate correct answers: score / 100 per question
-              // Assuming each correct answer gives 100 points  
-              const correctAns = Math.round(rawScore / 100);
+              // RECALCULATE SCORE MANUALLY
+              // Don't trust p.score from DB due to potential sync/mismatch issues
+              let recalculatedCorrectCount = 0;
               
-              // Normalize score to max 100
+              responses.forEach((r: any) => {
+                  const q = activeQuestions.find((ques: any) => String(ques.id).trim() === String(r.question_id).trim());
+                  if (q) {
+                      // Check correctness
+                      const isCorrect = String(r.answer_id).trim() === String(q.correct).trim() || 
+                                        q.answers?.find((a: any) => String(a.id).trim() === String(r.answer_id).trim())?.isCorrect;
+                      
+                      if (isCorrect) {
+                          recalculatedCorrectCount++;
+                      }
+                  }
+              });
+
+              // Assuming 100 points per correct answer for the raw score
+              const recalculatedScore = recalculatedCorrectCount * 100;
+              
+              const correctAns = recalculatedCorrectCount;
+              const rawScore = recalculatedScore;
+              
+              // Normalize score to max 100 for display
               const normalizedScore = totalQ > 0 
                 ? Math.round((correctAns / totalQ) * 100) 
                 : 0;
@@ -591,7 +676,7 @@ export default function Leaderboard() {
                 normalizedScore,
                 correctAnswers: correctAns,
                 totalQuestions: totalQ,
-                responses: p.responses || []
+                responses: responses
               };
             }).sort((a, b) => b.score - a.score);
 
