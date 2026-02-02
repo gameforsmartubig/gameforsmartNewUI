@@ -90,10 +90,9 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
       if (user) {
         joinGame();
       } else {
-        // Redirect to login if not logged in
+        // Redirect to login if not logged in (Force Hard Redirect)
         console.log("Redirecting to login...");
-        const redirectUrl = `/login?redirect=/join&pin=${gamePin}`;
-        router.push(redirectUrl);
+        window.location.href = `${window.location.origin}/login?redirect=/join&pin=${gamePin}`;
       }
       
       // We don't turn off shouldAutoJoin immediately if joining, 
