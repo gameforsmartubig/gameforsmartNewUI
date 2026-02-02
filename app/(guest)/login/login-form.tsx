@@ -10,6 +10,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
+import { toast } from "sonner";
 
 export default function LoginForm() {
   const [loading, setLoading] = useState(false);
@@ -99,6 +100,7 @@ export default function LoginForm() {
         if (!hasValidUsername || !hasLocation) {
           // Redirect to required page to complete profile
           if (redirectPath && gamePin) {
+            localStorage.setItem("pin", gamePin); // Persist PIN
             router.push(`/required?redirect=${redirectPath}&pin=${gamePin}`);
           } else if (redirectPath) {
             router.push(`/required?redirect=${redirectPath}`);
@@ -107,6 +109,7 @@ export default function LoginForm() {
           }
         } else if (redirectPath) {
            if (gamePin) {
+             localStorage.setItem("pin", gamePin); // Persist PIN
              router.push(`${redirectPath}?pin=${gamePin}`);
            } else {
              router.push(redirectPath);
@@ -116,14 +119,8 @@ export default function LoginForm() {
         }
       }
     } catch (error: any) {
-      console.error("Error signing in:", error);
-      if (error.message === "Username tidak ditemukan") {
-        setError("Username tidak ditemukan. Periksa kembali username Anda.");
-      } else if (error.message?.includes("Invalid login credentials")) {
-        setError("Password salah. Periksa kembali password Anda.");
-      } else {
-        setError(error.message || "Gagal masuk. Periksa email/username dan password Anda.");
-      }
+      setError(error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -146,6 +143,7 @@ export default function LoginForm() {
       }
       if (gamePin) {
         localStorage.setItem("oauth_game_pin", gamePin);
+        localStorage.setItem("pin", gamePin); // ALSO set generic 'pin' for robustness
       }
 
       let callbackUrl = `${window.location.origin}/auth/callback`;
