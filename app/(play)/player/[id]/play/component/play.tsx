@@ -132,19 +132,59 @@ export default function Play({ sessionId }: PlayProps) {
     const init = async () => {
       if (!participantId) return; // Wait until resolved
 
-      // Load Questions from LocalStorage
+      // Load Questions: Try LocalStorage first, then fetch from DB with Retry Logic
+      let loadedQuestions: Question[] = [];
+      
+      // 1. Try LocalStorage
       const storedData = localStorage.getItem(`player_game_data_${sessionId}`);
       if (storedData) {
         try {
           const parsed = JSON.parse(storedData);
-          if (parsed.questions && Array.isArray(parsed.questions)) {
-            setQuestions(parsed.questions);
+          if (parsed.questions && Array.isArray(parsed.questions) && parsed.questions.length > 0) {
+            loadedQuestions = parsed.questions;
           }
         } catch (e) {
           console.error("Failed to parse stored questions", e);
         }
+      }
+
+      // 2. Try Fetching from DB (with Retry)
+      if (loadedQuestions.length === 0) {
+         let attempts = 0;
+         const maxAttempts = 5;
+         
+         while (attempts < maxAttempts && loadedQuestions.length === 0) {
+            try {
+               const { data: sessionData, error: sessionError } = await supabase
+                .from("game_sessions")
+                .select("current_questions")
+                .eq("id", sessionId)
+                .single();
+                
+               if (sessionData?.current_questions && Array.isArray(sessionData.current_questions) && sessionData.current_questions.length > 0) {
+                 loadedQuestions = sessionData.current_questions;
+                 // Cache it back
+                 localStorage.setItem(`player_game_data_${sessionId}`, JSON.stringify({ questions: loadedQuestions }));
+                 break; // Success!
+               } else {
+                 console.log(`Attempt ${attempts + 1}: Questions not ready yet...`);
+               }
+            } catch (err) {
+               console.error("Error fetching fallback questions:", err);
+            }
+            
+            attempts++;
+            if (loadedQuestions.length === 0 && attempts < maxAttempts) {
+                // Wait 1 second before retrying
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+         }
+      }
+
+      if (loadedQuestions.length > 0) {
+        setQuestions(loadedQuestions);
       } else {
-        toast.error("No questions found. Please try rejoining.");
+        toast.error("Could not load questions even after retries. Please refresh.");
       }
 
       // Load Session
