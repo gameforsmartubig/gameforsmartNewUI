@@ -636,53 +636,12 @@ export function DashboardContent({
                 }
               }}
             />
-            <div className="text-muted-foreground pointer-events-none absolute top-2 right-10 hidden items-center gap-1 rounded border bg-neutral-100 px-1.5 py-1 font-mono text-[10px] font-medium opacity-100 sm:flex dark:bg-zinc-800">
-              <span className="text-xs">⌘</span>K
-            </div>
             <Button
               variant="default"
               className="absolute top-1 right-1 h-7 w-7 p-2"
               onClick={handleSearchSubmit}>
               <Search size={20} />
             </Button>
-          </div>
-
-          <div className="grid gap-2">
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id="date"
-                  variant={"outline"}
-                  className={cn(
-                    "bg-background h-9 w-full justify-start text-left font-normal sm:w-auto",
-                    !date && "text-muted-foreground"
-                  )}>
-                  <Calendar className="mr-2 h-4 w-4 opacity-50" />
-                  {date?.from ? (
-                    date.to && date.to.getTime() !== date.from.getTime() ? (
-                      <>
-                        {format(date.from, "dd MMM yyyy", { locale: id })} -{" "}
-                        {format(date.to, "dd MMM yyyy", { locale: id })}
-                      </>
-                    ) : (
-                      format(date.from, "dd MMM yyyy", { locale: id })
-                    )
-                  ) : (
-                    <span>Pilih tanggal</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <UICalendar
-                  initialFocus
-                  mode="range"
-                  defaultMonth={date?.from}
-                  selected={date}
-                  onSelect={setDate}
-                  numberOfMonths={1}
-                />
-              </PopoverContent>
-            </Popover>
           </div>
 
           <DropdownMenu>
