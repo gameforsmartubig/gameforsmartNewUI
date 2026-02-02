@@ -18,14 +18,19 @@ import { generateXID } from "@/lib/id-generator";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth-context";
 
-function JoinGameContent() {
+interface JoinGameContentProps {
+  initialPin?: string;
+}
+
+function JoinGameContent({ initialPin }: JoinGameContentProps) {
   const router = useRouter();
   const { user, profileId, loading: authLoading } = useAuth();
   const searchParams = useSearchParams();
-  const [gamePin, setGamePin] = useState("");
+  const [gamePin, setGamePin] = useState(initialPin || "");
   const [loading, setLoading] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState("");
+  const [shouldAutoJoin, setShouldAutoJoin] = useState(false);
   const scannerRef = useRef<any>(null);
 
   useEffect(() => {
@@ -33,13 +38,45 @@ function JoinGameContent() {
     const pinFromLocalStorage = localStorage.getItem("pin");
     if (pin) {
       setGamePin(pin);
-      // Optional: Auto join logic here if desired
-    }
-    if (pinFromLocalStorage) {
+      setShouldAutoJoin(true);
+    } else if (initialPin) {
+      // Logic for /join/[pin] route
+      setGamePin(initialPin);
+      setShouldAutoJoin(true);
+    } else if (pinFromLocalStorage) {
       setGamePin(pinFromLocalStorage);
+      setShouldAutoJoin(true);
       localStorage.removeItem("pin");
     }
-  }, []);
+  }, [searchParams, initialPin]);
+
+  // Auto join effect with Delay
+  useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
+    if (shouldAutoJoin && gamePin) {
+      // 800ms Delay to ensuring Auth Context is ready
+      timeoutId = setTimeout(() => {
+        if (!authLoading) {
+            if (user) {
+              joinGame();
+            } else {
+              // Redirect to login if not logged in
+              router.push(`/login?redirect=/join&pin=${gamePin}`);
+            }
+            // Note: We keep shouldAutoJoin true until joinGame completes or redirects
+            // But to avoid loop, joinGame should handle the state or redirect.
+            // If redirecting, component unmounts.
+            if (user) setShouldAutoJoin(false); 
+        }
+      }, 800);
+    }
+    
+    return () => {
+        if (timeoutId) clearTimeout(timeoutId);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldAutoJoin, gamePin, authLoading, user]);
 
   useEffect(() => {
     return () => {
@@ -247,6 +284,19 @@ function JoinGameContent() {
     }
   };
 
+  // RENDER LOADING SCREEN IF AUTO JOINING
+  if (shouldAutoJoin && !authLoading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white dark:from-zinc-900 dark:to-zinc-950 p-4">
+        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6 animate-pulse">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+        </div>
+        <h2 className="text-2xl font-bold text-center mb-2">Joining Game...</h2>
+        <p className="text-muted-foreground text-center">Please wait while we connect you to the session.</p>
+      </div>
+    );
+  }
+
   return (
     <div className="relative flex h-screen flex-col items-center justify-center bg-gray-50/50 dark:bg-zinc-950">
       <Card className="mx-auto w-96 border-0 border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
@@ -333,10 +383,14 @@ function JoinGameContent() {
   );
 }
 
-export default function Join() {
+interface JoinProps {
+  initialPin?: string;
+}
+
+export default function Join({ initialPin }: JoinProps) {
   return (
     <Suspense fallback={<div>Loading...</div>}>
-      <JoinGameContent />
+      <JoinGameContent initialPin={initialPin} />
     </Suspense>
   );
 }

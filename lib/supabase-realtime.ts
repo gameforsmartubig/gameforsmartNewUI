@@ -18,17 +18,17 @@ if (typeof window !== "undefined") {
 // Reuse Database definitions if possible, or just use 'any' for now since we are focusing on RT
 export const supabaseRealtime: SupabaseClient | null = isRealtimeDbConfigured
   ? createClient(realtimeUrl!, realtimeAnonKey!, {
-      auth: {
-        autoRefreshToken: true,
-        persistSession: true,
-        detectSessionInUrl: false
-      },
-      realtime: {
-        params: {
-          eventsPerSecond: 20
-        }
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: false
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 20
       }
-    })
+    }
+  })
   : null;
 
 // ============================================================
@@ -379,6 +379,7 @@ export function subscribeToGameRT(
         filter: `session_id=eq.${sessionId}`
       },
       (payload) => {
+        console.log(`[Realtime] Participant change event:`, payload.eventType, payload.new);
         if (callbacks.onParticipantChange) {
           callbacks.onParticipantChange({
             eventType: payload.eventType,
@@ -388,7 +389,12 @@ export function subscribeToGameRT(
         }
       }
     )
-    .subscribe();
+    .subscribe((status, err) => {
+      console.log(`[Realtime] Channel game_rt_${sessionId} status:`, status);
+      if (err) {
+        console.error(`[Realtime] Channel error:`, err);
+      }
+    });
 
   return channel;
 }
