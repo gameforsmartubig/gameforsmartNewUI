@@ -34,19 +34,31 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
   const scannerRef = useRef<any>(null);
 
   useEffect(() => {
-    const pin = searchParams.get("pin");
+    const pinFromUrl = searchParams.get("pin");
     const pinFromLocalStorage = localStorage.getItem("pin");
-    if (pin) {
-      setGamePin(pin);
-      setShouldAutoJoin(true);
+    const oauthPin = localStorage.getItem("oauth_game_pin"); // Check legacy/oauth key too
+    
+    let targetPin = "";
+
+    if (pinFromUrl) {
+      targetPin = pinFromUrl;
     } else if (initialPin) {
-      // Logic for /join/[pin] route
-      setGamePin(initialPin);
-      setShouldAutoJoin(true);
+      targetPin = initialPin;
+    } else if (oauthPin) {
+      targetPin = oauthPin;
+      // Clean up oauth specific key
+      localStorage.removeItem("oauth_game_pin");
     } else if (pinFromLocalStorage) {
-      setGamePin(pinFromLocalStorage);
+      targetPin = pinFromLocalStorage;
+    }
+
+    if (targetPin) {
+      // 1. SAVE to localStorage immediately for persistence correctly
+      localStorage.setItem("pin", targetPin);
+      
+      // 2. Set State
+      setGamePin(targetPin);
       setShouldAutoJoin(true);
-      localStorage.removeItem("pin");
     }
   }, [searchParams, initialPin]);
 
