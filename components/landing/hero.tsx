@@ -40,7 +40,7 @@ export function Hero() {
                             {user ? (
                                 <Link href="/dashboard">
                                     <Button size="lg" className="rounded-xl px-12 h-14 text-base font-bold shadow-lg transition-all hover:scale-105 active:scale-95">
-                                        Lanjut ke Dashboard
+                                        Dashboard
                                     </Button>
                                 </Link>
                             ) : (
