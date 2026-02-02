@@ -33,11 +33,19 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
   const [shouldAutoJoin, setShouldAutoJoin] = useState(false);
   const scannerRef = useRef<any>(null);
 
+  // 1. PIN Recovery Logic - Unified
   useEffect(() => {
     const pinFromUrl = searchParams.get("pin");
-    const pinFromLocalStorage = localStorage.getItem("pin");
-    const oauthPin = localStorage.getItem("oauth_game_pin"); // Check legacy/oauth key too
+    const pinFromStorage = localStorage.getItem("pin");
+    const oauthPin = localStorage.getItem("oauth_game_pin"); 
     
+    console.log("🔍 Join Debug - Init Params:", {
+        urlPin: pinFromUrl, 
+        initialPin, 
+        storagePin: pinFromStorage,
+        oauthPin
+    });
+
     let targetPin = "";
 
     if (pinFromUrl) {
@@ -46,49 +54,59 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
       targetPin = initialPin;
     } else if (oauthPin) {
       targetPin = oauthPin;
-      // Clean up oauth specific key
       localStorage.removeItem("oauth_game_pin");
-    } else if (pinFromLocalStorage) {
-      targetPin = pinFromLocalStorage;
+    } else if (pinFromStorage) {
+      targetPin = pinFromStorage;
     }
 
     if (targetPin) {
-      // 1. SAVE to localStorage immediately for persistence correctly
+      console.log("✅ PIN Found & Set:", targetPin);
       localStorage.setItem("pin", targetPin);
-      
-      // 2. Set State
       setGamePin(targetPin);
       setShouldAutoJoin(true);
     }
   }, [searchParams, initialPin]);
 
-  // Auto join effect with Delay
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout;
+  // State for minimum delay to prevent flickering
+  const [isReadyToJoin, setIsReadyToJoin] = useState(false);
 
-    if (shouldAutoJoin && gamePin) {
-      // 800ms Delay to ensuring Auth Context is ready
-      timeoutId = setTimeout(() => {
-        if (!authLoading) {
-            if (user) {
-              joinGame();
-            } else {
-              // Redirect to login if not logged in
-              router.push(`/login?redirect=/join&pin=${gamePin}`);
-            }
-            // Note: We keep shouldAutoJoin true until joinGame completes or redirects
-            // But to avoid loop, joinGame should handle the state or redirect.
-            // If redirecting, component unmounts.
-            if (user) setShouldAutoJoin(false); 
-        }
-      }, 800);
+  // 1. Min Delay Timer Effect
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (shouldAutoJoin) {
+      setIsReadyToJoin(false); // Reset
+      timer = setTimeout(() => {
+        setIsReadyToJoin(true);
+      }, 800); // 800ms Minimum Loading Screen
     }
-    
-    return () => {
-        if (timeoutId) clearTimeout(timeoutId);
-    };
+    return () => clearTimeout(timer);
+  }, [shouldAutoJoin]);
+
+  // 2. Reactive Auto Join Execution
+  useEffect(() => {
+    if (shouldAutoJoin && isReadyToJoin && !authLoading && gamePin) {
+      console.log("🚀 Auto Join Triggered!", { user: user?.email, gamePin });
+      
+      if (user) {
+        joinGame();
+      } else {
+        // Redirect to login if not logged in
+        console.log("Redirecting to login...");
+        const redirectUrl = `/login?redirect=/join&pin=${gamePin}`;
+        router.push(redirectUrl);
+      }
+      
+      // We don't turn off shouldAutoJoin immediately if joining, 
+      // let joinGame or redirect handle navigation. 
+      // If user is guest, we redirect -> component unmounts.
+      // If user is logged in, joinGame -> loading state -> redirect to room.
+      if (user) {
+          // Optional: setShouldAutoJoin(false) only if join fails? 
+          // For now let joinGame handle UI.
+      }
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldAutoJoin, gamePin, authLoading, user]);
+  }, [shouldAutoJoin, isReadyToJoin, authLoading, user, gamePin]);
 
   useEffect(() => {
     return () => {
