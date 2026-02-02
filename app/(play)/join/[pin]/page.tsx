@@ -1,11 +1,13 @@
 import Join from "../component/join";
 
+// In Next.js 15, params is a Promise
 interface JoinPinPageProps {
-  params: {
+  params: Promise<{
     pin: string;
-  };
+  }>;
 }
 
-export default function JoinPinPage({ params }: JoinPinPageProps) {
-  return <Join initialPin={params.pin} />;
+export default async function JoinPinPage({ params }: JoinPinPageProps) {
+  const resolvedParams = await params;
+  return <Join initialPin={resolvedParams.pin} />;
 }

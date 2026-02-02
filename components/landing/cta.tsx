@@ -31,7 +31,7 @@ export function CTA() {
                             {user ? (
                                 <Link href="/dashboard">
                                     <Button size="lg" className="rounded-xl px-12 h-16 text-lg font-bold shadow-xl transition-all hover:scale-105 active:scale-95 bg-primary text-primary-foreground">
-                                        Buka Dashboard Sekarang
+                                        Dashboard
                                     </Button>
                                 </Link>
                             ) : (

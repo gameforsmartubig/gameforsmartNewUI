@@ -46,7 +46,7 @@ export function AuthSection() {
                             </p>
                             <Link href="/dashboard">
                                 <Button className="h-14 px-8 rounded-xl text-lg font-bold shadow-lg">
-                                    Buka Dashboard Saya
+                                    Dashboard
                                 </Button>
                             </Link>
                         </motion.div>

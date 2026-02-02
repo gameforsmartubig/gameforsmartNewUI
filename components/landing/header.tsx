@@ -45,7 +45,7 @@ export function LandingHeader() {
                             {user ? (
                                 <Link href="/dashboard">
                                     <Button size="sm" className="rounded-lg h-10 px-6 font-bold shadow-md">
-                                        Buka Dashboard
+                                        Dashboard
                                     </Button>
                                 </Link>
                             ) : (
