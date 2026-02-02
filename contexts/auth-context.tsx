@@ -105,15 +105,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    const initSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
       setUser(session?.user ?? null);
       if (session?.user) {
         // localStorage.setItem("user_id", session.user.id); // REMOVE: We want profile.id, not auth user id
-        fetchProfile(session.user.id);
+        await fetchProfile(session.user.id);
       }
       setLoading(false);
       setInitialLoad(false);
-    });
+    };
+
+    initSession();
 
     // Listen for auth changes
     const {

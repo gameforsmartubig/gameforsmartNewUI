@@ -153,7 +153,7 @@ export function StatisticsView({
         <div>
           <h1 className="text-xl font-bold flex items-center gap-2">
             <BarChart3 className="w-6 h-6 text-primary" />
-            Game Summary
+            Quiz Summary
           </h1>
         </div>
         <div className="flex items-center gap-3">

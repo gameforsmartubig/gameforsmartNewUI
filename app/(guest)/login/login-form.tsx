@@ -100,11 +100,17 @@ export default function LoginForm() {
           // Redirect to required page to complete profile
           if (redirectPath && gamePin) {
             router.push(`/required?redirect=${redirectPath}&pin=${gamePin}`);
+          } else if (redirectPath) {
+            router.push(`/required?redirect=${redirectPath}`);
           } else {
             router.push("/required");
           }
-        } else if (redirectPath && gamePin) {
-          router.push(`${redirectPath}?pin=${gamePin}`);
+        } else if (redirectPath) {
+           if (gamePin) {
+             router.push(`${redirectPath}?pin=${gamePin}`);
+           } else {
+             router.push(redirectPath);
+           }
         } else {
           router.push("/dashboard");
         }
@@ -135,14 +141,30 @@ export default function LoginForm() {
       console.log("🔥 Login - gamePin:", gamePin);
 
       // Store redirect info in localStorage before OAuth redirect
-      if (redirectPath && gamePin) {
+      if (redirectPath) {
         localStorage.setItem("oauth_redirect_path", redirectPath);
+      }
+      if (gamePin) {
         localStorage.setItem("oauth_game_pin", gamePin);
       }
 
-      const callbackUrl = `${window.location.origin}/auth/callback`;
+      let callbackUrl = `${window.location.origin}/auth/callback`;
+      
+      // Construct redirection URL for the callback
+      let nextPath = "/dashboard";
+      
+      if (redirectPath) {
+        if (gamePin) {
+           nextPath = `${redirectPath}?pin=${gamePin}`;
+        } else {
+           nextPath = redirectPath;
+        }
+      }
+      
+      // Append next path to callback
+      callbackUrl += `?next=${encodeURIComponent(nextPath)}`;
 
-      console.log("🔥 Login - callbackUrl:", callbackUrl);
+      console.log("🔥 Login - final callbackUrl:", callbackUrl);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
