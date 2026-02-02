@@ -136,6 +136,12 @@ export async function middleware(request: NextRequest) {
       response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
     }
 
+    // Redirect authenticated users from landing page to dashboard
+    // TEMPORARILY DISABLED so you can check the Landing Page UI
+    // if (pathname === "/" && user) {
+    //   return NextResponse.redirect(new URL("/dashboard", request.url));
+    // }
+
     // Protect admin routes - require admin role
     if (pathname.startsWith("/admin")) {
       // Note: Client-side protection will be handled by the admin page itself
@@ -174,6 +180,9 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
+    // Root path (to handle redirect for auth users)
+    "/",
+
     // API routes (for CORS & security)
     "/api/:path*",
 

@@ -61,7 +61,8 @@ import {
   History,
   ChartBar,
   Bell,
-  Flag
+  Flag,
+  UserCircle2Icon
 } from "lucide-react";
 import Link from "next/link";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -120,6 +121,11 @@ export const navItems: NavGroup[] = [
         title: "Reports",
         href: "/reports",
         icon: Flag
+      },
+      {
+        title: "Profile",
+        href: "/profile",
+        icon: UserCircle2Icon
       }
     ]
   }

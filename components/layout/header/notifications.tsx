@@ -1,6 +1,9 @@
+"use client";
+
 import { BellIcon, ClockIcon } from "lucide-react";
 import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { useEffect, useState } from "react";
 
 import {
   DropdownMenu,
@@ -17,6 +20,19 @@ import { notifications, type Notification } from "./data";
 
 const Notifications = () => {
   const isMobile = useIsMobile();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) {
+    return (
+      <Button size="icon" variant="ghost" className="relative">
+        <BellIcon />
+      </Button>
+    );
+  }
 
   return (
     <DropdownMenu>
