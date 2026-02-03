@@ -121,9 +121,19 @@ export async function middleware(request: NextRequest) {
     // Check if this is a protected route
     const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route));
 
+    // DEBUG LOG
+    if (pathname.startsWith("/join")) {
+      console.log("🛡️ Middleware Check:", {
+        pathname,
+        isProtectedRoute,
+        hasUser: !!user
+      });
+    }
+
     if (isProtectedRoute) {
       // Enforce Authentication
       if (!user) {
+        console.log("⛔ Middleware: Redirecting unauth user to login");
         const url = request.nextUrl.clone();
         url.pathname = "/login";
         // Add redirect param so we can send them back after login
