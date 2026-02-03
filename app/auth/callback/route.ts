@@ -5,11 +5,20 @@ import { NextResponse } from "next/server";
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  // if "next" is in param, use it as the redirect URL
-  const next = searchParams.get("next") ?? "/dashboard";
+
+  // Strategy: Check Cookie First -> Then Query Param -> Default
+  const cookieStore = await cookies();
+  const redirectCookie = cookieStore.get("auth-redirect");
+  let next = redirectCookie?.value ? decodeURIComponent(redirectCookie.value) : (searchParams.get("next") ?? "/dashboard");
+
+  console.log("🔄 Auth Callback Hit:", {
+    url: request.url,
+    code: code ? "Present" : "MISSING",
+    cookieRedirect: redirectCookie?.value,
+    finalNext: next
+  });
 
   if (code) {
-    const cookieStore = await cookies();
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -34,10 +43,16 @@ export async function GET(request: Request) {
     );
     const { error } = await supabase.auth.exchangeCodeForSession(code);
     if (!error) {
-      if (next.startsWith("http")) {
-        return NextResponse.redirect(next);
+      const targetUrl = next.startsWith("http") ? next : `${origin}${next}`;
+
+      const response = NextResponse.redirect(targetUrl);
+
+      // Clear the redirect cookie if it existed
+      if (redirectCookie) {
+        response.cookies.delete("auth-redirect");
       }
-      return NextResponse.redirect(`${origin}${next}`);
+
+      return response;
     }
   }
 

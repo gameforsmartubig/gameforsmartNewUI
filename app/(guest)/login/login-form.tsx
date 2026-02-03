@@ -137,32 +137,26 @@ export default function LoginForm() {
       console.log("🔥 Login - redirectPath:", redirectPath);
       console.log("🔥 Login - gamePin:", gamePin);
 
-      // Store redirect info in localStorage before OAuth redirect
-      if (redirectPath) {
-        localStorage.setItem("oauth_redirect_path", redirectPath);
-      }
-      if (gamePin) {
-        localStorage.setItem("oauth_game_pin", gamePin);
-        localStorage.setItem("pin", gamePin); // ALSO set generic 'pin' for robustness
-      }
-
-      let callbackUrl = `${window.location.origin}/auth/callback`;
-      
-      // Construct redirection URL for the callback
+      // 1. Construct Target Path
       let nextPath = "/dashboard";
-      
       if (redirectPath) {
-        if (gamePin) {
+        if (gamePin && !redirectPath.includes(gamePin)) {
+           // If redirect is generic but we have PIN
            nextPath = `${redirectPath}?pin=${gamePin}`;
         } else {
            nextPath = redirectPath;
         }
       }
-      
-      // Append next path to callback
-      callbackUrl += `?next=${encodeURIComponent(nextPath)}`;
 
-      console.log("🔥 Login - final callbackUrl:", callbackUrl);
+      // 2. Save Target Path to Cookie (Server Readable)
+      // This bypasses Supabase Strict Redirect URL checking
+      document.cookie = `auth-redirect=${encodeURIComponent(nextPath)}; path=/; max-age=3600; SameSite=Lax`;
+
+      // 3. Clean Callback URL (Must exactly match Supabase Whitelist)
+      const callbackUrl = `${window.location.origin}/auth/callback`;
+
+      console.log("🔥 Login - clean callbackUrl:", callbackUrl);
+      console.log("🔥 Login - target stored in cookie:", nextPath);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
