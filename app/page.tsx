@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { CTA } from "@/components/landing/cta";
 import { AuthSection } from "@/components/landing/auth-section";
+import { AuthCodeSafetyNet } from "@/components/auth/auth-code-safety-net";
 
 export async function generateMetadata() {
     return generateMeta({
@@ -20,6 +21,7 @@ export async function generateMetadata() {
 export default function LandingPage() {
     return (
         <div className="flex flex-col min-h-screen">
+            <AuthCodeSafetyNet />
             <LandingHeader />
             <main className="flex-grow">
                 <Hero />
