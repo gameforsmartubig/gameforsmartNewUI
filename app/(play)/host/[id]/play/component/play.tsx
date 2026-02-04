@@ -225,8 +225,11 @@ export default function Play({ sessionId }: PlayProps) {
     return () => clearTimeout(timeout);
   }, [isLoading, countdownLeft]);
 
+  // Dynamic background to prevent white flash during countdown
+  const bgColor = isLoading || countdownLeft ? "bg-zinc-950" : "bg-rose-50";
+
   return (
-    <div className="min-h-screen w-full bg-rose-50">
+    <div className={`min-h-screen w-full ${bgColor} transition-colors duration-700`}>
       {/* Countdown Overlay */}
       <AnimatePresence>
         {countdownLeft !== null && countdownLeft > 0 && (
@@ -260,7 +263,7 @@ export default function Play({ sessionId }: PlayProps) {
 
       {/* Main Content or Loading */}
       {isLoading ? (
-        <div className="flex min-h-screen items-center justify-center bg-rose-50">
+        <div className="flex min-h-screen items-center justify-center bg-transparent">
             {/* Show loader only after debounce delay */}
             {showLoader && <Loader2 className="h-8 w-8 animate-spin text-rose-500" />}
         </div>
