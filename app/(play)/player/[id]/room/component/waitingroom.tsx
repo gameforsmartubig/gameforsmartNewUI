@@ -437,35 +437,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   return (
     <div className="h-screen overflow-y-auto bg-gray-50/50 dark:bg-zinc-950">
       {/* Countdown Overlay */}
-      <AnimatePresence>
-        {countdownLeft !== null && countdownLeft > 0 && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black">
-            <div className="flex flex-col items-center gap-8">
-              <motion.div
-                key={countdownLeft}
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 1.5, opacity: 0 }}
-                transition={{ duration: 0.5 }}
-                className="relative">
-                <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-purple-600 to-blue-600 opacity-40 blur-lg"></div>
-                <div className="relative flex h-40 w-40 items-center justify-center rounded-full border-4 border-purple-500 bg-white shadow-2xl">
-                  <span className="bg-gradient-to-br from-purple-600 to-blue-600 bg-clip-text text-8xl font-black text-transparent">
-                    {countdownLeft}
-                  </span>
-                </div>
-              </motion.div>
-              <h2 className="animate-pulse text-4xl font-bold tracking-widest text-white uppercase">
-                Get Ready!
-              </h2>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* Countdown Overlay Removed - moved to Play Screen */}
 
       <div className="grid min-h-full grid-cols-1 lg:grid-cols-[1fr_480px]">
         {/* Left Column: Stats & Participants */}

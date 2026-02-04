@@ -112,8 +112,11 @@ export default function Play({ sessionId }: PlayProps) {
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [hasAutoSubmitted, setHasAutoSubmitted] = useState(false);
   
-  // Countdown State
-  const [countdownLeft, setCountdownLeft] = useState<number | null>(null);
+  // Countdown State // Initialize directly from URL to prevent loading flicker
+  const [countdownLeft, setCountdownLeft] = useState<number | null>(() => {
+    if (searchParams.get("ts")) return 10; // Dummy start value to block loader
+    return null;
+  });
   const [serverTimeReady, setServerTimeReady] = useState(false);
 
   // Timer Hook
