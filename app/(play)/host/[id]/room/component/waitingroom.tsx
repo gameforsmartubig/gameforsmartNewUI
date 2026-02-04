@@ -116,12 +116,13 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
   // Effect: Watch for Status Change -> Active
   useEffect(() => {
-    if (gameSession?.status === "active") {
+    // Redirect immediately on Countdown Start or Active Status
+    if (gameSession?.countdown_started_at || gameSession?.status === "active") {
       router.push(`/host/${sessionId}/play`);
     } else if (gameSession?.status === "finished") {
       router.push(`/result/${sessionId}`);
     }
-  }, [gameSession?.status, sessionId, router]);
+  }, [gameSession?.countdown_started_at, gameSession?.status, sessionId, router]);
 
   // Effect: Visual Countdown Logic (Read-Only)
   useEffect(() => {

@@ -32,6 +32,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import { GameTimer, GameTimerProgress } from "./game-timer";
 import { supabase } from "@/lib/supabase"; // Use generic client for profiles if needed
+import { getServerNow, calculateOffsetFromTimestamp } from "@/lib/server-time";
 
 interface PlayProps {
   sessionId: string;
@@ -44,6 +45,7 @@ export default function Play({ sessionId }: PlayProps) {
     Array<GameParticipantRT & { avatar_url?: string }>
   >([]);
   const [loading, setLoading] = useState(true);
+  const [countdownLeft, setCountdownLeft] = useState<number | null>(null);
 
   // Profile cache
   const profileCache = useRef(new Map<string, string>());
@@ -130,6 +132,32 @@ export default function Play({ sessionId }: PlayProps) {
     };
   }, [sessionId, router]);
 
+  // Countdown Logic
+  useEffect(() => {
+    if (session?.countdown_started_at) {
+        // Sync offset first if just started
+        calculateOffsetFromTimestamp(session.countdown_started_at);
+
+        const interval = setInterval(() => {
+            const now = getServerNow();
+            const start = new Date(session.countdown_started_at!).getTime();
+            const target = start + 10000; // 10s countdown
+            const diff = target - now;
+            const sec = Math.ceil(diff / 1000);
+            
+            if (sec > 0) {
+                setCountdownLeft((prev) => (prev !== sec ? sec : prev));
+            } else {
+                setCountdownLeft(0);
+                setTimeout(() => setCountdownLeft(null), 500); // Hide after 0
+            }
+        }, 100);
+        return () => clearInterval(interval);
+    } else {
+        setCountdownLeft(null);
+    }
+  }, [session?.countdown_started_at]);
+
   const handleEndGame = async () => {
     try {
       if (!supabaseRealtime) throw new Error("Realtime client not initialized");
@@ -181,6 +209,36 @@ export default function Play({ sessionId }: PlayProps) {
 
   return (
     <div className="min-h-screen w-full bg-rose-50">
+      {/* Countdown Overlay */}
+      <AnimatePresence>
+        {countdownLeft !== null && countdownLeft > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black">
+            <div className="flex flex-col items-center gap-8">
+              <motion.div
+                key={countdownLeft}
+                initial={{ scale: 0.5, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 1.5, opacity: 0 }}
+                transition={{ duration: 0.5 }}
+                className="relative">
+                <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-purple-600 to-blue-600 opacity-40 blur-lg"></div>
+                <div className="relative flex h-40 w-40 items-center justify-center rounded-full border-4 border-purple-500 bg-white shadow-2xl">
+                  <span className="bg-gradient-to-br from-purple-600 to-blue-600 bg-clip-text text-8xl font-black text-transparent">
+                    {countdownLeft}
+                  </span>
+                </div>
+              </motion.div>
+              <h2 className="animate-pulse text-4xl font-bold tracking-widest text-white uppercase">
+                Game Starting...
+              </h2>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="fixed top-0 right-0 left-0 z-50 w-full bg-rose-50">
         <div className="relative flex h-auto w-full flex-col items-center md:h-16 md:flex-row">
           {/* Progress */}
