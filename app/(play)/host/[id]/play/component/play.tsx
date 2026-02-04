@@ -46,6 +46,7 @@ export default function Play({ sessionId }: PlayProps) {
     Array<GameParticipantRT & { avatar_url?: string }>
   >([]);
   const [loading, setLoading] = useState(true);
+  const [showLoader, setShowLoader] = useState(false);
   // Initialize directly from URL to prevent loading flicker
   const [countdownLeft, setCountdownLeft] = useState<number | null>(() => {
     if (searchParams.get("ts")) return 10; 
@@ -213,6 +214,17 @@ export default function Play({ sessionId }: PlayProps) {
   
   const isLoading = loading || !session;
 
+  // Debounce Loader to prevent flicker
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+    if (isLoading && !countdownLeft) {
+       timeout = setTimeout(() => setShowLoader(true), 200);
+    } else {
+       setShowLoader(false);
+    }
+    return () => clearTimeout(timeout);
+  }, [isLoading, countdownLeft]);
+
   return (
     <div className="min-h-screen w-full bg-rose-50">
       {/* Countdown Overlay */}
@@ -249,8 +261,8 @@ export default function Play({ sessionId }: PlayProps) {
       {/* Main Content or Loading */}
       {isLoading ? (
         <div className="flex min-h-screen items-center justify-center bg-rose-50">
-            {/* Only show loader if countdown is NOT active to avoid double ui */}
-            {!countdownLeft && <Loader2 className="h-8 w-8 animate-spin text-rose-500" />}
+            {/* Show loader only after debounce delay */}
+            {showLoader && <Loader2 className="h-8 w-8 animate-spin text-rose-500" />}
         </div>
       ) : (
       <>
