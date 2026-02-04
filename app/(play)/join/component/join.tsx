@@ -157,22 +157,29 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
     let pin = "";
     try {
       const url = new URL(data);
+      
+      // 1. Check query parameter: ?pin=123456
       const urlPin = url.searchParams.get("pin");
       if (urlPin) {
         pin = urlPin;
       } else {
-        // Fallback or full url
+        // 2. Check path: /join/123456
+        const pathMatch = url.pathname.match(/\/join\/(\d{6})/);
+        if (pathMatch) {
+          pin = pathMatch[1];
+        }
       }
     } catch {
+      // 3. Fallback: Maybe it's just a 6-digit PIN directly
       const match = data.match(/^\d{6}$/);
       if (match) pin = match[0];
     }
 
     if (pin) {
       setGamePin(pin);
-      // Auto click join
-      // setTimeout requires joinGame to be callable with event or decoupled
-      // We can just call logic directly but let's just set PIN for now to be safe
+      // Trigger auto-join
+      setShouldAutoJoin(true);
+      localStorage.setItem("pin", pin);
       toast.success("QR Code detected: " + pin);
     } else {
       toast.error("QR code tidak valid");
