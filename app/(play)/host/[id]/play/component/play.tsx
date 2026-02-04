@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, use } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -40,6 +40,7 @@ interface PlayProps {
 
 export default function Play({ sessionId }: PlayProps) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [session, setSession] = useState<GameSessionRT | null>(null);
   const [participants, setParticipants] = useState<
     Array<GameParticipantRT & { avatar_url?: string }>
@@ -133,14 +134,18 @@ export default function Play({ sessionId }: PlayProps) {
   }, [sessionId, router]);
 
   // Countdown Logic
+  // Countdown Logic
+  // Merge source: Session state OR URL Param (for seamless transition)
+  const countdownTimestamp = session?.countdown_started_at || searchParams.get("ts");
+
   useEffect(() => {
-    if (session?.countdown_started_at) {
+    if (countdownTimestamp) {
         // Sync offset first if just started
-        calculateOffsetFromTimestamp(session.countdown_started_at);
+        calculateOffsetFromTimestamp(countdownTimestamp);
 
         const interval = setInterval(() => {
             const now = getServerNow();
-            const start = new Date(session.countdown_started_at!).getTime();
+            const start = new Date(countdownTimestamp).getTime();
             const target = start + 10000; // 10s countdown
             const diff = target - now;
             const sec = Math.ceil(diff / 1000);
@@ -156,7 +161,7 @@ export default function Play({ sessionId }: PlayProps) {
     } else {
         setCountdownLeft(null);
     }
-  }, [session?.countdown_started_at]);
+  }, [countdownTimestamp]);
 
   const handleEndGame = async () => {
     try {
@@ -196,16 +201,13 @@ export default function Play({ sessionId }: PlayProps) {
     }
   };
 
-  if (loading || !session) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-rose-50">
-        <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
-      </div>
-    );
-  }
-
-  const questionLimit =
-    session.question_limit === "all" ? 100 : parseInt(session.question_limit) || 0; // fallback if 'all' isn't handled yet, assuming number for progress
+  const questionLimit = session
+    ? session.question_limit === "all"
+      ? 100
+      : parseInt(session.question_limit) || 0
+    : 0;
+  
+  const isLoading = loading || !session;
 
   return (
     <div className="min-h-screen w-full bg-rose-50">
@@ -239,6 +241,15 @@ export default function Play({ sessionId }: PlayProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Main Content or Loading */}
+      {isLoading ? (
+        <div className="flex min-h-screen items-center justify-center bg-rose-50">
+            {/* Only show loader if countdown is NOT active to avoid double ui */}
+            {!countdownLeft && <Loader2 className="h-8 w-8 animate-spin text-rose-500" />}
+        </div>
+      ) : (
+      <>
       <div className="fixed top-0 right-0 left-0 z-50 w-full bg-rose-50">
         <div className="relative flex h-auto w-full flex-col items-center md:h-16 md:flex-row">
           {/* Progress */}
@@ -405,6 +416,8 @@ export default function Play({ sessionId }: PlayProps) {
         <div className="py-20 text-center text-slate-400">
           <p>Waiting for participants...</p>
         </div>
+      )}
+      </>
       )}
     </div>
   );

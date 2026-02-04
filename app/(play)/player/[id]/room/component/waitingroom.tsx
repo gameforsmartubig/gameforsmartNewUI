@@ -232,7 +232,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
             }));
             
             // Redirect immediately on Countdown Start!
-            router.push(`/player/${sessionId}/play`);
+            router.push(`/player/${sessionId}/play?ts=${updatedSession.countdown_started_at}`);
           }
         },
         onParticipantChange: async ({ eventType, new: newPart, old: oldPart }) => {
@@ -283,7 +283,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
               setGameSession(newSession); // Sync fallback
 
               if (newSession.countdown_started_at) {
-                 router.push(`/player/${sessionId}/play`);
+                 router.push(`/player/${sessionId}/play?ts=${newSession.countdown_started_at}`);
               }
 
               // if (newSession.status === "active") {
