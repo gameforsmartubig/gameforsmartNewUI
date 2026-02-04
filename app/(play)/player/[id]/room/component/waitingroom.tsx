@@ -216,9 +216,10 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
             // Sync session state
             setGameSession((prev: any) => ({ ...prev, ...updatedSession }));
 
-            if (updatedSession.status === "active") {
-              router.push(`/player/${sessionId}/play`);
-            } else if (updatedSession.status === "finished") {
+            // if (updatedSession.status === "active") {
+            //   router.push(`/player/${sessionId}/play`);
+            // } else 
+            if (updatedSession.status === "finished") {
               router.push(`/result/${sessionId}`);
             }
           }
@@ -229,6 +230,9 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
               ...prev,
               countdown_started_at: updatedSession.countdown_started_at
             }));
+            
+            // Redirect immediately on Countdown Start!
+            router.push(`/player/${sessionId}/play`);
           }
         },
         onParticipantChange: async ({ eventType, new: newPart, old: oldPart }) => {
@@ -278,9 +282,13 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
               lastStatusRef.current = newSession.status;
               setGameSession(newSession); // Sync fallback
 
-              if (newSession.status === "active") {
-                router.push(`/player/${sessionId}/play`);
+              if (newSession.countdown_started_at) {
+                 router.push(`/player/${sessionId}/play`);
               }
+
+              // if (newSession.status === "active") {
+              //   router.push(`/player/${sessionId}/play`);
+              // }
             }
 
             // Check Participants from JSONB
