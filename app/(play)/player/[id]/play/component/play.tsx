@@ -193,15 +193,28 @@ export default function Play({ sessionId }: PlayProps) {
         toast.error("Could not load questions even after retries. Please refresh.");
       }
 
-      // Load Session
-      const sess = await getGameSessionRT(sessionId);
+      // Load Session (RT first, then Main DB Fallback)
+      let sess = await getGameSessionRT(sessionId);
+      if (!sess) {
+        // Fallback to Main DB
+        console.log("RT Session missing, fetching from Main DB...");
+        const { data: mainSess } = await supabase
+          .from("game_sessions")
+          .select("*")
+          .eq("id", sessionId)
+          .single();
+        if (mainSess) {
+           sess = mainSess as any; // Cast as it matches shape mostly
+        }
+      }
+
       if (sess) {
         setSession(sess);
         if (sess.status === "finished") {
           router.push(`/result/${sessionId}`);
         }
       } else {
-        toast.error("Session not found");
+        toast.error("Session not found in both RT and Main DB");
       }
 
       setLoading(false);
@@ -408,7 +421,7 @@ export default function Play({ sessionId }: PlayProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black">
+            className="fixed inset-0 z-[100] flex items-center justify-center bg-black">
             <div className="flex flex-col items-center gap-8">
               <motion.div
                 key={countdownLeft}
