@@ -117,39 +117,39 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   // Effect: Watch for Status Change -> Active
   useEffect(() => {
     // Redirect immediately on Countdown Start or Active Status
-    if (gameSession?.countdown_started_at || gameSession?.status === "active") {
-      router.push(`/host/${sessionId}/play?ts=${gameSession.countdown_started_at || ""}`);
-    } else if (gameSession?.status === "finished") {
+    // Redirect handled by timer or below
+    if (gameSession?.status === "finished") {
       router.push(`/result/${sessionId}`);
     }
   }, [gameSession?.countdown_started_at, gameSession?.status, sessionId, router]);
 
-  // Effect: Visual Countdown Logic (Read-Only)
+  // Effect: Instant Redirect Logic
   useEffect(() => {
-    if (gameSession?.countdown_started_at && gameSession.status !== "active" && serverTimeReady) {
-      // Calculate offset ONCE when timestamp changes or server time becomes ready
-      // REMOVED: calculateOffsetFromTimestamp(gameSession.countdown_started_at);
-      // Logic relies on the global offset initialized in the first useEffect
-
-      const interval = setInterval(() => {
-        const now = getServerNow();
-        const start = new Date(gameSession.countdown_started_at).getTime();
-        const target = start + 10000; // 10s duration
-        const diffInMs = target - now;
-        const diffInSeconds = Math.ceil(diffInMs / 1000);
-
-        if (diffInSeconds > 0) {
-          setCountdownLeft((prev) => (prev !== diffInSeconds ? diffInSeconds : prev));
-        } else {
-          setCountdownLeft((prev) => (prev !== 0 ? 0 : prev));
-        }
-      }, 100); // Check frequently (100ms) for smoother updates upon tab focus
-
-      return () => clearInterval(interval);
-    } else if (gameSession?.status === "active" || !gameSession?.countdown_started_at) {
-      setCountdownLeft(null);
+    if (gameSession?.countdown_started_at) {
+       router.push(`/host/${sessionId}/play?ts=${gameSession.countdown_started_at}`);
+    } else if (gameSession?.status === "active") {
+       router.push(`/host/${sessionId}/play`);
     }
-  }, [gameSession?.countdown_started_at, gameSession?.status, serverTimeReady]);
+  }, [gameSession?.countdown_started_at, gameSession?.status, sessionId, router]);
+
+  // Polling Fallback for Host (Safety Net)
+  useEffect(() => {
+    if (!sessionId) return;
+    
+    const checkStatus = async () => {
+       const latestSession = await getGameSessionRT(sessionId);
+       if (latestSession) {
+          if (latestSession.countdown_started_at) {
+             router.push(`/host/${sessionId}/play?ts=${latestSession.countdown_started_at}`);
+          } else if (latestSession.status === "active") {
+             router.push(`/host/${sessionId}/play`);
+          }
+       }
+    };
+
+    const interval = setInterval(checkStatus, 2000);
+    return () => clearInterval(interval);
+  }, [sessionId, router]);
 
   const handleKickPlayer = async () => {
     if (!participantToKick || !gameSession) return;

@@ -234,7 +234,7 @@ export default function Play({ sessionId }: PlayProps) {
       <AnimatePresence>
         {countdownLeft !== null && countdownLeft > 0 && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] flex items-center justify-center bg-black">
@@ -262,10 +262,10 @@ export default function Play({ sessionId }: PlayProps) {
       </AnimatePresence>
 
       {/* Main Content or Loading */}
-      {isLoading ? (
+      {isLoading || countdownLeft ? (
         <div className="flex min-h-screen items-center justify-center bg-transparent">
-            {/* Show loader only after debounce delay */}
-            {showLoader && <Loader2 className="h-8 w-8 animate-spin text-rose-500" />}
+            {/* Show loader only after debounce delay and if no countdown */}
+            {showLoader && !countdownLeft && <Loader2 className="h-8 w-8 animate-spin text-gray-400" />}
         </div>
       ) : (
       <>
