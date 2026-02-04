@@ -46,7 +46,11 @@ export default function Play({ sessionId }: PlayProps) {
     Array<GameParticipantRT & { avatar_url?: string }>
   >([]);
   const [loading, setLoading] = useState(true);
-  const [countdownLeft, setCountdownLeft] = useState<number | null>(null);
+  // Initialize directly from URL to prevent loading flicker
+  const [countdownLeft, setCountdownLeft] = useState<number | null>(() => {
+    if (searchParams.get("ts")) return 10; 
+    return null;
+  });
 
   // Profile cache
   const profileCache = useRef(new Map<string, string>());
