@@ -118,7 +118,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   useEffect(() => {
     // Redirect immediately on Countdown Start or Active Status
     if (gameSession?.countdown_started_at || gameSession?.status === "active") {
-      router.push(`/host/${sessionId}/play`);
+      router.push(`/host/${sessionId}/play?ts=${gameSession.countdown_started_at || ""}`);
     } else if (gameSession?.status === "finished") {
       router.push(`/result/${sessionId}`);
     }

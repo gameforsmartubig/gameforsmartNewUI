@@ -246,14 +246,17 @@ export default function Play({ sessionId }: PlayProps) {
   }, []);
 
   // Countdown Logic
+  // Merge source: Session state OR URL Param (for seamless transition)
+  const countdownTimestamp = session?.countdown_started_at || searchParams.get("ts");
+
   useEffect(() => {
-    if (session?.countdown_started_at) {
+    if (countdownTimestamp) {
         // Sync offset first if just started
-        calculateOffsetFromTimestamp(session.countdown_started_at);
+        calculateOffsetFromTimestamp(countdownTimestamp);
 
         const interval = setInterval(() => {
             const now = getServerNow();
-            const start = new Date(session.countdown_started_at!).getTime();
+            const start = new Date(countdownTimestamp).getTime();
             const target = start + 10000; // 10s countdown
             const diff = target - now;
             const sec = Math.ceil(diff / 1000);
@@ -269,7 +272,7 @@ export default function Play({ sessionId }: PlayProps) {
     } else {
         setCountdownLeft(null);
     }
-  }, [session?.countdown_started_at]);
+  }, [countdownTimestamp]);
 
   // Navigation Handlers
   const handleNext = () => {
@@ -395,26 +398,20 @@ export default function Play({ sessionId }: PlayProps) {
     }
   };
 
-  if (loading || !session) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-rose-50">
-        <Loader2 className="h-8 w-8 animate-spin text-rose-500" />
-      </div>
-    );
-  }
-
   const currentQuestion = questions[currentQuestionIndex];
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
   const answeredCount = Object.keys(responses).length;
   const allAnswered = questions.length > 0 && answeredCount === questions.length;
-  const currentQAnswer = currentQuestion ? responses[currentQuestion.id] : undefined;
-
+  // const currentQAnswer = currentQuestion ? responses[currentQuestion.id] : undefined;
+  
   // Calculate Progress
   const progressPercent = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0;
 
+  const isLoading = loading || !session;
+
   return (
     <div className="min-h-screen w-full bg-rose-50">
-      {/* Countdown Overlay */}
+      {/* Countdown Overlay - Rendered ALWAYS if active */}
       <AnimatePresence>
         {countdownLeft !== null && countdownLeft > 0 && (
           <motion.div
@@ -444,150 +441,161 @@ export default function Play({ sessionId }: PlayProps) {
           </motion.div>
         )}
       </AnimatePresence>
-      <div className="relative flex h-auto w-full flex-col items-center md:h-16 md:flex-row">
-        {/* ===== BARIS 1 (Mobile) / KIRI (Desktop) ===== */}
-        <div className="flex w-full items-center justify-between px-2 py-2 md:flex-1 md:justify-start md:py-0">
-          <Image
-            src="/gameforsmartlogo.png"
-            width={200}
-            height={40}
-            alt="gameforsmart"
-            className="opacity-80 dark:opacity-100"
-            unoptimized
-          />
 
-          {/* End Session (Mobile only) - REPURPOSED AS TIMER BADGE PER REQUEST */}
-          <div className="flex items-center gap-2 rounded-lg bg-purple-100 px-4 py-2 font-semibold text-purple-700 shadow-sm md:hidden">
-            <Timer className="h-4 w-4" />
-            <span>{formatTime(timeLeft)}</span>
-          </div>
+      {/* Main Content or Loading */}
+      {isLoading ? (
+        <div className="flex min-h-screen items-center justify-center bg-rose-50">
+           {/* Only show loader if countdown is NOT active to avoid double ui */}
+           {!countdownLeft && <Loader2 className="h-8 w-8 animate-spin text-rose-500" />}
         </div>
+      ) : (
+      <>
+        {/* HEADER */}
+        <div className="relative flex h-auto w-full flex-col items-center md:h-16 md:flex-row">
+            {/* ===== BARIS 1 (Mobile) / KIRI (Desktop) ===== */}
+            <div className="flex w-full items-center justify-between px-2 py-2 md:flex-1 md:justify-start md:py-0">
+            <Image
+                src="/gameforsmartlogo.png"
+                width={200}
+                height={40}
+                alt="gameforsmart"
+                className="opacity-80 dark:opacity-100"
+                unoptimized
+            />
 
-        {/* ===== STATISTIK (Baris 2 Mobile / Tengah Desktop) ===== */}
-        <div className="flex w-full flex-col items-center justify-center gap-2 px-6 py-2 md:flex-1 md:py-0">
-          <div className="flex w-full items-center justify-between text-sm font-medium text-slate-600">
-            <p>Progress</p>
-            <p>
-              {answeredCount}/{questions.length}
-            </p>
-          </div>
-          <Progress indicatorColor="bg-blue-500" value={progressPercent} className="h-2 w-full" />
+            {/* End Session (Mobile only) - REPURPOSED AS TIMER BADGE PER REQUEST */}
+            <div className="flex items-center gap-2 rounded-lg bg-purple-100 px-4 py-2 font-semibold text-purple-700 shadow-sm md:hidden">
+                <Timer className="h-4 w-4" />
+                <span>{formatTime(timeLeft)}</span>
+            </div>
+            </div>
+
+            {/* ===== STATISTIK (Baris 2 Mobile / Tengah Desktop) ===== */}
+            <div className="flex w-full flex-col items-center justify-center gap-2 px-6 py-2 md:flex-1 md:py-0">
+            <div className="flex w-full items-center justify-between text-sm font-medium text-slate-600">
+                <p>Progress</p>
+                <p>
+                {answeredCount}/{questions.length}
+                </p>
+            </div>
+            <Progress indicatorColor="bg-blue-500" value={progressPercent} className="h-2 w-full" />
+            </div>
+
+            {/* ===== KANAN DESKTOP ===== */}
+            <div className="hidden items-center justify-end px-2 md:flex md:flex-1">
+            <div className="flex items-center gap-2 rounded-lg bg-purple-100 px-4 py-2 font-semibold text-purple-700 shadow-sm">
+                <Timer className="h-4 w-4" />
+                <span>{formatTime(timeLeft)}</span>
+            </div>
+            </div>
         </div>
-
-        {/* ===== KANAN DESKTOP ===== */}
-        <div className="hidden items-center justify-end px-2 md:flex md:flex-1">
-          <div className="flex items-center gap-2 rounded-lg bg-purple-100 px-4 py-2 font-semibold text-purple-700 shadow-sm">
-            <Timer className="h-4 w-4" />
-            <span>{formatTime(timeLeft)}</span>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid h-full grid-cols-1 lg:grid-cols-[1fr_320px]">
-        {/* KIRI: Soal + Jawaban */}
-        <div className="order-1 flex flex-col space-y-4 overflow-y-auto p-4 pb-24 lg:pb-4">
-          {/* Soal */}
-          {currentQuestion && (
-            <>
-              <Card className="border-none py-4 shadow-sm">
-                <CardContent className="bg-surface-light dark:bg-surface-dark rounded-lg px-4">
-                  <div className="flex items-center justify-between">
-                    <h1 className="mb-2 text-xl font-semibold text-slate-800">
-                      Question {currentQuestionIndex + 1}
-                    </h1>
-                    <Button
-                      variant={flagged.has(currentQuestion.id) ? "secondary" : "outline"}
-                      className={
-                        flagged.has(currentQuestion.id)
-                          ? "border-amber-200 bg-amber-100 text-amber-700 hover:bg-amber-200"
-                          : ""
-                      }
-                      onClick={handleFlag}>
-                      <Flag
-                        className={cn(
-                          "mr-2 h-4 w-4",
-                          flagged.has(currentQuestion.id) && "fill-current"
-                        )}
-                      />
-                      {flagged.has(currentQuestion.id) ? "Flagged" : "Flag"}
-                    </Button>
-                  </div>
-                  <div className="mt-4 text-lg">{currentQuestion.question}</div>
-                </CardContent>
-              </Card>
-
-              {/* Pilihan Jawaban */}
-              <section className="grid grid-cols-1 gap-3 md:grid-cols-2">
-                {(() => {
-                  let displayOptions: any[] = [];
-
-                  // Priority 1: 'answers' array (from user structure)
-                  if (
-                    Array.isArray(currentQuestion.answers) &&
-                    currentQuestion.answers.length > 0
-                  ) {
-                    displayOptions = currentQuestion.answers.map((a) => ({
-                      id: a.id,
-                      text: a.answer,
-                      key: a.id
-                    }));
-                  }
-                  // Priority 2: 'options' array (legacy)
-                  else if (
-                    Array.isArray(currentQuestion.options) &&
-                    currentQuestion.options.length > 0
-                  ) {
-                    displayOptions = currentQuestion.options;
-                  }
-                  // Priority 3: Flat option_x keys (legacy)
-                  else {
-                    const keys = ["a", "b", "c", "d", "e"];
-                    keys.forEach((key) => {
-                      const text = (currentQuestion as any)[`option_${key}`];
-                      if (text) {
-                        displayOptions.push({
-                          id: key,
-                          text: text,
-                          key: key
-                        });
-                      }
-                    });
-                  }
-
-                  return displayOptions.map((item, idx) => (
-                    <div
-                      key={item.id}
-                      onClick={() => handleAnswer(item.id)}
-                      className={cn(
-                        "cursor-pointer rounded-xl border-2 p-4 transition-all hover:shadow-md active:scale-[0.98]",
-                        currentQAnswer === item.id
-                          ? "border-blue-500 bg-blue-50/50 ring-2 ring-blue-200"
-                          : "border-slate-100 bg-white hover:border-blue-200 hover:bg-slate-50"
-                      )}>
-                      <div className="flex items-start gap-3">
-                        <div
-                          className={cn(
-                            "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold",
-                            currentQAnswer === item.id
-                              ? "border-blue-500 bg-blue-500 text-white"
-                              : "border-slate-200 bg-slate-50 text-slate-500"
-                          )}>
-                          {String.fromCharCode(65 + idx)}
-                        </div>
-                        <div className="pt-1">{item.text || item.key}</div>
-                      </div>
+      
+        {/* GRID CONTENT */}
+        <div className="grid h-full grid-cols-1 lg:grid-cols-[1fr_320px]">
+            {/* KIRI: Soal + Jawaban */}
+            <div className="order-1 flex flex-col space-y-4 overflow-y-auto p-4 pb-24 lg:pb-4">
+            {/* Soal */}
+            {currentQuestion && (
+                <>
+                <Card className="border-none py-4 shadow-sm">
+                    <CardContent className="bg-surface-light dark:bg-surface-dark rounded-lg px-4">
+                    <div className="flex items-center justify-between">
+                        <h1 className="mb-2 text-xl font-semibold text-slate-800">
+                        Question {currentQuestionIndex + 1}
+                        </h1>
+                        <Button
+                        variant={flagged.has(currentQuestion.id) ? "secondary" : "outline"}
+                        className={
+                            flagged.has(currentQuestion.id)
+                            ? "border-amber-200 bg-amber-100 text-amber-700 hover:bg-amber-200"
+                            : ""
+                        }
+                        onClick={handleFlag}>
+                        <Flag
+                            className={cn(
+                            "mr-2 h-4 w-4",
+                            flagged.has(currentQuestion.id) && "fill-current"
+                            )}
+                        />
+                        {flagged.has(currentQuestion.id) ? "Flagged" : "Flag"}
+                        </Button>
                     </div>
-                  ));
-                })()}
-              </section>
-            </>
-          )}
+                    <div className="mt-4 text-lg">{currentQuestion.question}</div>
+                    </CardContent>
+                </Card>
 
-          <div className="mt-6 flex justify-between">
-            <Button
-              variant="outline"
-              onClick={handlePrevious}
-              disabled={currentQuestionIndex === 0}>
+                {/* Pilihan Jawaban */}
+                <section className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                    {(() => {
+                    let displayOptions: any[] = [];
+
+                    // Priority 1: 'answers' array (from user structure)
+                    if (
+                        Array.isArray(currentQuestion.answers) &&
+                        currentQuestion.answers.length > 0
+                    ) {
+                        displayOptions = currentQuestion.answers.map((a) => ({
+                        id: a.id,
+                        text: a.answer,
+                        key: a.id
+                        }));
+                    }
+                    // Priority 2: 'options' array (legacy)
+                    else if (
+                        Array.isArray(currentQuestion.options) &&
+                        currentQuestion.options.length > 0
+                    ) {
+                        displayOptions = currentQuestion.options;
+                    }
+                    // Priority 3: Flat option_x keys (legacy)
+                    else {
+                        const keys = ["a", "b", "c", "d", "e"];
+                        keys.forEach((key) => {
+                        const text = (currentQuestion as any)[`option_${key}`];
+                        if (text) {
+                            displayOptions.push({
+                            id: key,
+                            text: text,
+                            key: key
+                            });
+                        }
+                        });
+                    }
+
+                    return displayOptions.map((item, idx) => (
+                        <div
+                        key={item.id}
+                        onClick={() => handleAnswer(item.id)}
+                        className={cn(
+                            "cursor-pointer rounded-xl border-2 p-4 transition-all hover:shadow-md active:scale-[0.98]",
+                            (responses[currentQuestion.id] === item.id)
+                            ? "border-blue-500 bg-blue-50/50 ring-2 ring-blue-200"
+                            : "border-slate-100 bg-white hover:border-blue-200 hover:bg-slate-50"
+                        )}>
+                        <div className="flex items-start gap-3">
+                            <div
+                            className={cn(
+                                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold",
+                                (responses[currentQuestion.id] === item.id)
+                                ? "border-blue-500 bg-blue-500 text-white"
+                                : "border-slate-200 bg-slate-50 text-slate-500"
+                            )}>
+                            {String.fromCharCode(65 + idx)}
+                            </div>
+                            <div className="pt-1">{item.text || item.key}</div>
+                        </div>
+                        </div>
+                    ));
+                    })()}
+                </section>
+                </>
+            )}
+
+            <div className="mt-6 flex justify-between">
+                <Button
+                variant="outline"
+                onClick={handlePrevious}
+                disabled={currentQuestionIndex === 0}>
               Previous
             </Button>
 
@@ -681,6 +689,8 @@ export default function Play({ sessionId }: PlayProps) {
           </Card>
         </aside>
       </div>
+      </>
+      )}
     </div>
   );
 }
