@@ -261,6 +261,9 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
       }
 
       if (existing) {
+        // Clear PIN from storage to prevent auto-join on next visit
+        localStorage.removeItem("pin");
+        localStorage.removeItem("oauth_game_pin");
         router.push(`/player/${session.id}/room`);
         return;
       }
@@ -304,6 +307,10 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
         localStorage.setItem("current_profile_id", profile_id);
       }
 
+      // Clear PIN from storage to prevent auto-join on next visit
+      localStorage.removeItem("pin");
+      localStorage.removeItem("oauth_game_pin");
+      
       router.push(`/player/${session.id}/room`);
     } catch (err: any) {
       console.error(err);
