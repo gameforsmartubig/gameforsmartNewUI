@@ -158,10 +158,47 @@ export default function Play({ sessionId }: PlayProps) {
         }
       }
 
-      // 2. Try Fetching from DB (with Retry)
+      // 2. Try Fetching/Shuffling from DB
+      if (loadedQuestions.length === 0 && isRealtimeDbConfigured && supabaseRealtime) {
+          try {
+             // Fetch session first to get base questions (if needed by RPC, or logic resides in RPC completely)
+             // The previous logic passed 'questionsToShuffle'. 
+             // We can fetch current_questions from session first.
+             const { data: sessionData } = await supabase
+                .from("game_sessions")
+                .select("current_questions")
+                .eq("id", sessionId)
+                .single();
+             
+             const baseQuestions = sessionData?.current_questions || [];
+
+             if (baseQuestions.length > 0) {
+                 const { data: shuffled, error: shuffleError } = await supabaseRealtime.rpc(
+                  "shuffle_questions_for_player",
+                  {
+                    p_questions: baseQuestions,
+                    p_participant_id: participantId
+                  }
+                );
+
+                if (!shuffleError && shuffled) {
+                   loadedQuestions = shuffled.map((q: any) => {
+                      const { correct, ...rest } = q;
+                      return rest;
+                   });
+                   // Cache
+                   localStorage.setItem(`player_game_data_${sessionId}`, JSON.stringify({ questions: loadedQuestions }));
+                }
+             }
+          } catch (e) {
+             console.error("Shuffle failed, falling back to default order", e);
+          }
+      }
+
+      // 3. Absolute Fallback to Default Order (with Retry)
       if (loadedQuestions.length === 0) {
          let attempts = 0;
-         const maxAttempts = 5;
+         const maxAttempts = 3;
          
          while (attempts < maxAttempts && loadedQuestions.length === 0) {
             try {
@@ -173,19 +210,16 @@ export default function Play({ sessionId }: PlayProps) {
                 
                if (sessionData?.current_questions && Array.isArray(sessionData.current_questions) && sessionData.current_questions.length > 0) {
                  loadedQuestions = sessionData.current_questions;
-                 // Cache it back
+                 // Cache default
                  localStorage.setItem(`player_game_data_${sessionId}`, JSON.stringify({ questions: loadedQuestions }));
-                 break; // Success!
-               } else {
-                 console.log(`Attempt ${attempts + 1}: Questions not ready yet...`);
+                 break; 
                }
             } catch (err) {
-               console.error("Error fetching fallback questions:", err);
+               console.error("Error fetching fallback:", err);
             }
             
             attempts++;
             if (loadedQuestions.length === 0 && attempts < maxAttempts) {
-                // Wait 1 second before retrying
                 await new Promise(resolve => setTimeout(resolve, 1000));
             }
          }
@@ -433,7 +467,7 @@ export default function Play({ sessionId }: PlayProps) {
       <AnimatePresence>
         {countdownLeft !== null && countdownLeft > 0 && (
           <motion.div
-            initial={{ opacity: 0 }}
+            initial={false}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] flex items-center justify-center bg-black">
@@ -461,10 +495,10 @@ export default function Play({ sessionId }: PlayProps) {
       </AnimatePresence>
 
       {/* Main Content or Loading */}
-      {isLoading ? (
+      {isLoading || countdownLeft ? (
         <div className="flex min-h-screen items-center justify-center bg-transparent">
-           {/* Show loader only after debounce delay */}
-           {showLoader && <Loader2 className="h-8 w-8 animate-spin text-rose-500" />}
+           {/* Show loader only after debounce delay and if no countdown */}
+           {showLoader && !countdownLeft && <Loader2 className="h-8 w-8 animate-spin text-gray-400" />}
         </div>
       ) : (
       <>

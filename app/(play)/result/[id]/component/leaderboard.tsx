@@ -747,7 +747,7 @@ export default function Leaderboard() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
+      <div className="min-h-screen flex items-center justify-center flex-col gap-4 bg-white dark:bg-zinc-950">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
         <p className="text-muted-foreground animate-pulse">Loading game data...</p>
       </div>
@@ -756,7 +756,7 @@ export default function Leaderboard() {
 
   if (isSyncing) {
     return (
-      <div className="min-h-screen flex items-center justify-center flex-col gap-6 text-center p-4">
+      <div className="min-h-screen flex items-center justify-center flex-col gap-6 text-center p-4 bg-white dark:bg-zinc-950">
         <div className="relative">
           <div className="absolute inset-0 bg-primary/20 rounded-full blur-xl animate-pulse"></div>
           <Trophy className="h-16 w-16 text-primary relative z-10 animate-bounce" />

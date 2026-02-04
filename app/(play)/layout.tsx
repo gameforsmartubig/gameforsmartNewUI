@@ -6,5 +6,5 @@ export default function PlayLayout({
   children: React.ReactNode;
 }>) {
   // Use dark background by default to prevent white flash during redirect/countdown
-  return <div className="min-h-screen bg-zinc-950">{children}</div>;
+  return <div className="min-h-screen bg-white">{children}</div>;
 }

@@ -24,7 +24,8 @@ import {
   unsubscribeFromGameRT,
   getParticipantsRT,
   getCachedProfile,
-  setCachedProfile
+  setCachedProfile,
+  getGameSessionRT
 } from "@/lib/supabase-realtime";
 import {
   calculateServerTimeOffset,
@@ -231,7 +232,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
               countdown_started_at: updatedSession.countdown_started_at
             }));
             
-            // Redirect immediately on Countdown Start!
+            // Redirect immediately for seamless transition
             router.push(`/player/${sessionId}/play?ts=${updatedSession.countdown_started_at}`);
           }
         },
@@ -282,9 +283,11 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
               lastStatusRef.current = newSession.status;
               setGameSession(newSession); // Sync fallback
 
-              if (newSession.countdown_started_at) {
+               if (newSession.countdown_started_at) {
                  router.push(`/player/${sessionId}/play?ts=${newSession.countdown_started_at}`);
-              }
+              } else if (newSession.status === "active") {
+                  router.push(`/player/${sessionId}/play`);
+               }
 
               // if (newSession.status === "active") {
               //   router.push(`/player/${sessionId}/play`);
@@ -319,73 +322,35 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
     }
   }, [sessionId, participantId, router, loading]);
 
-  // Effect: Visual Countdown Logic (Read-Only) & Question Shuffling
+  // Polling Fallback: Check session status every 2 seconds just in case Realtime misses an event
   useEffect(() => {
-    if (gameSession?.countdown_started_at && gameSession.status !== "active" && serverTimeReady) {
-      // Calculate offset ONCE when timestamp changes or server time becomes ready
-      // Logic relies on the global offset initialized in the first useEffect
-
-      // 1. Trigger Shuffle ONCE
-      if (!hasShuffledRef.current && isRealtimeDbConfigured && supabaseRealtime) {
-        hasShuffledRef.current = true;
-        const questionsToShuffle = gameSession.current_questions || quizData.questions || [];
-
-        const shuffleQuestions = async () => {
-          try {
-            const { data: shuffled, error } = await supabaseRealtime!.rpc(
-              "shuffle_questions_for_player",
-              {
-                p_questions: questionsToShuffle,
-                p_participant_id: participantId
-              }
-            );
-
-            if (error) throw error;
-
-            if (shuffled) {
-              // Sanitize: ensure 'correct' key is removed even if RPC returned it
-              const sanitizedQuestions = shuffled.map((q: any) => {
-                const { correct, ...rest } = q;
-                return rest;
-              });
-
-              const storageData = {
-                sessionId,
-                questions: sanitizedQuestions,
-                participantId,
-                timestamp: new Date().toISOString()
-              };
-              localStorage.setItem(`player_game_data_${sessionId}`, JSON.stringify(storageData));
-              // console.log("Questions shuffled and saved (sanitized):", sanitizedQuestions);
-            }
-          } catch (err) {
-            console.error("Error shuffling questions:", err);
-            // Fallback? Maybe just save original if shuffle fails, but removing correct keys manually?
-            // For now, let's trust RPC or if it fails, the play page might need to handle empty data or refetch.
+    if (!sessionId) return;
+    
+    const checkStatus = async () => {
+       const latestSession = await getGameSessionRT(sessionId);
+       if (latestSession) {
+          if (latestSession.countdown_started_at) {
+             router.push(`/player/${sessionId}/play?ts=${latestSession.countdown_started_at}`);
+          } else if (latestSession.status === "active") {
+             router.push(`/player/${sessionId}/play`);
           }
-        };
-        shuffleQuestions();
-      }
+       }
+    };
 
-      const interval = setInterval(() => {
-        const now = getServerNow();
-        const start = new Date(gameSession.countdown_started_at).getTime();
-        const target = start + 10000; // 10s duration
-        const diffInMs = target - now;
-        const diffInSeconds = Math.ceil(diffInMs / 1000);
+    const interval = setInterval(checkStatus, 2000);
+    return () => clearInterval(interval);
+  }, [sessionId, router]);
 
-        if (diffInSeconds > 0) {
-          setCountdownLeft((prev) => (prev !== diffInSeconds ? diffInSeconds : prev));
-        } else {
-          setCountdownLeft((prev) => (prev !== 0 ? 0 : prev));
-        }
-      }, 100);
-
-      return () => clearInterval(interval);
-    } else if (gameSession?.status === "active" || !gameSession?.countdown_started_at) {
-      setCountdownLeft(null);
+  // Effect: Instant Redirect Logic
+  useEffect(() => {
+    // Legacy handling for immediate active status without countdown
+    if (gameSession?.status === "active") {
+       router.push(`/player/${sessionId}/play`);
+    } else if (gameSession?.countdown_started_at) {
+       // Also redirect if we detect a countdown timestamp (redundant with RT but safe)
+       router.push(`/player/${sessionId}/play?ts=${gameSession.countdown_started_at}`);
     }
-  }, [gameSession?.countdown_started_at, gameSession?.status, serverTimeReady]);
+  }, [gameSession?.countdown_started_at, gameSession?.status, serverTimeReady, router, sessionId]);
 
   const handleKick = () => {
     toast.error("You have been removed from the game.");
