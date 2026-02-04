@@ -113,11 +113,10 @@ export default function Play({ sessionId }: PlayProps) {
   const [hasAutoSubmitted, setHasAutoSubmitted] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
   
-  // Countdown State // Initialize directly from URL to prevent loading flicker
-  const [countdownLeft, setCountdownLeft] = useState<number | null>(() => {
-    if (searchParams.get("ts")) return 10; // Dummy start value to block loader
-    return null;
-  });
+  // SUPER SIMPLE COUNTDOWN - just 10 seconds if ?ts= exists
+  const hasCountdown = !!searchParams.get("ts");
+  const [countdownLeft, setCountdownLeft] = useState<number | null>(hasCountdown ? 10 : null);
+  const [showCountdown, setShowCountdown] = useState(hasCountdown);
   const [serverTimeReady, setServerTimeReady] = useState(false);
 
   // Timer Hook
@@ -283,34 +282,25 @@ export default function Play({ sessionId }: PlayProps) {
     setServerTimeReady(true);
   }, []);
 
-  // Countdown Logic
-  // Merge source: Session state OR URL Param (for seamless transition)
-  const countdownTimestamp = session?.countdown_started_at || searchParams.get("ts");
-
+  // Simple Countdown Effect - just count down every second
   useEffect(() => {
-    if (countdownTimestamp) {
-        // Sync offset first if just started
-        calculateOffsetFromTimestamp(countdownTimestamp);
-
-        const interval = setInterval(() => {
-            const now = getServerNow();
-            const start = new Date(countdownTimestamp).getTime();
-            const target = start + 10000; // 10s countdown
-            const diff = target - now;
-            const sec = Math.ceil(diff / 1000);
-            
-            if (sec > 0) {
-                setCountdownLeft((prev) => (prev !== sec ? sec : prev));
-            } else {
-                setCountdownLeft(0);
-                setTimeout(() => setCountdownLeft(null), 500); // Hide after 0
-            }
-        }, 100);
-        return () => clearInterval(interval);
-    } else {
+    if (!showCountdown || countdownLeft === null) return;
+    
+    if (countdownLeft <= 0) {
+      // Countdown finished
+      setTimeout(() => {
+        setShowCountdown(false);
         setCountdownLeft(null);
+      }, 500);
+      return;
     }
-  }, [countdownTimestamp]);
+    
+    const timer = setTimeout(() => {
+      setCountdownLeft(prev => (prev !== null ? prev - 1 : null));
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, [showCountdown, countdownLeft]);
 
   // Navigation Handlers
   const handleNext = () => {
@@ -450,34 +440,33 @@ export default function Play({ sessionId }: PlayProps) {
   // Debounce Loader to prevent flicker
   useEffect(() => {
     let timeout: NodeJS.Timeout;
-    if (isLoading && !countdownLeft) {
+    if (isLoading && !showCountdown) {
        timeout = setTimeout(() => setShowLoader(true), 200);
     } else {
        setShowLoader(false);
     }
     return () => clearTimeout(timeout);
-  }, [isLoading, countdownLeft]);
+  }, [isLoading, showCountdown]);
 
-  // Dynamic background to prevent white flash during countdown
-  const bgColor = isLoading || countdownLeft ? "bg-zinc-950" : "bg-rose-50";
+  // Dynamic background
+  const bgColor = isLoading || showCountdown ? "bg-black" : "bg-rose-50";
 
   return (
-    <div className={`min-h-screen w-full ${bgColor} transition-colors duration-700`}>
-      {/* Countdown Overlay - Rendered ALWAYS if active */}
-      <AnimatePresence>
-        {countdownLeft !== null && countdownLeft > 0 && (
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-black">
-            <div className="flex flex-col items-center gap-8">
+    <div className={`min-h-screen w-full ${bgColor} transition-colors duration-300`}>
+      {/* Countdown Overlay */}
+      <div 
+        className={`fixed inset-0 z-[100] flex items-center justify-center bg-black transition-opacity duration-300 ${
+          showCountdown ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
+        }`}>
+        <div className="flex flex-col items-center gap-8">
+          <AnimatePresence mode="wait">
+            {countdownLeft !== null && countdownLeft > 0 && (
               <motion.div
                 key={countdownLeft}
                 initial={{ scale: 0.5, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 exit={{ scale: 1.5, opacity: 0 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.3 }}
                 className="relative">
                 <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-purple-600 to-blue-600 opacity-40 blur-lg"></div>
                 <div className="relative flex h-40 w-40 items-center justify-center rounded-full border-4 border-purple-500 bg-white shadow-2xl">
@@ -486,19 +475,19 @@ export default function Play({ sessionId }: PlayProps) {
                   </span>
                 </div>
               </motion.div>
-              <h2 className="animate-pulse text-4xl font-bold tracking-widest text-white uppercase">
-                Get Ready!
-              </h2>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            )}
+          </AnimatePresence>
+          <h2 className="animate-pulse text-4xl font-bold tracking-widest text-white uppercase">
+            Get Ready!
+          </h2>
+        </div>
+      </div>
 
-      {/* Main Content or Loading */}
-      {isLoading || countdownLeft ? (
-        <div className="flex min-h-screen items-center justify-center bg-transparent">
-           {/* Show loader only after debounce delay and if no countdown */}
-           {showLoader && !countdownLeft && <Loader2 className="h-8 w-8 animate-spin text-gray-400" />}
+      {/* Main Content - Only rendered after countdown finished */}
+      {isLoading || showCountdown ? (
+        <div className="flex min-h-screen items-center justify-center">
+          {/* Empty during countdown, loader only if loading without countdown */}
+          {showLoader && !showCountdown && <Loader2 className="h-8 w-8 animate-spin text-gray-400" />}
         </div>
       ) : (
       <>
