@@ -237,7 +237,7 @@ export function StatisticsView({
               }
 
               return (
-                <Card key={q.id} className="border-none shadow-sm ring-1 ring-slate-200 overflow-hidden">
+                <Card key={q.id} className="py-0 border-none shadow-sm ring-1 ring-slate-200 overflow-hidden">
                   <CardContent className="p-0">
                     {/* Header Row */}
                     <div className="p-4 pb-2 flex items-start justify-between gap-4">
@@ -353,7 +353,7 @@ export function StatisticsView({
                                     <XCircle className="w-3.5 h-3.5" /> Your Answer:
                                 </span>
                                 <p className="text-red-700 font-medium pl-5 mt-0.5">
-                                    {q.answers.find(a => a.id === myStatus?.userAnswerId)?.text || "No answer"}
+                                    {q.answers.find(a => String(a.id).trim() === String(myStatus?.userAnswerId).trim())?.text || "No answer"}
                                 </p>
                              </div>
                          </div>

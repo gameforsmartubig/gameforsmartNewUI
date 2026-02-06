@@ -332,6 +332,37 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
     }
   }, [gameSession, sessionId]);
 
+  // Polling Fallback for Participants (Safety Net for RT inconsistencies)
+  useEffect(() => {
+    if (!gameSession) return;
+    
+    const refreshParticipants = async () => {
+       try {
+         const rtParticipants = await getParticipantsRT(sessionId);
+         if (!rtParticipants) return;
+
+         const userIds = rtParticipants.map((p) => p.user_id).filter((id): id is string => !!id);
+         await fetchProfiles(userIds);
+
+         const mapped = rtParticipants.map((p) => ({
+           id: p.id,
+           nickname: p.nickname,
+           user_id: p.user_id,
+           avatar_url: p.user_id ? profileCache.current.get(p.user_id)?.avatar_url : null
+         }));
+         
+         // In a real app we might diff before setting state to avoid renders, 
+         // but React is smart enough if array ref changes but content is effectively similar DOM-wise (keys match).
+         setParticipants(mapped);
+       } catch (err) {
+         console.error("Polling error", err);
+       }
+    };
+
+    const interval = setInterval(refreshParticipants, 3000); // Check every 3 seconds
+    return () => clearInterval(interval);
+  }, [gameSession, sessionId]);
+
   if (isLoading || !quizData) {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;
   }
