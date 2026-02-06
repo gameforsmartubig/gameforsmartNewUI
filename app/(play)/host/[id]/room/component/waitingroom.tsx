@@ -39,8 +39,12 @@ import {
   getGameSessionRT,
   updateGameSessionRT,
   getCachedProfile,
-  setCachedProfile
+  setCachedProfile,
+  subscribeToCountdownBroadcast,
+  sendCountdownSignal,
+  unsubscribeFromCountdownBroadcast
 } from "@/lib/supabase-realtime";
+import { RealtimeChannel } from "@supabase/supabase-js";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/auth-context";
 import {
@@ -89,8 +93,10 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
     return Math.min(Math.max(seconds, 0), 10);
   };
 
-  // Start handling logic
-  // Start handling logic: Call Edge Function
+  // State for showing countdown overlay
+  const countdownChannelRef = useRef<RealtimeChannel | null>(null);
+
+  // Start handling logic: Broadcast countdown then call Edge Function
   const handleStartGame = async () => {
     if (!gameSession) return;
 
@@ -98,58 +104,64 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
       toast.error("Waiting for participants... Ask them to join!");
       return;
     }
+    
     try {
-      const { error } = await supabase.functions.invoke("start-game", {
+      const now = new Date().toISOString();
+
+      // 1. Broadcast countdown start to all clients using EXISTING channel
+      if (countdownChannelRef.current) {
+         await sendCountdownSignal(countdownChannelRef.current, now);
+      } else {
+         console.warn("Countdown channel not ready");
+      }
+      
+      // 2. Redirect immediately to play screen (Old Design)
+      // The play screen will handle the countdown using the 'ts' parameter
+      router.push(`/host/${sessionId}/play?ts=${now}`);
+      
+      // 3. Call Edge Function in background (it will handle DB updates)
+      supabase.functions.invoke("start-game", {
         body: { sessionId }
-      });
-
-      if (error) throw error;
-
-      toast.dismiss("start-game");
-      // UI will automatically update via Realtime subscription when countdown_started_at changes
+      }).catch((err) => console.error("Edge Function error:", err));
+      
     } catch (error) {
       console.error("Error starting game:", error);
       toast.error("Failed to start game");
-      toast.dismiss("start-game");
     }
   };
 
-  // Effect: Watch for Status Change -> Active
-  useEffect(() => {
-    // Redirect immediately on Countdown Start or Active Status
-    // Redirect handled by timer or below
-    if (gameSession?.status === "finished") {
-      router.push(`/result/${sessionId}`);
-    }
-  }, [gameSession?.countdown_started_at, gameSession?.status, sessionId, router]);
-
-  // Effect: Instant Redirect Logic
-  useEffect(() => {
-    if (gameSession?.countdown_started_at) {
-       router.push(`/host/${sessionId}/play?ts=${gameSession.countdown_started_at}`);
-    } else if (gameSession?.status === "active") {
-       router.push(`/host/${sessionId}/play`);
-    }
-  }, [gameSession?.countdown_started_at, gameSession?.status, sessionId, router]);
-
-  // Polling Fallback for Host (Safety Net)
+  // Subscribe to countdown broadcast (redundancy)
   useEffect(() => {
     if (!sessionId) return;
     
-    const checkStatus = async () => {
-       const latestSession = await getGameSessionRT(sessionId);
-       if (latestSession) {
-          if (latestSession.countdown_started_at) {
-             router.push(`/host/${sessionId}/play?ts=${latestSession.countdown_started_at}`);
-          } else if (latestSession.status === "active") {
-             router.push(`/host/${sessionId}/play`);
-          }
+    const channel = subscribeToCountdownBroadcast(sessionId, (payload) => {
+       // If we receive broadcast (e.g. from another tab or glitch), redirect
+       if (payload.startedAt) {
+          router.push(`/host/${sessionId}/play?ts=${payload.startedAt}`);
        }
-    };
+    });
 
-    const interval = setInterval(checkStatus, 2000);
-    return () => clearInterval(interval);
+    countdownChannelRef.current = channel;
+    
+    return () => {
+      unsubscribeFromCountdownBroadcast(channel);
+      countdownChannelRef.current = null;
+    };
   }, [sessionId, router]);
+
+  // Effect: Watch for Status Change -> Finished
+  useEffect(() => {
+    if (gameSession?.status === "finished") {
+      router.push(`/result/${sessionId}`);
+    }
+  }, [gameSession?.status, sessionId, router]);
+
+  // Fallback: If status becomes active, redirect
+  useEffect(() => {
+    if (gameSession?.status === "active") {
+      router.push(`/host/${sessionId}/play`);
+    }
+  }, [gameSession?.status, sessionId, router]);
 
   const handleKickPlayer = async () => {
     if (!participantToKick || !gameSession) return;
@@ -372,9 +384,6 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
   return (
     <div className="relative h-screen overflow-y-auto bg-rose-50 dark:bg-zinc-950">
-      {/* Countdown Overlay */}
-      {/* Countdown Overlay Removed - moved to Play Screen */}
-
       <div className="grid min-h-full grid-cols-1 lg:grid-cols-[1fr_480px]">
         {/* Left Column: Stats & Participants */}
         <div className="order-2 space-y-4 p-4 lg:order-1">

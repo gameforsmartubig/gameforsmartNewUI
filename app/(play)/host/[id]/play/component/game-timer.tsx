@@ -66,14 +66,15 @@ export function useGameTimer({
 export function GameTimer({ startedAt, totalTimeMinutes, onTimeUp, status }: GameTimerBaseProps) {
   const { timeLeft } = useGameTimer({ startedAt, totalTimeMinutes, onTimeUp, status });
 
+  // Show loading state if game hasn't fully started yet
+  const isWaitingForStart = !startedAt && status !== "finished";
+
   return (
     <div className="flex items-center justify-center gap-4">
       <Card className="border-none bg-white/80 shadow-sm backdrop-blur">
         <CardContent className="w-32 px-8 text-center sm:w-48 sm:px-16 sm:py-4">
           <p className="text-3xl font-bold sm:text-5xl">
-            {Math.floor(timeLeft / 60)
-              .toString()
-              .padStart(2, "0")}
+            {isWaitingForStart ? "--" : Math.floor(timeLeft / 60).toString().padStart(2, "0")}
           </p>
         </CardContent>
       </Card>
@@ -81,7 +82,7 @@ export function GameTimer({ startedAt, totalTimeMinutes, onTimeUp, status }: Gam
       <Card className="border-none bg-white/80 shadow-sm backdrop-blur">
         <CardContent className="w-32 px-8 text-center sm:w-48 sm:px-16 sm:py-4">
           <p className="text-3xl font-bold sm:text-5xl">
-            {(timeLeft % 60).toString().padStart(2, "0")}
+            {isWaitingForStart ? "--" : (timeLeft % 60).toString().padStart(2, "0")}
           </p>
         </CardContent>
       </Card>

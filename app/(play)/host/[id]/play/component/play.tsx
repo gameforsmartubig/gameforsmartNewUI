@@ -48,30 +48,54 @@ export default function Play({ sessionId }: PlayProps) {
   const [loading, setLoading] = useState(true);
   const [showLoader, setShowLoader] = useState(false);
   
-  // Helper to get initial countdown state based on time elapsed
-  const getInitialCountdownState = () => {
-    if (typeof window === 'undefined') return { left: null, show: false };
-    
-    const ts = new URLSearchParams(window.location.search).get("ts");
-    if (!ts) return { left: null, show: false };
-    
-    const startTime = new Date(ts).getTime();
-    const now = Date.now();
-    const elapsed = now - startTime; // Time passed since start
-    const remaining = 10000 - elapsed; // 10s total duration
-    
-    // If more than 10.5s passed, skip countdown
-    if (remaining <= -500) {
-       return { left: null, show: false };
-    }
-    
-    // If still within countdown window (or just finished), show it
-    return { left: Math.max(0, Math.ceil(remaining / 1000)), show: true };
-  };
+  // Initial countdown setup
+  const [countdownLeft, setCountdownLeft] = useState<number | null>(null);
+  const [showCountdown, setShowCountdown] = useState(false);
 
-  const initial = getInitialCountdownState();
-  const [countdownLeft, setCountdownLeft] = useState<number | null>(initial.left);
-  const [showCountdown, setShowCountdown] = useState(initial.show);
+
+  // Robust Countdown Timer using Date.now() for Host Sync
+  useEffect(() => {
+    const ts = searchParams.get("ts");
+    if (!ts) return; 
+
+    const startTime = new Date(ts).getTime();
+    const duration = 10000;
+    const targetEndTime = startTime + duration;
+
+    const tick = () => {
+      const now = Date.now();
+      const remainingMs = targetEndTime - now;
+
+      // Finish condition - Clean & Instant
+      if (remainingMs <= 0) {
+        setShowCountdown(false);
+        setCountdownLeft(null);
+        fetchSessionData(); // Sync Host
+        return false; 
+      }
+      
+      // Too late condition
+      if (remainingMs < -5000) { 
+         setShowCountdown(false);
+         setCountdownLeft(null);
+         return false; 
+      }
+
+      // Valid countdown
+      const seconds = Math.ceil(remainingMs / 1000);
+      setCountdownLeft(seconds);
+      setShowCountdown(true);
+      return true; 
+    };
+
+    if (tick()) {
+      const interval = setInterval(() => {
+        if (!tick()) clearInterval(interval);
+      }, 100);
+      return () => clearInterval(interval);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Profile cache
   const profileCache = useRef(new Map<string, string>());
@@ -109,26 +133,28 @@ export default function Play({ sessionId }: PlayProps) {
   };
 
   // Simple Countdown Effect
+
+
+  // Polling for started_at: Keep checking until it's available
   useEffect(() => {
-    if (!showCountdown || countdownLeft === null) return;
+    // Only poll if countdown is finished but started_at is not yet available
+    if (showCountdown) return;
+    if (session?.started_at) return; // Already have it
     
-    if (countdownLeft <= 0) {
-      // Countdown finished
-      setTimeout(() => {
-        setShowCountdown(false);
-        setCountdownLeft(null);
-        // Critical: Refresh session data to sync timer immediately after countdown
-        fetchSessionData();
-      }, 500);
-      return;
-    }
+    const pollInterval = setInterval(async () => {
+      try {
+        const sess = await getGameSessionRT(sessionId);
+        if (sess?.started_at) {
+          setSession(prev => prev ? { ...prev, ...sess } : null);
+          clearInterval(pollInterval);
+        }
+      } catch (e) {
+        console.error("Polling error:", e);
+      }
+    }, 500); // Check every 500ms
     
-    const timer = setTimeout(() => {
-      setCountdownLeft(prev => (prev !== null ? prev - 1 : null));
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, [showCountdown, countdownLeft]); // eslint-disable-line react-hooks/exhaustive-deps
+    return () => clearInterval(pollInterval);
+  }, [showCountdown, session?.started_at, sessionId]);
 
   // Fetch Profiles Helper
   const fetchProfiles = async (userIds: string[]) => {
