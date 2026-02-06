@@ -28,6 +28,8 @@ interface Question {
     id: string;
     text?: string;
     answer?: string;
+    option?: string;
+    label?: string;
     isCorrect?: boolean;
   }[];
 }
@@ -353,7 +355,10 @@ export function StatisticsView({
                                     <XCircle className="w-3.5 h-3.5" /> Your Answer:
                                 </span>
                                 <p className="text-red-700 font-medium pl-5 mt-0.5">
-                                    {q.answers.find(a => String(a.id).trim() === String(myStatus?.userAnswerId).trim())?.text || "No answer"}
+                                    {(() => {
+                                        const userAns = q.answers.find(a => String(a.id).trim() === String(myStatus?.userAnswerId).trim());
+                                        return userAns ? (userAns.text || userAns.answer || userAns.option || userAns.label || "Answer ID match but no text") : "No answer";
+                                    })()}
                                 </p>
                              </div>
                          </div>
