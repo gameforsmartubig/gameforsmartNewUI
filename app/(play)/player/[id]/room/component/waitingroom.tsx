@@ -25,7 +25,9 @@ import {
   getParticipantsRT,
   getCachedProfile,
   setCachedProfile,
-  getGameSessionRT
+  getGameSessionRT,
+  subscribeToCountdownBroadcast,
+  unsubscribeFromCountdownBroadcast
 } from "@/lib/supabase-realtime";
 import {
   calculateServerTimeOffset,
@@ -93,7 +95,6 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   const [loading, setLoading] = useState(true);
   const [leaveDialogOpen, setLeaveDialogOpen] = useState(false);
   const [linkCopied, setLinkCopied] = useState(false);
-  const [countdownLeft, setCountdownLeft] = useState<number | null>(null);
   const [serverTimeReady, setServerTimeReady] = useState(false);
 
   const lastStatusRef = useRef<string>("");
@@ -226,14 +227,12 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
           }
 
           // Also sync countdown_started_at even if status doesn't change
+          // (Note: Countdown is now handled via broadcast, not instant redirect here)
           if (updatedSession.countdown_started_at) {
             setGameSession((prev: any) => ({
               ...prev,
               countdown_started_at: updatedSession.countdown_started_at
             }));
-            
-            // Redirect immediately for seamless transition
-            router.push(`/player/${sessionId}/play?ts=${updatedSession.countdown_started_at}`);
           }
         },
         onParticipantChange: async ({ eventType, new: newPart, old: oldPart }) => {
@@ -282,16 +281,12 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
             if (newSession.status !== lastStatusRef.current) {
               lastStatusRef.current = newSession.status;
               setGameSession(newSession); // Sync fallback
-
-               if (newSession.countdown_started_at) {
-                 router.push(`/player/${sessionId}/play?ts=${newSession.countdown_started_at}`);
-              } else if (newSession.status === "active") {
-                  router.push(`/player/${sessionId}/play`);
-               }
-
-              // if (newSession.status === "active") {
-              //   router.push(`/player/${sessionId}/play`);
-              // }
+              
+              // Note: Countdown redirect is now handled via broadcast
+              // Only handle finished status here
+              if (newSession.status === "finished") {
+                router.push(`/result/${sessionId}`);
+              }
             }
 
             // Check Participants from JSONB
@@ -322,35 +317,33 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
     }
   }, [sessionId, participantId, router, loading]);
 
-  // Polling Fallback: Check session status every 2 seconds just in case Realtime misses an event
+  // Subscribe to countdown broadcast
   useEffect(() => {
     if (!sessionId) return;
     
-    const checkStatus = async () => {
-       const latestSession = await getGameSessionRT(sessionId);
-       if (latestSession) {
-          if (latestSession.countdown_started_at) {
-             router.push(`/player/${sessionId}/play?ts=${latestSession.countdown_started_at}`);
-          } else if (latestSession.status === "active") {
-             router.push(`/player/${sessionId}/play`);
-          }
-       }
+    const channel = subscribeToCountdownBroadcast(sessionId, (payload) => {
+      // Received countdown start from broadcast -> REDIRECT IMMEDIATELY
+      // The Play Screen will show the countdown overlay based on 'ts'
+      if (payload.startedAt) {
+         router.push(`/player/${sessionId}/play?ts=${payload.startedAt}`);
+      } else {
+         router.push(`/player/${sessionId}/play`);
+      }
+    });
+    
+    return () => {
+      unsubscribeFromCountdownBroadcast(channel);
     };
-
-    const interval = setInterval(checkStatus, 2000);
-    return () => clearInterval(interval);
   }, [sessionId, router]);
 
-  // Effect: Instant Redirect Logic
+  // Fallback: If status becomes active
   useEffect(() => {
-    // Legacy handling for immediate active status without countdown
     if (gameSession?.status === "active") {
-       router.push(`/player/${sessionId}/play`);
-    } else if (gameSession?.countdown_started_at) {
-       // Also redirect if we detect a countdown timestamp (redundant with RT but safe)
-       router.push(`/player/${sessionId}/play?ts=${gameSession.countdown_started_at}`);
+      router.push(`/player/${sessionId}/play`);
+    } else if (gameSession?.status === "finished") {
+      router.push(`/result/${sessionId}`);
     }
-  }, [gameSession?.countdown_started_at, gameSession?.status, serverTimeReady, router, sessionId]);
+  }, [gameSession?.status, sessionId, router]);
 
   const handleKick = () => {
     toast.error("You have been removed from the game.");
@@ -387,10 +380,11 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    setLinkCopied(true);
     toast.success("Link copied!");
+    setTimeout(() => setLinkCopied(false), 2000);
   };
 
-  // Loading State
   if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
   if (!gameSession || !quizData) return null;
 
@@ -400,9 +394,8 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
       : "";
 
   return (
-    <div className="h-screen overflow-y-auto bg-gray-50/50 dark:bg-zinc-950">
-      {/* Countdown Overlay */}
-      {/* Countdown Overlay Removed - moved to Play Screen */}
+    <div className="relative h-screen overflow-y-auto bg-gray-50/50 dark:bg-zinc-950">
+
 
       <div className="grid min-h-full grid-cols-1 lg:grid-cols-[1fr_480px]">
         {/* Left Column: Stats & Participants */}

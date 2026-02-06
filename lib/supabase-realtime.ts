@@ -404,3 +404,69 @@ export function unsubscribeFromGameRT(channel: RealtimeChannel | null) {
     supabaseRealtime.removeChannel(channel);
   }
 }
+
+// ============================================================
+// Broadcast Helpers for Countdown Sync
+// ============================================================
+
+/**
+ * Subscribe to countdown broadcast events for a game session.
+ * When host broadcasts "countdown_start", all clients receive it simultaneously.
+ */
+export function subscribeToCountdownBroadcast(
+  sessionId: string,
+  onCountdownStart: (payload: any) => void
+): RealtimeChannel | null {
+  if (!supabaseRealtime) {
+    console.warn("⚠️ subscribeToCountdownBroadcast: supabaseRealtime client is null");
+    return null;
+  }
+
+  const channel = supabaseRealtime
+    .channel(`countdown_${sessionId}`)
+    .on("broadcast", { event: "countdown_start" }, (payload) => {
+      console.log("[Broadcast] Received countdown_start:", payload);
+      onCountdownStart(payload.payload);
+    })
+    .subscribe((status, err) => {
+      console.log(`[Broadcast] Channel countdown_${sessionId} status:`, status);
+      if (err) {
+        console.error(`[Broadcast] Channel error:`, err);
+      }
+    });
+
+  return channel;
+}
+
+/**
+ * Send countdown start event using an existing active channel.
+ * Reuses the channel created by subscribeToCountdownBroadcast.
+ */
+export async function sendCountdownSignal(channel: RealtimeChannel, startedAt?: string): Promise<boolean> {
+  if (!channel) return false;
+
+  const time = startedAt || new Date().toISOString();
+
+  try {
+    await channel.send({
+      type: "broadcast",
+      event: "countdown_start",
+      payload: { startedAt: time }
+    });
+
+    console.log("[Broadcast] Sent countdown_start signal");
+    return true;
+  } catch (err) {
+    console.error("Error sending countdown signal:", err);
+    return false;
+  }
+}
+
+/**
+ * Unsubscribe from countdown broadcast channel.
+ */
+export function unsubscribeFromCountdownBroadcast(channel: RealtimeChannel | null) {
+  if (channel && supabaseRealtime) {
+    supabaseRealtime.removeChannel(channel);
+  }
+}
