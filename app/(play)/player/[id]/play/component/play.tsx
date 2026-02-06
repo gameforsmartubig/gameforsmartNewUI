@@ -113,13 +113,67 @@ export default function Play({ sessionId }: PlayProps) {
   const [hasAutoSubmitted, setHasAutoSubmitted] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
   
-  // SUPER SIMPLE COUNTDOWN - just 10 seconds if ?ts= exists
-  const hasCountdown = !!searchParams.get("ts");
-  const [countdownLeft, setCountdownLeft] = useState<number | null>(hasCountdown ? 10 : null);
-  const [showCountdown, setShowCountdown] = useState(hasCountdown);
+  // Helper to get initial countdown state based on time elapsed
+  const getInitialCountdownState = () => {
+    if (typeof window === 'undefined') return { left: null, show: false };
+    
+    const ts = new URLSearchParams(window.location.search).get("ts");
+    if (!ts) return { left: null, show: false };
+    
+    const startTime = new Date(ts).getTime();
+    const now = Date.now();
+    const elapsed = now - startTime; // Time passed since start
+    const remaining = 10000 - elapsed; // 10s total duration
+    
+    // If more than 10.5s passed, skip countdown
+    if (remaining <= -500) {
+       return { left: null, show: false };
+    }
+    
+    // If still within countdown window (or just finished), show it
+    return { left: Math.max(0, Math.ceil(remaining / 1000)), show: true };
+  };
+
+  const initial = getInitialCountdownState();
+  const [countdownLeft, setCountdownLeft] = useState<number | null>(initial.left);
+  const [showCountdown, setShowCountdown] = useState(initial.show);
   const [serverTimeReady, setServerTimeReady] = useState(false);
 
-  // Timer Hook
+  // Helper to refresh session for timer sync
+  const refreshSession = async () => {
+    try {
+      // Try RT first
+      let sess = await getGameSessionRT(sessionId);
+      // If fails or empty, maybe fallback? For now RT is primary for timer.
+      if (sess) {
+        setSession(sess);
+      }
+    } catch (e) {
+      console.error("Failed to refresh session", e);
+    }
+  };
+
+  // Simple Countdown Effect - just count down every second
+  useEffect(() => {
+    if (!showCountdown || countdownLeft === null) return;
+    
+    if (countdownLeft <= 0) {
+      // Countdown finished
+      setTimeout(() => {
+        setShowCountdown(false);
+        setCountdownLeft(null);
+        // Sync timer
+        refreshSession();
+      }, 500);
+      return;
+    }
+    
+    const timer = setTimeout(() => {
+      setCountdownLeft(prev => (prev !== null ? prev - 1 : null));
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, [showCountdown, countdownLeft]); // eslint-disable-line react-hooks/exhaustive-deps
   const { timeLeft } = useGameTimer({
     startedAt: session?.started_at ?? null,
     totalTimeMinutes: session?.total_time_minutes ?? 0,

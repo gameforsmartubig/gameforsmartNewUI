@@ -98,116 +98,120 @@ function HostLeaderboard({ players }: HostLeaderboardProps) {
 
   // Component for the list of other players
   const OtherPlayersList = () => (
-    <Card className="h-full border-none shadow-none md:border md:shadow-sm">
-      <CardContent className="p-0">
-        <ScrollArea className="h-[400px] lg:h-[500px] w-full pr-4">
-          <div className="divide-y divide-border">
+    <div className="rounded-xl border shadow-sm bg-card text-card-foreground overflow-hidden">
+        <div className="flex flex-col">
             {others.map((p, index) => (
-              <div key={p.id} className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors rounded-lg">
-                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-muted font-bold text-muted-foreground text-sm">
+              <div 
+                key={p.id} 
+                className="flex items-center gap-3 p-3 md:px-6 md:py-2 border-b last:border-0 hover:bg-muted/50 transition-colors"
+              >
+                {/* Rank Number */}
+                <div className="flex-shrink-0 flex h-7 w-7 items-center justify-center rounded-full bg-muted font-bold text-muted-foreground text-xs md:text-sm">
                   {index + 4}
                 </div>
-                <Avatar className="h-10 w-10 border">
+                
+                {/* Avatar */}
+                <Avatar className="h-8 w-8 md:h-10 md:w-10 border shadow-sm">
                   <AvatarImage src={p.image || ""} />
-                  <AvatarFallback>{p.name[0]}</AvatarFallback>
+                  <AvatarFallback className="bg-muted text-muted-foreground font-medium text-xs">{p.name[0]}</AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium truncate">{p.name}</p>
-                  <p className="text-xs text-muted-foreground">{p.correctAnswers}/{p.totalQuestions} correct</p>
+                
+                {/* Name & Stats */}
+                <div className="flex-1 min-w-0 flex flex-col justify-center">
+                  <p className="font-semibold truncate text-sm">{p.name}</p>
                 </div>
-                <div className="text-right">
-                  <span className="text-lg font-bold text-primary">{p.normalizedScore}</span>
+                
+                {/* Score */}
+                <div className="text-right pl-4">
+                  <span className="text-base md:text-lg font-bold">{p.normalizedScore}</span>
                 </div>
               </div>
             ))}
-          </div>
-        </ScrollArea>
-      </CardContent>
-    </Card>
+        </div>
+      </div>
   );
 
   return (
     <div className="flex-1 p-4 md:p-8 overflow-auto">
-      <div className="mx-auto w-full max-w-7xl flex flex-col lg:flex-row gap-8 lg:gap-12">
+      <div className="mx-auto w-full max-w-5xl flex flex-col gap-2">
         
-        {/* Left Side: Podium (Takes full width on mobile, 2/3 on desktop) */}
-        <div className="flex-1 flex flex-col justify-center min-h-[50vh]">
+        {/* Top Section: Podium */}
+        <div className="flex flex-col justify-center">
           {/* Header */}
-          <div className="text-center space-y-1 mb-2 md:mb-6">
-            <h1 className="text-2xl md:text-4xl font-bold tracking-tight">Leaderboard</h1>
+          <div className="text-center space-y-1 mb-4">
+            <h1 className="text-3xl md:text-5xl font-bold tracking-tight">Leaderboard</h1>
           </div>
 
-          {/* Podium Section - Compact Scale */}
-          <div className="flex items-end justify-center pt-2 md:pt-6 pb-4 md:pb-8">
-            <div className="flex items-end justify-center gap-2 md:gap-6 w-full max-w-3xl px-4">
+          {/* Podium Section */}
+          <div className="flex items-end justify-center pb-2">
+            <div className="flex items-end justify-center gap-4 md:gap-8 w-full max-w-4xl px-4">
               
               {/* Rank 2 (Silver) - Left */}
               {top2 && (
-                <div className="flex flex-col items-center gap-2 md:gap-3 w-1/3">
+                <div className="flex flex-col items-center gap-3 w-1/3">
                   <div className="relative">
-                    <Avatar className="h-14 w-14 md:h-20 md:w-20 border-4 border-slate-300 shadow-xl">
+                    <Avatar className="h-16 w-16 md:h-24 md:w-24 border-4 border-slate-300 shadow-xl">
                       <AvatarImage src={top2.image || ""} alt={top2.name} />
-                      <AvatarFallback className="text-xs md:text-sm bg-slate-100">{top2.name[0]}</AvatarFallback>
+                      <AvatarFallback className="text-sm md:text-lg bg-slate-100">{top2.name[0]}</AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm border border-slate-300 z-20">
+                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-slate-200 text-slate-700 px-3 py-0.5 rounded-full text-xs font-bold shadow-sm border border-slate-300 z-20">
                       <span>2</span>
                     </div>
                   </div>
-                  <div className="text-center mt-0.5">
-                    <h3 className="font-semibold text-xs md:text-base line-clamp-1">{top2.name}</h3>
-                    <div className="text-sm md:text-xl font-bold text-slate-500">{top2.normalizedScore}</div>
+                  <div className="text-center mt-1">
+                    <h3 className="font-semibold text-sm md:text-lg line-clamp-1">{top2.name}</h3>
                   </div>
-                  <div className="w-full h-16 md:h-32 bg-gradient-to-t from-slate-300 to-slate-100 rounded-t-xl border-x border-t border-slate-300 flex items-end justify-center pb-2 md:pb-4 shadow-lg shadow-slate-300/20">
-                    <Medal className="h-6 w-6 md:h-10 md:w-10 text-slate-400 opacity-80" />
+                  <div className="w-full h-24 md:h-40 bg-gradient-to-t from-slate-300 to-slate-100 rounded-t-2xl border-x border-t border-slate-300 flex flex-col items-center justify-between py-4 shadow-lg shadow-slate-300/20">
+                    <div className="text-xl md:text-3xl font-extrabold text-slate-600 mt-2">{top2.normalizedScore}</div>
+                    <Medal className="h-8 w-8 md:h-12 md:w-12 text-slate-400 opacity-80" />
                   </div>
                 </div>
               )}
 
               {/* Rank 1 (Gold) - Center */}
               {top1 && (
-                <div className="flex flex-col items-center gap-2 md:gap-3 w-1/3 z-10">
-                  {/* Crown - positioned above avatar, not absolute */}
-                  <div className="flex flex-col items-center">
-                    <Crown className="h-6 w-6 md:h-10 md:w-10 text-yellow-500 mb-1 animate-bounce" />
+                <div className="flex flex-col items-center gap-3 w-1/3 z-10">
+                  <div className="flex flex-col items-center mb-1">
+                    <Crown className="h-8 w-8 md:h-12 md:w-12 text-yellow-500 mb-2 animate-bounce" />
                     <div className="relative">
-                      <Avatar className="h-16 w-16 md:h-28 md:w-28 border-4 border-yellow-400 shadow-2xl ring-4 ring-yellow-400/20">
+                      <Avatar className="h-20 w-20 md:h-32 md:w-32 border-4 border-yellow-400 shadow-2xl ring-4 ring-yellow-400/20">
                         <AvatarImage src={top1.image || ""} alt={top1.name} />
-                        <AvatarFallback className="text-base md:text-xl bg-yellow-50">{top1.name[0]}</AvatarFallback>
+                        <AvatarFallback className="text-lg md:text-2xl bg-yellow-50">{top1.name[0]}</AvatarFallback>
                       </Avatar>
-                      <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 px-2.5 py-0.5 rounded-full text-[10px] md:text-xs font-bold shadow-sm border border-yellow-500 flex items-center gap-1 z-20">
-                        <Trophy className="h-2.5 w-2.5" />
+                      <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 px-3 py-0.5 rounded-full text-xs md:text-sm font-bold shadow-sm border border-yellow-500 flex items-center gap-1 z-20">
+                        <Trophy className="h-3 w-3" />
                         <span>1</span>
                       </div>
                     </div>
                   </div>
-                  <div className="text-center mt-0.5">
-                    <h3 className="font-bold text-sm md:text-xl line-clamp-1">{top1.name}</h3>
-                    <div className="text-xl md:text-4xl font-black text-primary">{top1.normalizedScore}</div>
+                  <div className="text-center mt-1">
+                    <h3 className="font-bold text-base md:text-2xl line-clamp-1">{top1.name}</h3>
                   </div>
-                  <div className="w-full h-24 md:h-48 bg-gradient-to-t from-yellow-300 to-yellow-100 rounded-t-xl border-x border-t border-yellow-400 flex items-end justify-center pb-3 md:pb-6 shadow-xl shadow-yellow-500/20">
-                    <Trophy className="h-8 w-8 md:h-14 md:w-14 text-yellow-600 opacity-80" />
+                  <div className="w-full h-32 md:h-56 bg-gradient-to-t from-yellow-300 to-yellow-100 rounded-t-2xl border-x border-t border-yellow-400 flex flex-col items-center justify-between py-6 shadow-xl shadow-yellow-500/20">
+                    <div className="text-3xl md:text-6xl font-extrabold text-yellow-900 mt-2">{top1.normalizedScore}</div>
+                    <Trophy className="h-10 w-10 md:h-16 md:w-16 text-yellow-600 opacity-80" />
                   </div>
                 </div>
               )}
 
               {/* Rank 3 (Bronze) - Right */}
               {top3 && (
-                <div className="flex flex-col items-center gap-2 md:gap-3 w-1/3">
+                <div className="flex flex-col items-center gap-3 w-1/3">
                   <div className="relative">
-                    <Avatar className="h-12 w-12 md:h-16 md:w-16 border-4 border-orange-300 shadow-xl">
+                    <Avatar className="h-16 w-16 md:h-24 md:w-24 border-4 border-orange-300 shadow-xl">
                       <AvatarImage src={top3.image || ""} alt={top3.name} />
-                      <AvatarFallback className="text-xs md:text-sm bg-orange-50">{top3.name[0]}</AvatarFallback>
+                      <AvatarFallback className="text-sm md:text-lg bg-orange-50">{top3.name[0]}</AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-orange-200 text-orange-800 px-2 py-0.5 rounded-full text-[10px] font-bold shadow-sm border border-orange-300 z-20">
+                    <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 bg-orange-200 text-orange-800 px-3 py-0.5 rounded-full text-xs font-bold shadow-sm border border-orange-300 z-20">
                       <span>3</span>
                     </div>
                   </div>
-                  <div className="text-center mt-0.5">
-                    <h3 className="font-semibold text-xs md:text-base line-clamp-1">{top3.name}</h3>
-                    <div className="text-sm md:text-xl font-bold text-orange-600">{top3.normalizedScore}</div>
+                  <div className="text-center mt-1">
+                    <h3 className="font-semibold text-sm md:text-lg line-clamp-1">{top3.name}</h3>
                   </div>
-                  <div className="w-full h-14 md:h-24 bg-gradient-to-t from-orange-300 to-orange-100 rounded-t-xl border-x border-t border-orange-300 flex items-end justify-center pb-2 md:pb-3 shadow-lg shadow-orange-300/20">
-                    <Medal className="h-5 w-5 md:h-9 md:w-9 text-orange-500 opacity-80" />
+                  <div className="w-full h-20 md:h-32 bg-gradient-to-t from-orange-300 to-orange-100 rounded-t-2xl border-x border-t border-orange-300 flex flex-col items-center justify-between py-3 shadow-lg shadow-orange-300/20">
+                    <div className="text-xl md:text-3xl font-extrabold text-orange-900 mt-1">{top3.normalizedScore}</div>
+                    <Medal className="h-6 w-6 md:h-10 md:w-10 text-orange-500 opacity-80" />
                   </div>
                 </div>
               )}
@@ -215,40 +219,14 @@ function HostLeaderboard({ players }: HostLeaderboardProps) {
           </div>
         </div>
 
-        {/* Right Side: List (Hidden on mobile, visible on desktop) */}
+        {/* Bottom Section: Players List */}
         {others.length > 0 && (
-          <div className="hidden lg:block w-full lg:w-96 shrink-0 border-l pl-8">
-            <h3 className="text-lg font-semibold mb-4 text-muted-foreground uppercase tracking-wider">Others</h3>
-            <OtherPlayersList />
+          <div className="w-full max-w-4xl mx-auto px-4">
+             <OtherPlayersList />
           </div>
         )}
 
-        {/* Mobile List Trigger (Visible on mobile only) */}
-        {others.length > 0 && (
-         <div className="lg:hidden fixed bottom-6 right-6 z-50">
-           <Dialog>
-             <DialogTrigger asChild>
-               <Button size="lg" className="rounded-full h-14 w-14 shadow-xl">
-                 <LayoutDashboard className="h-6 w-6" />
-               </Button>
-             </DialogTrigger>
-             <DialogContent className="sm:max-w-md h-[80vh] flex flex-col">
-               <DialogHeader>
-                 <DialogTitle>Leaderboard</DialogTitle>
-                 <DialogDescription>Full rankings for this session</DialogDescription>
-               </DialogHeader>
-               <div className="flex-1 overflow-hidden">
-                 <OtherPlayersList />
-               </div>
-               <DialogClose asChild>
-                 <Button type="button" variant="secondary">
-                   Close
-                 </Button>
-               </DialogClose>
-             </DialogContent>
-           </Dialog>
-         </div>
-        )}
+
       </div>
     </div>
   );

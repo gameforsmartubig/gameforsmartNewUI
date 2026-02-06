@@ -48,51 +48,36 @@ export default function Play({ sessionId }: PlayProps) {
   const [loading, setLoading] = useState(true);
   const [showLoader, setShowLoader] = useState(false);
   
-  // SUPER SIMPLE COUNTDOWN - just 10 seconds if ?ts= exists
-  const hasCountdown = !!searchParams.get("ts");
-  const [countdownLeft, setCountdownLeft] = useState<number | null>(hasCountdown ? 10 : null);
-  const [showCountdown, setShowCountdown] = useState(hasCountdown);
+  // Helper to get initial countdown state based on time elapsed
+  const getInitialCountdownState = () => {
+    if (typeof window === 'undefined') return { left: null, show: false };
+    
+    const ts = new URLSearchParams(window.location.search).get("ts");
+    if (!ts) return { left: null, show: false };
+    
+    const startTime = new Date(ts).getTime();
+    const now = Date.now();
+    const elapsed = now - startTime; // Time passed since start
+    const remaining = 10000 - elapsed; // 10s total duration
+    
+    // If more than 10.5s passed, skip countdown
+    if (remaining <= -500) {
+       return { left: null, show: false };
+    }
+    
+    // If still within countdown window (or just finished), show it
+    return { left: Math.max(0, Math.ceil(remaining / 1000)), show: true };
+  };
+
+  const initial = getInitialCountdownState();
+  const [countdownLeft, setCountdownLeft] = useState<number | null>(initial.left);
+  const [showCountdown, setShowCountdown] = useState(initial.show);
 
   // Profile cache
   const profileCache = useRef(new Map<string, string>());
-
-  // Simple Countdown Effect - just count down every second
-  useEffect(() => {
-    if (!showCountdown || countdownLeft === null) return;
-    
-    if (countdownLeft <= 0) {
-      // Countdown finished
-      setTimeout(() => {
-        setShowCountdown(false);
-        setCountdownLeft(null);
-      }, 500);
-      return;
-    }
-    
-    const timer = setTimeout(() => {
-      setCountdownLeft(prev => (prev !== null ? prev - 1 : null));
-    }, 1000);
-    
-    return () => clearTimeout(timer);
-  }, [showCountdown, countdownLeft]);
-
-  // Fetch Profiles Helper
-  const fetchProfiles = async (userIds: string[]) => {
-    const uncached = userIds.filter((id) => id && !profileCache.current.has(id));
-    if (uncached.length === 0) return;
-
-    const { data } = await supabase.from("profiles").select("id, avatar_url").in("id", uncached);
-
-    if (data) {
-      data.forEach((p) => {
-        if (p.avatar_url) profileCache.current.set(p.id, p.avatar_url);
-      });
-    }
-  };
-
-  // Initial Fetch & Subscribe
-  useEffect(() => {
-    const init = async () => {
+  
+  // Re-fetch session data helper
+  const fetchSessionData = async () => {
       try {
         const sess = await getGameSessionRT(sessionId);
         if (!sess) {
@@ -119,12 +104,49 @@ export default function Play({ sessionId }: PlayProps) {
         setLoading(false);
       } catch (err) {
         console.error(err);
-        toast.error("Failed to load session");
-        setLoading(false);
+        // Don't toast error on re-fetch to avoid spam
       }
-    };
+  };
 
-    init();
+  // Simple Countdown Effect
+  useEffect(() => {
+    if (!showCountdown || countdownLeft === null) return;
+    
+    if (countdownLeft <= 0) {
+      // Countdown finished
+      setTimeout(() => {
+        setShowCountdown(false);
+        setCountdownLeft(null);
+        // Critical: Refresh session data to sync timer immediately after countdown
+        fetchSessionData();
+      }, 500);
+      return;
+    }
+    
+    const timer = setTimeout(() => {
+      setCountdownLeft(prev => (prev !== null ? prev - 1 : null));
+    }, 1000);
+    
+    return () => clearTimeout(timer);
+  }, [showCountdown, countdownLeft]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Fetch Profiles Helper
+  const fetchProfiles = async (userIds: string[]) => {
+    const uncached = userIds.filter((id) => id && !profileCache.current.has(id));
+    if (uncached.length === 0) return;
+
+    const { data } = await supabase.from("profiles").select("id, avatar_url").in("id", uncached);
+
+    if (data) {
+      data.forEach((p) => {
+        if (p.avatar_url) profileCache.current.set(p.id, p.avatar_url);
+      });
+    }
+  };
+
+  // Initial Fetch & Subscribe
+  useEffect(() => {
+    fetchSessionData();
 
     // Subscribe
     const channel = subscribeToGameRT(sessionId, {
@@ -137,6 +159,7 @@ export default function Play({ sessionId }: PlayProps) {
       onParticipantChange: async () => {
         // Refresh list to keep sync (simplified)
         const freshParts = await getParticipantsRT(sessionId);
+        if (!freshParts) return; // Guard
 
         // Fetch profiles for new ones
         const userIds = freshParts.map((p) => p.user_id).filter((id) => id) as string[];
