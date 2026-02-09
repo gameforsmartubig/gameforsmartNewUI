@@ -669,7 +669,7 @@ export default function Play({ sessionId }: PlayProps) {
           {/* GRID CONTENT */}
           <div className="grid h-full grid-cols-1 lg:grid-cols-[1fr_320px]">
             {/* KIRI: Soal + Jawaban */}
-            <div className="order-1 flex flex-col space-y-4 overflow-y-auto p-4 pb-24 lg:pb-4">
+            <div className="order-1 flex flex-col space-y-4 overflow-y-auto p-4">
               {/* Soal */}
               {currentQuestion && (
                 <>
