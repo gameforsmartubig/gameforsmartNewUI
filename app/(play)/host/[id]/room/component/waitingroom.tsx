@@ -106,26 +106,27 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
       toast.error("Waiting for participants... Ask them to join!");
       return;
     }
-    
+
     try {
       const now = new Date().toISOString();
 
       // 1. Broadcast countdown start to all clients using EXISTING channel
       if (countdownChannelRef.current) {
-         await sendCountdownSignal(countdownChannelRef.current, now);
+        await sendCountdownSignal(countdownChannelRef.current, now);
       } else {
-         console.warn("Countdown channel not ready");
+        console.warn("Countdown channel not ready");
       }
-      
+
       // 2. Redirect immediately to play screen (Old Design)
       // The play screen will handle the countdown using the 'ts' parameter
       router.push(`/host/${sessionId}/play?ts=${now}`);
-      
+
       // 3. Call Edge Function in background (it will handle DB updates)
-      supabase.functions.invoke("start-game", {
-        body: { sessionId }
-      }).catch((err) => console.error("Edge Function error:", err));
-      
+      supabase.functions
+        .invoke("start-game", {
+          body: { sessionId }
+        })
+        .catch((err) => console.error("Edge Function error:", err));
     } catch (error) {
       console.error("Error starting game:", error);
       toast.error("Failed to start game");
@@ -135,16 +136,16 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   // Subscribe to countdown broadcast (redundancy)
   useEffect(() => {
     if (!sessionId) return;
-    
+
     const channel = subscribeToCountdownBroadcast(sessionId, (payload) => {
-       // If we receive broadcast (e.g. from another tab or glitch), redirect
-       if (payload.startedAt) {
-          router.push(`/host/${sessionId}/play?ts=${payload.startedAt}`);
-       }
+      // If we receive broadcast (e.g. from another tab or glitch), redirect
+      if (payload.startedAt) {
+        router.push(`/host/${sessionId}/play?ts=${payload.startedAt}`);
+      }
     });
 
     countdownChannelRef.current = channel;
-    
+
     return () => {
       unsubscribeFromCountdownBroadcast(channel);
       countdownChannelRef.current = null;
@@ -296,7 +297,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
   // Realtime Subscription
   useEffect(() => {
-    if (!gameSession) return;
+    if (isLoading || !gameSession) return;
 
     if (isRealtimeDbConfigured && supabaseRealtime) {
       // Initial Fetch Session Status from RT (in case we are in countdown which is only in RT)
@@ -344,38 +345,38 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
         unsubscribeFromGameRT(channel);
       };
     }
-  }, [gameSession, sessionId]);
+  }, [isLoading, sessionId]);
 
   // Polling Fallback for Participants (Safety Net for RT inconsistencies)
   useEffect(() => {
-    if (!gameSession) return;
-    
+    if (isLoading || !gameSession) return;
+
     const refreshParticipants = async () => {
-       try {
-         const rtParticipants = await getParticipantsRT(sessionId);
-         if (!rtParticipants) return;
+      try {
+        const rtParticipants = await getParticipantsRT(sessionId);
+        if (!rtParticipants) return;
 
-         const userIds = rtParticipants.map((p) => p.user_id).filter((id): id is string => !!id);
-         await fetchProfiles(userIds);
+        const userIds = rtParticipants.map((p) => p.user_id).filter((id): id is string => !!id);
+        await fetchProfiles(userIds);
 
-         const mapped = rtParticipants.map((p) => ({
-           id: p.id,
-           nickname: p.nickname,
-           user_id: p.user_id,
-           avatar_url: p.user_id ? profileCache.current.get(p.user_id)?.avatar_url : null
-         }));
-         
-         // In a real app we might diff before setting state to avoid renders, 
-         // but React is smart enough if array ref changes but content is effectively similar DOM-wise (keys match).
-         setParticipants(mapped);
-       } catch (err) {
-         console.error("Polling error", err);
-       }
+        const mapped = rtParticipants.map((p) => ({
+          id: p.id,
+          nickname: p.nickname,
+          user_id: p.user_id,
+          avatar_url: p.user_id ? profileCache.current.get(p.user_id)?.avatar_url : null
+        }));
+
+        // In a real app we might diff before setting state to avoid renders,
+        // but React is smart enough if array ref changes but content is effectively similar DOM-wise (keys match).
+        setParticipants(mapped);
+      } catch (err) {
+        console.error("Polling error", err);
+      }
     };
 
-    const interval = setInterval(refreshParticipants, 3000); // Check every 3 seconds
-    return () => clearInterval(interval);
-  }, [gameSession, sessionId]);
+    // const interval = setInterval(refreshParticipants, 3000); // Check every 3 seconds
+    // return () => clearInterval(interval);
+  }, [isLoading, sessionId]);
 
   if (isLoading || !quizData) {
     return <div className="flex h-screen items-center justify-center">Loading...</div>;
@@ -516,14 +517,13 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                   unoptimized
                 />
                 <Button
-                    variant="ghost"
-                    className="absolute right-0 text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-zinc-800 h-14 w-14 p-0"
-                    onClick={() => {
-                        router.push(`/host/${sessionId}/settings?from=room`);
-                    }}
-                    title="Game Settings"
-                >
-                    <Settings className="!w-7 !h-7" />
+                  variant="ghost"
+                  className="absolute right-0 h-14 w-14 p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-zinc-800"
+                  onClick={() => {
+                    router.push(`/host/${sessionId}/settings?from=room`);
+                  }}
+                  title="Game Settings">
+                  <Settings className="!h-7 !w-7" />
                 </Button>
               </div>
 

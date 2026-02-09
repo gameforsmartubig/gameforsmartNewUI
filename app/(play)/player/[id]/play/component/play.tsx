@@ -112,11 +112,11 @@ export default function Play({ sessionId }: PlayProps) {
   const [submitDialogOpen, setSubmitDialogOpen] = useState(false);
   const [hasAutoSubmitted, setHasAutoSubmitted] = useState(false);
   const [showLoader, setShowLoader] = useState(false);
-  
+  const [isStateRestored, setIsStateRestored] = useState(false);
+
   // Initial countdown setup
   const [countdownLeft, setCountdownLeft] = useState<number | null>(null);
   const [showCountdown, setShowCountdown] = useState(false);
-
 
   const [serverTimeReady, setServerTimeReady] = useState(false);
 
@@ -156,12 +156,12 @@ export default function Play({ sessionId }: PlayProps) {
         refreshSession();
         return false; // Stop timer
       }
-      
+
       // Too late condition
-      if (remainingMs < -5000) { 
-         setShowCountdown(false);
-         setCountdownLeft(null);
-         return false; 
+      if (remainingMs < -5000) {
+        setShowCountdown(false);
+        setCountdownLeft(null);
+        return false;
       }
 
       // Valid countdown
@@ -177,7 +177,7 @@ export default function Play({ sessionId }: PlayProps) {
       const interval = setInterval(() => {
         if (!tick()) clearInterval(interval);
       }, 100); // High frequency check for smooth updates
-      
+
       return () => clearInterval(interval);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -188,19 +188,19 @@ export default function Play({ sessionId }: PlayProps) {
     // Only poll if countdown is finished but started_at is not yet available
     if (showCountdown) return;
     if (session?.started_at) return; // Already have it
-    
+
     const pollInterval = setInterval(async () => {
       try {
         const sess = await getGameSessionRT(sessionId);
         if (sess?.started_at) {
-          setSession(prev => prev ? { ...prev, ...sess } : null);
+          setSession((prev) => (prev ? { ...prev, ...sess } : null));
           clearInterval(pollInterval);
         }
       } catch (e) {
         console.error("Polling error:", e);
       }
     }, 500); // Check every 500ms
-    
+
     return () => clearInterval(pollInterval);
   }, [showCountdown, session?.started_at, sessionId]);
   const { timeLeft } = useGameTimer({
@@ -226,7 +226,7 @@ export default function Play({ sessionId }: PlayProps) {
 
       // Load Questions: Try LocalStorage first, then fetch from DB with Retry Logic
       let loadedQuestions: Question[] = [];
-      
+
       // 1. Try LocalStorage
       const storedData = localStorage.getItem(`player_game_data_${sessionId}`);
       if (storedData) {
@@ -242,69 +242,79 @@ export default function Play({ sessionId }: PlayProps) {
 
       // 2. Try Fetching/Shuffling from DB
       if (loadedQuestions.length === 0 && isRealtimeDbConfigured && supabaseRealtime) {
-          try {
-             // Fetch session first to get base questions (if needed by RPC, or logic resides in RPC completely)
-             // The previous logic passed 'questionsToShuffle'. 
-             // We can fetch current_questions from session first.
-             const { data: sessionData } = await supabase
-                .from("game_sessions")
-                .select("current_questions")
-                .eq("id", sessionId)
-                .single();
-             
-             const baseQuestions = sessionData?.current_questions || [];
+        try {
+          // Fetch session first to get base questions (if needed by RPC, or logic resides in RPC completely)
+          // The previous logic passed 'questionsToShuffle'.
+          // We can fetch current_questions from session first.
+          const { data: sessionData } = await supabase
+            .from("game_sessions")
+            .select("current_questions")
+            .eq("id", sessionId)
+            .single();
 
-             if (baseQuestions.length > 0) {
-                 const { data: shuffled, error: shuffleError } = await supabaseRealtime.rpc(
-                  "shuffle_questions_for_player",
-                  {
-                    p_questions: baseQuestions,
-                    p_participant_id: participantId
-                  }
-                );
+          const baseQuestions = sessionData?.current_questions || [];
 
-                if (!shuffleError && shuffled) {
-                   loadedQuestions = shuffled.map((q: any) => {
-                      const { correct, ...rest } = q;
-                      return rest;
-                   });
-                   // Cache
-                   localStorage.setItem(`player_game_data_${sessionId}`, JSON.stringify({ questions: loadedQuestions }));
-                }
-             }
-          } catch (e) {
-             console.error("Shuffle failed, falling back to default order", e);
+          if (baseQuestions.length > 0) {
+            const { data: shuffled, error: shuffleError } = await supabaseRealtime.rpc(
+              "shuffle_questions_for_player",
+              {
+                p_questions: baseQuestions,
+                p_participant_id: participantId
+              }
+            );
+
+            if (!shuffleError && shuffled) {
+              loadedQuestions = shuffled.map((q: any) => {
+                const { correct, ...rest } = q;
+                return rest;
+              });
+              // Cache
+              localStorage.setItem(
+                `player_game_data_${sessionId}`,
+                JSON.stringify({ questions: loadedQuestions })
+              );
+            }
           }
+        } catch (e) {
+          console.error("Shuffle failed, falling back to default order", e);
+        }
       }
 
       // 3. Absolute Fallback to Default Order (with Retry)
       if (loadedQuestions.length === 0) {
-         let attempts = 0;
-         const maxAttempts = 3;
-         
-         while (attempts < maxAttempts && loadedQuestions.length === 0) {
-            try {
-               const { data: sessionData, error: sessionError } = await supabase
-                .from("game_sessions")
-                .select("current_questions")
-                .eq("id", sessionId)
-                .single();
-                
-               if (sessionData?.current_questions && Array.isArray(sessionData.current_questions) && sessionData.current_questions.length > 0) {
-                 loadedQuestions = sessionData.current_questions;
-                 // Cache default
-                 localStorage.setItem(`player_game_data_${sessionId}`, JSON.stringify({ questions: loadedQuestions }));
-                 break; 
-               }
-            } catch (err) {
-               console.error("Error fetching fallback:", err);
+        let attempts = 0;
+        const maxAttempts = 3;
+
+        while (attempts < maxAttempts && loadedQuestions.length === 0) {
+          try {
+            const { data: sessionData, error: sessionError } = await supabase
+              .from("game_sessions")
+              .select("current_questions")
+              .eq("id", sessionId)
+              .single();
+
+            if (
+              sessionData?.current_questions &&
+              Array.isArray(sessionData.current_questions) &&
+              sessionData.current_questions.length > 0
+            ) {
+              loadedQuestions = sessionData.current_questions;
+              // Cache default
+              localStorage.setItem(
+                `player_game_data_${sessionId}`,
+                JSON.stringify({ questions: loadedQuestions })
+              );
+              break;
             }
-            
-            attempts++;
-            if (loadedQuestions.length === 0 && attempts < maxAttempts) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-         }
+          } catch (err) {
+            console.error("Error fetching fallback:", err);
+          }
+
+          attempts++;
+          if (loadedQuestions.length === 0 && attempts < maxAttempts) {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          }
+        }
       }
 
       if (loadedQuestions.length > 0) {
@@ -312,6 +322,21 @@ export default function Play({ sessionId }: PlayProps) {
       } else {
         toast.error("Could not load questions even after retries. Please refresh.");
       }
+
+      // Load Saved State (Answers & Flags)
+      try {
+        const storedState = localStorage.getItem(`player_game_state_${sessionId}_${participantId}`);
+        if (storedState) {
+          const parsed = JSON.parse(storedState);
+          if (parsed.responses) setResponses(parsed.responses);
+          if (parsed.flagged && Array.isArray(parsed.flagged)) {
+            setFlagged(new Set(parsed.flagged));
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load player state", e);
+      }
+      setIsStateRestored(true);
 
       // Load Session (RT first, then Main DB Fallback)
       let sess = await getGameSessionRT(sessionId);
@@ -324,7 +349,7 @@ export default function Play({ sessionId }: PlayProps) {
           .eq("id", sessionId)
           .single();
         if (mainSess) {
-           sess = mainSess as any; // Cast as it matches shape mostly
+          sess = mainSess as any; // Cast as it matches shape mostly
         }
       }
 
@@ -360,6 +385,19 @@ export default function Play({ sessionId }: PlayProps) {
     };
   }, [sessionId, participantId, router]);
 
+  // Persist State to LocalStorage
+  useEffect(() => {
+    if (isStateRestored && participantId) {
+      localStorage.setItem(
+        `player_game_state_${sessionId}_${participantId}`,
+        JSON.stringify({
+          responses,
+          flagged: Array.from(flagged)
+        })
+      );
+    }
+  }, [responses, flagged, isStateRestored, sessionId, participantId]);
+
   // Sync Server Time
   useEffect(() => {
     setServerTimeReady(true);
@@ -368,7 +406,7 @@ export default function Play({ sessionId }: PlayProps) {
   // Simple Countdown Effect - just count down every second
   useEffect(() => {
     if (!showCountdown || countdownLeft === null) return;
-    
+
     if (countdownLeft <= 0) {
       // Countdown finished
       setTimeout(() => {
@@ -377,11 +415,11 @@ export default function Play({ sessionId }: PlayProps) {
       }, 500);
       return;
     }
-    
+
     const timer = setTimeout(() => {
-      setCountdownLeft(prev => (prev !== null ? prev - 1 : null));
+      setCountdownLeft((prev) => (prev !== null ? prev - 1 : null));
     }, 1000);
-    
+
     return () => clearTimeout(timer);
   }, [showCountdown, countdownLeft]);
 
@@ -514,7 +552,7 @@ export default function Play({ sessionId }: PlayProps) {
   const answeredCount = Object.keys(responses).length;
   const allAnswered = questions.length > 0 && answeredCount === questions.length;
   // const currentQAnswer = currentQuestion ? responses[currentQuestion.id] : undefined;
-  
+
   // Calculate Progress
   const progressPercent = questions.length > 0 ? (answeredCount / questions.length) * 100 : 0;
 
@@ -524,9 +562,9 @@ export default function Play({ sessionId }: PlayProps) {
   useEffect(() => {
     let timeout: NodeJS.Timeout;
     if (isLoading && !showCountdown) {
-       timeout = setTimeout(() => setShowLoader(true), 200);
+      timeout = setTimeout(() => setShowLoader(true), 200);
     } else {
-       setShowLoader(false);
+      setShowLoader(false);
     }
     return () => clearTimeout(timeout);
   }, [isLoading, showCountdown]);
@@ -537,9 +575,9 @@ export default function Play({ sessionId }: PlayProps) {
   return (
     <div className={`min-h-screen w-full ${bgColor} transition-colors duration-300`}>
       {/* Countdown Overlay */}
-      <div 
+      <div
         className={`fixed inset-0 z-[100] flex items-center justify-center bg-black transition-opacity duration-300 ${
-          showCountdown ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
+          showCountdown ? "visible opacity-100" : "pointer-events-none invisible opacity-0"
         }`}>
         <div className="flex flex-col items-center gap-8">
           <AnimatePresence mode="wait">
@@ -570,250 +608,264 @@ export default function Play({ sessionId }: PlayProps) {
       {isLoading || showCountdown ? (
         <div className="flex min-h-screen items-center justify-center">
           {/* Empty during countdown, loader only if loading without countdown */}
-          {showLoader && !showCountdown && <Loader2 className="h-8 w-8 animate-spin text-gray-400" />}
+          {showLoader && !showCountdown && (
+            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          )}
         </div>
       ) : (
-      <>
-        {/* HEADER */}
-        <div className="relative flex h-auto w-full flex-col items-center md:h-16 md:flex-row">
+        <>
+          {/* HEADER */}
+          <div className="relative flex h-auto w-full flex-col items-center md:h-16 md:flex-row">
             {/* ===== BARIS 1 (Mobile) / KIRI (Desktop) ===== */}
             <div className="flex w-full items-center justify-between px-2 py-2 md:flex-1 md:justify-start md:py-0">
-            <Image
+              <Image
                 src="/gameforsmartlogo.png"
                 width={200}
                 height={40}
                 alt="gameforsmart"
                 className="opacity-80 dark:opacity-100"
                 unoptimized
-            />
+              />
 
-            {/* End Session (Mobile only) - REPURPOSED AS TIMER BADGE PER REQUEST */}
-            <div className="flex items-center gap-2 rounded-lg bg-blue-100 px-4 py-2 font-semibold text-blue-700 shadow-sm md:hidden">
+              {/* End Session (Mobile only) - REPURPOSED AS TIMER BADGE PER REQUEST */}
+              <div className="flex items-center gap-2 rounded-lg bg-blue-100 px-4 py-2 font-semibold text-blue-700 shadow-sm md:hidden">
                 <Timer className="h-4 w-4" />
-                <span>{!session?.started_at && session?.status !== 'finished' ? "--:--" : formatTime(timeLeft)}</span>
-            </div>
+                <span>
+                  {!session?.started_at && session?.status !== "finished"
+                    ? "--:--"
+                    : formatTime(timeLeft)}
+                </span>
+              </div>
             </div>
 
             {/* ===== STATISTIK (Baris 2 Mobile / Tengah Desktop) ===== */}
             <div className="flex w-full flex-col items-center justify-center gap-2 px-6 py-2 md:flex-1 md:py-0">
-            <div className="flex w-full items-center justify-between text-sm font-medium text-slate-600">
+              <div className="flex w-full items-center justify-between text-sm font-medium text-slate-600">
                 <p>Progress</p>
                 <p>
-                {answeredCount}/{questions.length}
+                  {answeredCount}/{questions.length}
                 </p>
-            </div>
-            <Progress indicatorColor="bg-blue-500" value={progressPercent} className="h-2 w-full" />
+              </div>
+              <Progress
+                indicatorColor="bg-blue-500"
+                value={progressPercent}
+                className="h-2 w-full"
+              />
             </div>
 
             {/* ===== KANAN DESKTOP ===== */}
             <div className="hidden items-center justify-end px-2 md:flex md:flex-1">
-            <div className="flex items-center gap-2 rounded-lg bg-blue-100 px-4 py-2 font-semibold text-blue-700 shadow-sm">
+              <div className="flex items-center gap-2 rounded-lg bg-blue-100 px-4 py-2 font-semibold text-blue-700 shadow-sm">
                 <Timer className="h-4 w-4" />
-                <span>{!session?.started_at && session?.status !== 'finished' ? "--:--" : formatTime(timeLeft)}</span>
+                <span>
+                  {!session?.started_at && session?.status !== "finished"
+                    ? "--:--"
+                    : formatTime(timeLeft)}
+                </span>
+              </div>
             </div>
-            </div>
-        </div>
-      
-        {/* GRID CONTENT */}
-        <div className="grid h-full grid-cols-1 lg:grid-cols-[1fr_320px]">
+          </div>
+
+          {/* GRID CONTENT */}
+          <div className="grid h-full grid-cols-1 lg:grid-cols-[1fr_320px]">
             {/* KIRI: Soal + Jawaban */}
             <div className="order-1 flex flex-col space-y-4 overflow-y-auto p-4 pb-24 lg:pb-4">
-            {/* Soal */}
-            {currentQuestion && (
+              {/* Soal */}
+              {currentQuestion && (
                 <>
-                <Card className="border-none py-4 shadow-sm">
+                  <Card className="border-none py-4 shadow-sm">
                     <CardContent className="bg-surface-light dark:bg-surface-dark rounded-lg px-4">
-                    <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between">
                         <h1 className="mb-2 text-xl font-semibold text-slate-800">
-                        Question {currentQuestionIndex + 1}
+                          Question {currentQuestionIndex + 1}
                         </h1>
                         <Button
-                        variant={flagged.has(currentQuestion.id) ? "secondary" : "outline"}
-                        className={
+                          variant={flagged.has(currentQuestion.id) ? "secondary" : "outline"}
+                          className={
                             flagged.has(currentQuestion.id)
-                            ? "border-amber-200 bg-amber-100 text-amber-700 hover:bg-amber-200"
-                            : ""
-                        }
-                        onClick={handleFlag}>
-                        <Flag
+                              ? "border-amber-200 bg-amber-100 text-amber-700 hover:bg-amber-200"
+                              : ""
+                          }
+                          onClick={handleFlag}>
+                          <Flag
                             className={cn(
-                            "mr-2 h-4 w-4",
-                            flagged.has(currentQuestion.id) && "fill-current"
+                              "mr-2 h-4 w-4",
+                              flagged.has(currentQuestion.id) && "fill-current"
                             )}
-                        />
-                        {flagged.has(currentQuestion.id) ? "Flagged" : "Flag"}
+                          />
+                          {flagged.has(currentQuestion.id) ? "Flagged" : "Flag"}
                         </Button>
-                    </div>
-                    <div className="mt-4 text-lg">{currentQuestion.question}</div>
+                      </div>
+                      <div className="mt-4 text-lg">{currentQuestion.question}</div>
                     </CardContent>
-                </Card>
+                  </Card>
 
-                {/* Pilihan Jawaban */}
-                <section className="grid grid-cols-1 gap-3 md:grid-cols-2">
+                  {/* Pilihan Jawaban */}
+                  <section className="grid grid-cols-1 gap-3 md:grid-cols-2">
                     {(() => {
-                    let displayOptions: any[] = [];
+                      let displayOptions: any[] = [];
 
-                    // Priority 1: 'answers' array (from user structure)
-                    if (
+                      // Priority 1: 'answers' array (from user structure)
+                      if (
                         Array.isArray(currentQuestion.answers) &&
                         currentQuestion.answers.length > 0
-                    ) {
+                      ) {
                         displayOptions = currentQuestion.answers.map((a) => ({
-                        id: a.id,
-                        text: a.answer,
-                        key: a.id
+                          id: a.id,
+                          text: a.answer,
+                          key: a.id
                         }));
-                    }
-                    // Priority 2: 'options' array (legacy)
-                    else if (
+                      }
+                      // Priority 2: 'options' array (legacy)
+                      else if (
                         Array.isArray(currentQuestion.options) &&
                         currentQuestion.options.length > 0
-                    ) {
+                      ) {
                         displayOptions = currentQuestion.options;
-                    }
-                    // Priority 3: Flat option_x keys (legacy)
-                    else {
+                      }
+                      // Priority 3: Flat option_x keys (legacy)
+                      else {
                         const keys = ["a", "b", "c", "d", "e"];
                         keys.forEach((key) => {
-                        const text = (currentQuestion as any)[`option_${key}`];
-                        if (text) {
+                          const text = (currentQuestion as any)[`option_${key}`];
+                          if (text) {
                             displayOptions.push({
-                            id: key,
-                            text: text,
-                            key: key
+                              id: key,
+                              text: text,
+                              key: key
                             });
-                        }
+                          }
                         });
-                    }
+                      }
 
-                    return displayOptions.map((item, idx) => (
+                      return displayOptions.map((item, idx) => (
                         <div
-                        key={item.id}
-                        onClick={() => handleAnswer(item.id)}
-                        className={cn(
+                          key={item.id}
+                          onClick={() => handleAnswer(item.id)}
+                          className={cn(
                             "cursor-pointer rounded-xl border-2 p-4 transition-all hover:shadow-md active:scale-[0.98]",
-                            (responses[currentQuestion.id] === item.id)
-                            ? "border-blue-500 bg-blue-50/50 ring-2 ring-blue-200"
-                            : "border-slate-100 bg-white hover:border-blue-200 hover:bg-slate-50"
-                        )}>
-                        <div className="flex items-start gap-3">
+                            responses[currentQuestion.id] === item.id
+                              ? "border-blue-500 bg-blue-50/50 ring-2 ring-blue-200"
+                              : "border-slate-100 bg-white hover:border-blue-200 hover:bg-slate-50"
+                          )}>
+                          <div className="flex items-start gap-3">
                             <div
-                            className={cn(
+                              className={cn(
                                 "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold",
-                                (responses[currentQuestion.id] === item.id)
-                                ? "border-blue-500 bg-blue-500 text-white"
-                                : "border-slate-200 bg-slate-50 text-slate-500"
-                            )}>
-                            {String.fromCharCode(65 + idx)}
+                                responses[currentQuestion.id] === item.id
+                                  ? "border-blue-500 bg-blue-500 text-white"
+                                  : "border-slate-200 bg-slate-50 text-slate-500"
+                              )}>
+                              {String.fromCharCode(65 + idx)}
                             </div>
                             <div className="pt-1">{item.text || item.key}</div>
+                          </div>
                         </div>
-                        </div>
-                    ));
+                      ));
                     })()}
-                </section>
+                  </section>
                 </>
-            )}
+              )}
 
-            <div className="mt-6 flex justify-between">
+              <div className="mt-6 flex justify-between">
                 <Button
-                variant="outline"
-                onClick={handlePrevious}
-                disabled={currentQuestionIndex === 0}>
-              Previous
-            </Button>
+                  variant="outline"
+                  onClick={handlePrevious}
+                  disabled={currentQuestionIndex === 0}>
+                  Previous
+                </Button>
 
-            {isLastQuestion && allAnswered ? (
-              <Button
-                className="bg-green-600 hover:bg-green-700"
-                onClick={() => setSubmitDialogOpen(true)}>
-                Submit Quiz
-              </Button>
-            ) : (
-              <Button variant="outline" onClick={handleNext}>
-                {isLastQuestion ? "First Question" : "Next"}
-              </Button>
-            )}
+                {isLastQuestion && allAnswered ? (
+                  <Button
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={() => setSubmitDialogOpen(true)}>
+                    Submit Quiz
+                  </Button>
+                ) : (
+                  <Button variant="outline" onClick={handleNext}>
+                    {isLastQuestion ? "First Question" : "Next"}
+                  </Button>
+                )}
 
-            <Dialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Submit Quiz?</DialogTitle>
-                  <DialogDescription>
-                    You have answered all {questions.length} questions. Are you sure you want to
-                    submit?
-                  </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                  <DialogClose asChild>
-                    <Button variant="outline">Review</Button>
-                  </DialogClose>
-                  <Button onClick={handleSubmit}>Yes, Submit</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                <Dialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Submit Quiz?</DialogTitle>
+                      <DialogDescription>
+                        You have answered all {questions.length} questions. Are you sure you want to
+                        submit?
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                      <DialogClose asChild>
+                        <Button variant="outline">Review</Button>
+                      </DialogClose>
+                      <Button onClick={handleSubmit}>Yes, Submit</Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+
+            {/* KANAN / BAWAH: Nav Soal */}
+            <aside className="order-2 p-4 lg:order-2 lg:pl-0">
+              <Card className="border-none py-4 shadow-sm">
+                <CardContent className="sticky bottom-0 px-4 lg:top-0">
+                  <p className="mb-3 font-semibold text-slate-700">Question Navigation</p>
+
+                  <div className="grid grid-cols-[repeat(auto-fill,minmax(40px,1fr))] gap-2 sm:grid-cols-[repeat(auto-fill,minmax(44px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(48px,1fr))] lg:grid-cols-5">
+                    {questions.map((q, i) => {
+                      // Determine status color
+                      const isCurrent = currentQuestionIndex === i;
+                      const isAnswered = !!responses[q.id];
+                      const isFlagged = flagged.has(q.id);
+
+                      let bgClass = "bg-white hover:bg-slate-50 border-slate-200 text-slate-700";
+                      if (isCurrent)
+                        bgClass =
+                          "bg-blue-100 border-blue-500 text-blue-700 font-bold ring-2 ring-blue-200";
+                      else if (isFlagged) bgClass = "bg-amber-100 border-amber-500 text-amber-700";
+                      else if (isAnswered) bgClass = "bg-green-100 border-green-500 text-green-700";
+
+                      return (
+                        <button
+                          key={q.id}
+                          onClick={() => handleJumpTo(i)}
+                          className={cn(
+                            "flex aspect-square cursor-pointer items-center justify-center rounded-lg border text-sm font-medium transition",
+                            bgClass
+                          )}>
+                          {i + 1}
+                          {isFlagged && (
+                            <div className="absolute top-0 right-0 -mt-1 -mr-1 h-2 w-2 rounded-full bg-amber-500" />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="mt-6 space-y-3 border-t border-slate-100 pt-6 dark:border-slate-800">
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="size-4 rounded-sm border border-blue-500 bg-blue-100"></div>
+                      <span className="text-slate-600 dark:text-slate-400">Current Question</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="size-4 rounded-sm border border-green-500 bg-green-100"></div>
+                      <span className="text-slate-600 dark:text-slate-400">Answered</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="size-4 rounded-sm border border-amber-500 bg-amber-100"></div>
+                      <span className="text-slate-600 dark:text-slate-400">Flagged</span>
+                    </div>
+                    <div className="flex items-center gap-3 text-sm">
+                      <div className="size-4 rounded-sm border border-slate-200 bg-white"></div>
+                      <span className="text-slate-600 dark:text-slate-400">Not Answered</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </aside>
           </div>
-        </div>
-
-        {/* KANAN / BAWAH: Nav Soal */}
-        <aside className="order-2 p-4 lg:order-2 lg:pl-0">
-          <Card className="border-none py-4 shadow-sm">
-            <CardContent className="sticky bottom-0 px-4 lg:top-0">
-              <p className="mb-3 font-semibold text-slate-700">Question Navigation</p>
-
-              <div className="grid grid-cols-[repeat(auto-fill,minmax(40px,1fr))] gap-2 sm:grid-cols-[repeat(auto-fill,minmax(44px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(48px,1fr))] lg:grid-cols-5">
-                {questions.map((q, i) => {
-                  // Determine status color
-                  const isCurrent = currentQuestionIndex === i;
-                  const isAnswered = !!responses[q.id];
-                  const isFlagged = flagged.has(q.id);
-
-                  let bgClass = "bg-white hover:bg-slate-50 border-slate-200 text-slate-700";
-                  if (isCurrent)
-                    bgClass =
-                      "bg-blue-100 border-blue-500 text-blue-700 font-bold ring-2 ring-blue-200";
-                  else if (isFlagged) bgClass = "bg-amber-100 border-amber-500 text-amber-700";
-                  else if (isAnswered) bgClass = "bg-green-100 border-green-500 text-green-700";
-
-                  return (
-                    <button
-                      key={q.id}
-                      onClick={() => handleJumpTo(i)}
-                      className={cn(
-                        "flex aspect-square cursor-pointer items-center justify-center rounded-lg border text-sm font-medium transition",
-                        bgClass
-                      )}>
-                      {i + 1}
-                      {isFlagged && (
-                        <div className="absolute top-0 right-0 -mt-1 -mr-1 h-2 w-2 rounded-full bg-amber-500" />
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="mt-6 space-y-3 border-t border-slate-100 pt-6 dark:border-slate-800">
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="size-4 rounded-sm border border-blue-500 bg-blue-100"></div>
-                  <span className="text-slate-600 dark:text-slate-400">Current Question</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="size-4 rounded-sm border border-green-500 bg-green-100"></div>
-                  <span className="text-slate-600 dark:text-slate-400">Answered</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="size-4 rounded-sm border border-amber-500 bg-amber-100"></div>
-                  <span className="text-slate-600 dark:text-slate-400">Flagged</span>
-                </div>
-                <div className="flex items-center gap-3 text-sm">
-                  <div className="size-4 rounded-sm border border-slate-200 bg-white"></div>
-                  <span className="text-slate-600 dark:text-slate-400">Not Answered</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </aside>
-      </div>
-      </>
+        </>
       )}
     </div>
   );

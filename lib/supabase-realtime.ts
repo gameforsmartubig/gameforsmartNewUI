@@ -18,17 +18,17 @@ if (typeof window !== "undefined") {
 // Reuse Database definitions if possible, or just use 'any' for now since we are focusing on RT
 export const supabaseRealtime: SupabaseClient | null = isRealtimeDbConfigured
   ? createClient(realtimeUrl!, realtimeAnonKey!, {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: false
-    },
-    realtime: {
-      params: {
-        eventsPerSecond: 20
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: false
+      },
+      realtime: {
+        params: {
+          eventsPerSecond: 20
+        }
       }
-    }
-  })
+    })
   : null;
 
 // ============================================================
@@ -112,6 +112,7 @@ export async function createGameSessionRT(data: {
   allow_join_after_start?: boolean;
   difficulty?: string;
   application?: string;
+  current_questions?: any[] | null;
 }): Promise<GameSessionRT | null> {
   if (!supabaseRealtime) {
     console.warn("⚠️ createGameSessionRT: supabaseRealtime client is null");
@@ -130,7 +131,8 @@ export async function createGameSessionRT(data: {
       game_end_mode: data.game_end_mode || "manual",
       allow_join_after_start: data.allow_join_after_start || false,
       difficulty: data.difficulty || null,
-      application: data.application || "gameforsmartNewUI"
+      application: data.application || "gameforsmartNewUI",
+      current_questions: data.current_questions || null
     })
     .select()
     .single();
@@ -442,7 +444,10 @@ export function subscribeToCountdownBroadcast(
  * Send countdown start event using an existing active channel.
  * Reuses the channel created by subscribeToCountdownBroadcast.
  */
-export async function sendCountdownSignal(channel: RealtimeChannel, startedAt?: string): Promise<boolean> {
+export async function sendCountdownSignal(
+  channel: RealtimeChannel,
+  startedAt?: string
+): Promise<boolean> {
   if (!channel) return false;
 
   const time = startedAt || new Date().toISOString();

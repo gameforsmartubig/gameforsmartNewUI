@@ -44,6 +44,7 @@ import { cn } from "@/lib/utils";
 
 import type { Category, Quiz } from "./types";
 import { categoryIconMap } from "./quiz-icons";
+import { generateXID } from "@/lib/id-generator";
 
 export function DashboardContent({
   publicQuizzes,
@@ -166,6 +167,7 @@ export function DashboardContent({
         : quizData.profiles;
 
       const gamePin = Math.floor(100000 + Math.random() * 900000).toString();
+      const sessionId = generateXID();
 
       const quizDetail = {
         title: quizData.title,

@@ -19,7 +19,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -363,18 +363,15 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
           </Button>
         </CardFooter>
       </Card>
-      
+
       <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Do you want to leave?</AlertDialogTitle>
-
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLeaveSession}>
-              Leave
-            </AlertDialogAction>
+            <AlertDialogAction onClick={handleLeaveSession}>Leave</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
