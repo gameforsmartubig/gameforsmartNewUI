@@ -25,7 +25,9 @@ import {
   User,
   UserPlus,
   Users,
-  UserX
+  UserX,
+  Phone,
+  Settings
 } from "lucide-react";
 import Image from "next/image";
 import { QRCodeSVG } from "qrcode.react";
@@ -399,7 +401,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                   </p>
                 </div>
 
-                <Card className="border-gray-100 bg-gray-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
+                <Card className="border-orange-100 bg-orange-50/50 p-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400">
                   <CardContent className="flex flex-col items-center justify-between gap-4 p-0 sm:flex-row">
                     <div className="flex items-center gap-3">
                       <Avatar className="size-10 border-2 border-white shadow-sm dark:border-zinc-800">
@@ -503,7 +505,8 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
           <Card className="h-full border-0 bg-white shadow-sm lg:order-2 dark:bg-zinc-900">
             <CardContent className="sticky top-0 flex h-full flex-col gap-6">
               {/* Branding */}
-              <div className="flex justify-center">
+              {/* Branding & Exit */}
+              <div className="relative flex items-center justify-center">
                 <Image
                   src="/gameforsmartlogo.png"
                   width={200}
@@ -512,6 +515,16 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                   className="opacity-80 dark:opacity-100"
                   unoptimized
                 />
+                <Button
+                    variant="ghost"
+                    className="absolute right-0 text-slate-400 hover:text-slate-700 hover:bg-slate-100 dark:hover:bg-zinc-800 h-14 w-14 p-0"
+                    onClick={() => {
+                        router.push(`/host/${sessionId}/settings?from=room`);
+                    }}
+                    title="Game Settings"
+                >
+                    <Settings className="!w-7 !h-7" />
+                </Button>
               </div>
 
               {/* Game PIN */}

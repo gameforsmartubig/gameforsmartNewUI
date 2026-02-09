@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, use } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -11,6 +11,16 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -59,6 +69,7 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
+  const [showExitDialog, setShowExitDialog] = useState(false);
   const [quizData, setQuizData] = useState<any>(null);
   const [gameSession, setGameSession] = useState<any>(null);
 
@@ -121,15 +132,39 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
     fetchSessionData();
   }, [fetchSessionData]);
 
+  const searchParams = useSearchParams();
+  const from = searchParams.get("from");
+
   const handleCancel = async () => {
+    if (from === "room") {
+      setShowExitDialog(true);
+      return;
+    }
+
+    // Default flow (e.g. creating new session): Delete and go back to dashboard
     try {
       // Delete from Main DB
       await supabase.from("game_sessions").delete().eq("id", sessionId);
       // Delete from Realtime DB
       await deleteGameSessionRT(sessionId);
-      toast.success("Sesi dibatalkan");
+      toast.success("Session cancelled");
     } catch (err) {
       console.error(err);
+    } finally {
+      router.push("/dashboard");
+    }
+  };
+
+  const handleLeaveSession = async () => {
+    try {
+      // Delete from Main DB
+      await supabase.from("game_sessions").delete().eq("id", sessionId);
+      // Delete from Realtime DB
+      await deleteGameSessionRT(sessionId);
+      toast.success("Session deleted");
+    } catch (err) {
+      console.error("Error deleting session:", err);
+      toast.error("Failed to delete session");
     } finally {
       router.push("/dashboard");
     }
@@ -328,6 +363,21 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
           </Button>
         </CardFooter>
       </Card>
+      
+      <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Do you want to leave?</AlertDialogTitle>
+
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleLeaveSession}>
+              Leave
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
