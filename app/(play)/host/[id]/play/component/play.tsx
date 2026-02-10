@@ -47,16 +47,15 @@ export default function Play({ sessionId }: PlayProps) {
   >([]);
   const [loading, setLoading] = useState(true);
   const [showLoader, setShowLoader] = useState(false);
-  
+
   // Initial countdown setup
   const [countdownLeft, setCountdownLeft] = useState<number | null>(null);
   const [showCountdown, setShowCountdown] = useState(false);
 
-
   // Robust Countdown Timer using Date.now() for Host Sync
   useEffect(() => {
     const ts = searchParams.get("ts");
-    if (!ts) return; 
+    if (!ts) return;
 
     const startTime = new Date(ts).getTime();
     const duration = 10000;
@@ -71,21 +70,21 @@ export default function Play({ sessionId }: PlayProps) {
         setShowCountdown(false);
         setCountdownLeft(null);
         fetchSessionData(); // Sync Host
-        return false; 
+        return false;
       }
-      
+
       // Too late condition
-      if (remainingMs < -5000) { 
-         setShowCountdown(false);
-         setCountdownLeft(null);
-         return false; 
+      if (remainingMs < -5000) {
+        setShowCountdown(false);
+        setCountdownLeft(null);
+        return false;
       }
 
       // Valid countdown
       const seconds = Math.ceil(remainingMs / 1000);
       setCountdownLeft(seconds);
       setShowCountdown(true);
-      return true; 
+      return true;
     };
 
     if (tick()) {
@@ -99,60 +98,59 @@ export default function Play({ sessionId }: PlayProps) {
 
   // Profile cache
   const profileCache = useRef(new Map<string, string>());
-  
+
   // Re-fetch session data helper
   const fetchSessionData = async () => {
-      try {
-        const sess = await getGameSessionRT(sessionId);
-        if (!sess) {
-          toast.error("Session not found");
-          router.push("/dashboard");
-          return;
-        }
-        setSession(sess);
-
-        const parts = await getParticipantsRT(sessionId);
-        // Fetch profiles
-        const userIds = parts.map((p) => p.user_id).filter((id) => id) as string[];
-        await fetchProfiles(userIds);
-
-        const partsWithProfile = parts.map((p) => ({
-          ...p,
-          avatar_url: p.user_id ? profileCache.current.get(p.user_id) : undefined
-        }));
-
-        // Sort initially by progress
-        partsWithProfile.sort((a, b) => (b.responses?.length || 0) - (a.responses?.length || 0));
-        setParticipants(partsWithProfile);
-
-        setLoading(false);
-      } catch (err) {
-        console.error(err);
-        // Don't toast error on re-fetch to avoid spam
+    try {
+      const sess = await getGameSessionRT(sessionId);
+      if (!sess) {
+        toast.error("Session not found");
+        router.push("/dashboard");
+        return;
       }
+      setSession(sess);
+
+      const parts = await getParticipantsRT(sessionId);
+      // Fetch profiles
+      const userIds = parts.map((p) => p.user_id).filter((id) => id) as string[];
+      await fetchProfiles(userIds);
+
+      const partsWithProfile = parts.map((p) => ({
+        ...p,
+        avatar_url: p.user_id ? profileCache.current.get(p.user_id) : undefined
+      }));
+
+      // Sort initially by progress
+      partsWithProfile.sort((a, b) => (b.responses?.length || 0) - (a.responses?.length || 0));
+      setParticipants(partsWithProfile);
+
+      setLoading(false);
+    } catch (err) {
+      console.error(err);
+      // Don't toast error on re-fetch to avoid spam
+    }
   };
 
   // Simple Countdown Effect
-
 
   // Polling for started_at: Keep checking until it's available
   useEffect(() => {
     // Only poll if countdown is finished but started_at is not yet available
     if (showCountdown) return;
     if (session?.started_at) return; // Already have it
-    
+
     const pollInterval = setInterval(async () => {
       try {
         const sess = await getGameSessionRT(sessionId);
         if (sess?.started_at) {
-          setSession(prev => prev ? { ...prev, ...sess } : null);
+          setSession((prev) => (prev ? { ...prev, ...sess } : null));
           clearInterval(pollInterval);
         }
       } catch (e) {
         console.error("Polling error:", e);
       }
     }, 500); // Check every 500ms
-    
+
     return () => clearInterval(pollInterval);
   }, [showCountdown, session?.started_at, sessionId]);
 
@@ -230,18 +228,9 @@ export default function Play({ sessionId }: PlayProps) {
   };
 
   const handleTimeUp = async () => {
-    // Auto end game via Edge Function
+    // Auto end game via existing handler
     if (session?.status === "active") {
-      try {
-        await supabase.functions.invoke("submit-game", {
-          body: {
-            action: "end", // or 'cron', logic is same
-            sessionId
-          }
-        });
-      } catch (e) {
-        console.error("Auto End Error:", e);
-      }
+      await handleEndGame();
     }
   };
 
@@ -250,16 +239,16 @@ export default function Play({ sessionId }: PlayProps) {
       ? 100
       : parseInt(session.question_limit) || 0
     : 0;
-  
+
   const isLoading = loading || !session;
 
   // Debounce Loader to prevent flicker
   useEffect(() => {
     let timeout: NodeJS.Timeout;
     if (isLoading && !showCountdown) {
-       timeout = setTimeout(() => setShowLoader(true), 200);
+      timeout = setTimeout(() => setShowLoader(true), 200);
     } else {
-       setShowLoader(false);
+      setShowLoader(false);
     }
     return () => clearTimeout(timeout);
   }, [isLoading, showCountdown]);
@@ -270,9 +259,9 @@ export default function Play({ sessionId }: PlayProps) {
   return (
     <div className={`min-h-screen w-full ${bgColor} transition-colors duration-300`}>
       {/* Countdown Overlay */}
-      <div 
+      <div
         className={`fixed inset-0 z-[100] flex items-center justify-center bg-black transition-opacity duration-300 ${
-          showCountdown ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
+          showCountdown ? "visible opacity-100" : "pointer-events-none invisible opacity-0"
         }`}>
         <div className="flex flex-col items-center gap-8">
           <AnimatePresence mode="wait">
@@ -303,15 +292,125 @@ export default function Play({ sessionId }: PlayProps) {
       {isLoading || showCountdown ? (
         <div className="flex min-h-screen items-center justify-center">
           {/* Empty during countdown, loader only if loading without countdown */}
-          {showLoader && !showCountdown && <Loader2 className="h-8 w-8 animate-spin text-gray-400" />}
+          {showLoader && !showCountdown && (
+            <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          )}
         </div>
       ) : (
-      <>
-      <div className="fixed top-0 right-0 left-0 z-50 w-full bg-rose-50">
-        <div className="relative flex h-auto w-full flex-col items-center md:h-16 md:flex-row">
-          {/* Progress */}
-          <div className="absolute right-0 -bottom-1.5 left-0">
-            <GameTimerProgress
+        <>
+          <div className="fixed top-0 right-0 left-0 z-50 w-full bg-rose-50">
+            <div className="relative flex h-auto w-full flex-col items-center md:h-16 md:flex-row">
+              {/* Progress */}
+              <div className="absolute right-0 -bottom-1.5 left-0">
+                <GameTimerProgress
+                  startedAt={session.started_at}
+                  totalTimeMinutes={session.total_time_minutes}
+                  status={session.status}
+                  onTimeUp={handleTimeUp}
+                />
+              </div>
+
+              {/* ===== BARIS 1 (Mobile) / KIRI (Desktop) ===== */}
+              <div className="flex w-full items-center justify-between px-2 py-2 md:flex-1 md:justify-start md:py-0">
+                <Image
+                  src="/gameforsmartlogo.png"
+                  width={200}
+                  height={40}
+                  alt="gameforsmart"
+                  className="opacity-80 dark:opacity-100"
+                  unoptimized
+                />
+
+                {/* End Session (Mobile only) */}
+                <div className="md:hidden">
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant={"destructive"}>End Session</Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>End Session</DialogTitle>
+                        <DialogDescription>
+                          Are you sure you want to end this session?
+                        </DialogDescription>
+                      </DialogHeader>
+                      <DialogFooter className="">
+                        <DialogClose asChild>
+                          <Button variant="outline">Cancel</Button>
+                        </DialogClose>
+                        <DialogClose asChild>
+                          <Button variant="destructive" onClick={handleEndGame}>
+                            End Session
+                          </Button>
+                        </DialogClose>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+                </div>
+              </div>
+
+              {/* ===== STATISTIK (Baris 2 Mobile / Tengah Desktop) ===== */}
+              <div className="flex w-full items-center justify-center gap-6 py-2 md:flex-1 md:py-0">
+                <div className="flex flex-col items-center justify-center">
+                  <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-zinc-100">
+                    <CircleQuestionMark className="size-5 text-blue-500" />
+                    <span>{session.question_limit}</span>
+                  </div>
+                  <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase dark:text-zinc-500">
+                    QUESTIONS
+                  </p>
+                </div>
+                <div className="flex flex-col items-center justify-center">
+                  <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-zinc-100">
+                    <Timer className="size-5 text-orange-500" />
+                    <span>{session.total_time_minutes}m</span>
+                  </div>
+                  <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase dark:text-zinc-500">
+                    TIME
+                  </p>
+                </div>
+                <div className="flex flex-col items-center justify-center">
+                  <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-zinc-100">
+                    <User className="size-5 text-green-500" />
+                    <span>{participants.length}</span>
+                  </div>
+                  <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase dark:text-zinc-500">
+                    PLAYERS
+                  </p>
+                </div>
+              </div>
+
+              {/* ===== KANAN DESKTOP ===== */}
+              <div className="hidden items-center justify-end px-2 md:flex md:flex-1">
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button variant={"destructive"}>End Session</Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>End Session</DialogTitle>
+                      <DialogDescription>
+                        Are you sure you want to end this session?
+                      </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter className="">
+                      <DialogClose asChild>
+                        <Button variant="outline">Cancel</Button>
+                      </DialogClose>
+                      <DialogClose asChild>
+                        <Button variant="destructive" onClick={handleEndGame}>
+                          End Session
+                        </Button>
+                      </DialogClose>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-36 pb-4 md:pt-24">
+            <GameTimer
               startedAt={session.started_at}
               totalTimeMinutes={session.total_time_minutes}
               status={session.status}
@@ -319,162 +418,57 @@ export default function Play({ sessionId }: PlayProps) {
             />
           </div>
 
-          {/* ===== BARIS 1 (Mobile) / KIRI (Desktop) ===== */}
-          <div className="flex w-full items-center justify-between px-2 py-2 md:flex-1 md:justify-start md:py-0">
-            <Image
-              src="/gameforsmartlogo.png"
-              width={200}
-              height={40}
-              alt="gameforsmart"
-              className="opacity-80 dark:opacity-100"
-              unoptimized
-            />
+          <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-3 md:grid-cols-5">
+            <AnimatePresence mode="popLayout">
+              {participants.map((p) => {
+                const answeredCount = p.responses?.length || 0;
+                const max =
+                  parseInt(session.question_limit) || session.current_questions?.length || 20;
+                const percent = Math.min(100, Math.round((answeredCount / max) * 100));
 
-            {/* End Session (Mobile only) */}
-            <div className="md:hidden">
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant={"destructive"}>End Session</Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>End Session</DialogTitle>
-                    <DialogDescription>
-                      Are you sure you want to end this session?
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter className="">
-                    <DialogClose asChild>
-                      <Button variant="outline">Cancel</Button>
-                    </DialogClose>
-                    <DialogClose asChild>
-                      <Button variant="destructive" onClick={handleEndGame}>
-                        End Session
-                      </Button>
-                    </DialogClose>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            </div>
+                return (
+                  <motion.div
+                    key={p.id}
+                    layout
+                    initial={{ scale: 0.8, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.8, opacity: 0 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 25 }}>
+                    <Card className="h-full py-4">
+                      <CardContent className="px-4">
+                        <div className="flex items-center justify-between gap-2">
+                          <Avatar>
+                            <AvatarImage src={p.avatar_url} alt={p.nickname} />
+                            <AvatarFallback className="rounded-lg">
+                              {p.nickname.substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <p className="flex-1 overflow-hidden text-ellipsis">{p.nickname}</p>
+                          <p>{percent}%</p>
+                        </div>
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center justify-between gap-2">
+                            <p>Progress</p>
+                            <p>
+                              {answeredCount}/{max}
+                            </p>
+                          </div>
+                          <Progress value={percent} />
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
           </div>
 
-          {/* ===== STATISTIK (Baris 2 Mobile / Tengah Desktop) ===== */}
-          <div className="flex w-full items-center justify-center gap-6 py-2 md:flex-1 md:py-0">
-            <div className="flex flex-col items-center justify-center">
-              <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-zinc-100">
-                <CircleQuestionMark className="size-5 text-blue-500" />
-                <span>{session.question_limit}</span>
-              </div>
-              <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase dark:text-zinc-500">
-                QUESTIONS
-              </p>
+          {participants.length === 0 && (
+            <div className="py-20 text-center text-slate-400">
+              <p>Waiting for participants...</p>
             </div>
-            <div className="flex flex-col items-center justify-center">
-              <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-zinc-100">
-                <Timer className="size-5 text-orange-500" />
-                <span>{session.total_time_minutes}m</span>
-              </div>
-              <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase dark:text-zinc-500">
-                TIME
-              </p>
-            </div>
-            <div className="flex flex-col items-center justify-center">
-              <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-zinc-100">
-                <User className="size-5 text-green-500" />
-                <span>{participants.length}</span>
-              </div>
-              <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase dark:text-zinc-500">
-                PLAYERS
-              </p>
-            </div>
-          </div>
-
-          {/* ===== KANAN DESKTOP ===== */}
-          <div className="hidden items-center justify-end px-2 md:flex md:flex-1">
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button variant={"destructive"}>End Session</Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>End Session</DialogTitle>
-                  <DialogDescription>Are you sure you want to end this session?</DialogDescription>
-                </DialogHeader>
-                <DialogFooter className="">
-                  <DialogClose asChild>
-                    <Button variant="outline">Cancel</Button>
-                  </DialogClose>
-                  <DialogClose asChild>
-                    <Button variant="destructive" onClick={handleEndGame}>
-                      End Session
-                    </Button>
-                  </DialogClose>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-      </div>
-
-      <div className="pt-36 pb-4 md:pt-24">
-        <GameTimer
-          startedAt={session.started_at}
-          totalTimeMinutes={session.total_time_minutes}
-          status={session.status}
-          onTimeUp={handleTimeUp}
-        />
-      </div>
-
-      <div className="grid grid-cols-2 gap-2 p-4 sm:grid-cols-3 md:grid-cols-5">
-        <AnimatePresence mode="popLayout">
-          {participants.map((p) => {
-            const answeredCount = p.responses?.length || 0;
-            const max = parseInt(session.question_limit) || session.current_questions?.length || 20;
-            const percent = Math.min(100, Math.round((answeredCount / max) * 100));
-
-            return (
-              <motion.div
-                key={p.id}
-                layout
-                initial={{ scale: 0.8, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.8, opacity: 0 }}
-                transition={{ type: "spring", stiffness: 300, damping: 25 }}>
-                <Card className="h-full py-4">
-                  <CardContent className="px-4">
-                    <div className="flex items-center justify-between gap-2">
-                      <Avatar>
-                        <AvatarImage src={p.avatar_url} alt={p.nickname} />
-                        <AvatarFallback className="rounded-lg">
-                          {p.nickname.substring(0, 2).toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <p className="flex-1 overflow-hidden text-ellipsis">{p.nickname}</p>
-                      <p>{percent}%</p>
-                    </div>
-                    <div className="flex flex-col gap-1">
-                      <div className="flex items-center justify-between gap-2">
-                        <p>Progress</p>
-                        <p>
-                          {answeredCount}/{max}
-                        </p>
-                      </div>
-                      <Progress value={percent} />
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            );
-          })}
-        </AnimatePresence>
-      </div>
-
-      {participants.length === 0 && (
-        <div className="py-20 text-center text-slate-400">
-          <p>Waiting for participants...</p>
-        </div>
-      )}
-      </>
+          )}
+        </>
       )}
     </div>
   );

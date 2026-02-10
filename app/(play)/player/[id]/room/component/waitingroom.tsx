@@ -390,7 +390,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
   const joinLink =
     typeof window !== "undefined"
-      ? `${window.location.origin}/join?pin=${gameSession.game_pin}`
+      ? `${window.location.origin}/join/${gameSession.game_pin}`
       : "";
 
   return (
