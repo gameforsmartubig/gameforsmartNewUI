@@ -60,7 +60,7 @@ export function PopularGames() {
                     {popularGames.map((game, index) => (
                         <div
                             key={game.title}
-                            className="group relative flex flex-col rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-xl bg-zinc-900 border-none shadow-none"
+                            className="group relative flex flex-col rounded-2xl overflow-hidden transition-all duration-500 hover:-translate-y-1 hover:shadow-xl bg-card border border-border/50 shadow-sm"
                         >
                             {/* Animated Border Glow (on hover) */}
                             <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 bg-gradient-to-br ${game.color}`} />
