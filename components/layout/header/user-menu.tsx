@@ -24,11 +24,29 @@ export default function UserMenu() {
   };
 
   // Fallback data
+  const userMeta = user?.user_metadata || {};
+
+  // Helper to check if name is generic
+  const isGeneric = (name: string | null | undefined) => {
+    if (!name) return true;
+    const lower = name.toLowerCase().trim();
+    return lower === "user" || lower === "guest" || lower === "unknown" || lower === "member";
+  };
+
+  const googleName = userMeta.full_name || userMeta.name || userMeta.custom_claims?.name;
+  const dbName = !isGeneric(profile?.fullname) ? profile?.fullname : null;
+
+  const gmailName = googleName || dbName || profile?.username || user?.email?.split('@')[0] || "User";
+
+  const googleAvatar = userMeta.avatar_url || userMeta.picture || userMeta.custom_claims?.picture;
+  const dbAvatar = (profile?.avatar_url && profile.avatar_url !== "/images/avatars/01.png") ? profile.avatar_url : null;
+  const gmailAvatar = googleAvatar || dbAvatar || "/images/avatars/01.png";
+
   const userData = {
-    name: profile?.fullname || profile?.username || "Guest",
-    username: profile?.username || "Guest",
+    name: gmailName,
+    username: profile?.username || user?.user_metadata?.username || user?.email?.split('@')[0] || "user",
     email: user?.email || "guest@example.com",
-    avatar: profile?.avatar_url || "/images/avatars/01.png"
+    avatar: gmailAvatar
   };
 
   return (

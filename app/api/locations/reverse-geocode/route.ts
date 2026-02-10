@@ -69,11 +69,12 @@ export async function GET(request: Request) {
 
         // 3. Fetch Country manually
         let countryData = null;
-        if (stateData && stateData.country_id) {
+        const sData = stateData as any;
+        if (sData && sData.country_id) {
             const { data: cData } = await supabase
                 .from("countries")
                 .select("*")
-                .eq("id", stateData.country_id)
+                .eq("id", sData.country_id)
                 .single();
             countryData = cData;
         } else if (closest.country_id) {

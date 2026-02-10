@@ -168,13 +168,14 @@ function AuthCallbackPageContent() {
         // NOTE: Don't pass 'id' - the trigger will auto-generate XID
         // Pass 'auth_user_id' to link with auth.users table
         const fullname = user.user_metadata?.full_name || user.user_metadata?.name || username;
+        const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture || null;
 
         const profileData: any = {
           auth_user_id: user.id,
           username: username,
           email: user.email || "",
           fullname: fullname || null,
-          avatar_url: user.user_metadata?.avatar_url || null,
+          avatar_url: avatarUrl || null,
           created_at: new Date().toISOString()
         };
 

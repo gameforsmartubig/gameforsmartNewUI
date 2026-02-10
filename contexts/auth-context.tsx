@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [initialLoad, setInitialLoad] = useState(true);
 
   // OPTIMIZED: Fetch complete profile data in ONE query
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async (userId: string, authUser?: User) => {
     try {
       const { data, error } = await supabase
         .from("profiles")
@@ -82,14 +82,41 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         .single();
 
       if (!error && data) {
-        // Type assertion needed because query result type inference might be truncated
-        const safeData = data as unknown as ProfileData;
+        let safeData = data as unknown as ProfileData;
+
+        // "Following Gmail" Logic: If database profile is missing name/avatar OR has generic name, 
+        // try to populate from auth user metadata (Google profile)
+        if (authUser) {
+          const googleName = authUser.user_metadata?.full_name || authUser.user_metadata?.name || authUser.user_metadata?.custom_claims?.name;
+          const googleAvatar = authUser.user_metadata?.avatar_url || authUser.user_metadata?.picture || authUser.user_metadata?.custom_claims?.picture;
+
+          // Check for generic names in DB
+          const currentDbName = safeData.fullname?.toLowerCase().trim();
+          const isGenericName = !currentDbName ||
+            currentDbName === "user" ||
+            currentDbName === "guest" ||
+            currentDbName === "unknown" ||
+            currentDbName === "member";
+
+          if (googleName && isGenericName) {
+            safeData.fullname = googleName;
+          }
+
+          if (googleAvatar && (!safeData.avatar_url || safeData.avatar_url === "/images/avatars/10.png")) {
+            safeData.avatar_url = googleAvatar;
+          }
+        }
 
         // Store PROFILE ID (not auth_user_id) to localStorage as requested
         localStorage.setItem("user_id", safeData.id);
 
         setProfile(safeData);
         setProfileId(safeData.id);
+      } else {
+        // If profile doesn't exist yet but user is logged in, 
+        // we might be in the middle of registration or it's a new OAuth user
+        setProfile(null);
+        setProfileId(null);
       }
     } catch (err) {
       console.error("Error fetching profile:", err);
@@ -99,36 +126,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   // Function to refresh profile data
   const refreshProfile = async () => {
     if (user?.id) {
-      await fetchProfile(user.id);
+      await fetchProfile(user.id, user);
     }
   };
 
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        // localStorage.setItem("user_id", session.user.id); // REMOVE: We want profile.id, not auth user id
-        fetchProfile(session.user.id);
+    const initAuth = async () => {
+      setLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+
+      if (currentUser) {
+        await fetchProfile(currentUser.id, currentUser);
       }
+
       setLoading(false);
       setInitialLoad(false);
-    });
+    };
+
+    initAuth();
 
     // Listen for auth changes
     const {
       data: { subscription }
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        // localStorage.setItem("user_id", session.user.id); // REMOVE: We want profile.id, not auth user id
-        fetchProfile(session.user.id);
-      } else {
-        localStorage.removeItem("user_id"); // Clear from localStorage
+      const currentUser = session?.user ?? null;
+
+      if (event === 'SIGNED_OUT') {
+        localStorage.removeItem("user_id");
         setProfile(null);
         setProfileId(null);
-      }
-      if (!initialLoad) {
+        setUser(null);
+        setLoading(false);
+      } else if (session?.user) {
+        setUser(session.user);
+        setLoading(true);
+        await fetchProfile(session.user.id, session.user);
+        setLoading(false);
+      } else {
+        setUser(null);
         setLoading(false);
       }
     });

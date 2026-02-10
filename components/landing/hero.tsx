@@ -1,100 +1,81 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
-import Image from "next/image";
-import { Brain, Rocket, Sparkles } from "lucide-react";
-import { useAuth } from "@/contexts/auth-context";
 import Link from "next/link";
+import { ArrowRight, Gamepad2, Trophy, Zap } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
 
 export function Hero() {
     const { user, loading } = useAuth();
+    const [onlinePlayers, setOnlinePlayers] = useState(12435);
+    const [mounted, setMounted] = useState(false);
+
+    // Simulate live player count updates
+    useEffect(() => {
+        setMounted(true);
+        const interval = setInterval(() => {
+            setOnlinePlayers(prev => prev + Math.floor(Math.random() * 10) - 2);
+        }, 3000);
+        return () => clearInterval(interval);
+    }, []);
 
     return (
-        <section id="about" className="relative pt-12 pb-20 md:pt-20 md:pb-32 overflow-hidden bg-background">
-            <div className="container mx-auto px-4 relative z-10 text-center">
-                <motion.div
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5 }}
-                    className="max-w-4xl mx-auto"
-                >
-                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent text-accent-foreground text-xs font-bold mb-10 border border-border/50">
-                        <Sparkles className="w-3.5 h-3.5 text-primary" />
-                        <span>Tambah Nge-Game, Tambah Cerdas</span>
+        <section id="about" className="relative flex items-center justify-center pt-24 pb-12 bg-background">
+            <div className="container relative z-10 flex flex-col items-center text-center px-4">
+                {/* Live Stats Widget */}
+                <div className="mb-8 flex items-center gap-4">
+                    <div className="px-4 py-2 rounded-full flex items-center gap-2 border bg-muted/50">
+                        <div className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                        </div>
+                        <span className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                            {mounted ? onlinePlayers.toLocaleString() : onlinePlayers} Online
+                        </span>
                     </div>
+                </div>
 
-                    <h1 className="text-5xl md:text-8xl font-extrabold tracking-tighter leading-[0.95] mb-10 text-foreground font-display">
-                        Buat Game Quiz
-                        <br />
-                        <span className="text-primary italic">Luar Biasa</span>
+                {/* Hero Title */}
+                <div className="mb-8 space-y-4">
+                    <h1 className="text-5xl sm:text-7xl font-black tracking-tight text-foreground">
+                        ENTER THE ARENA
                     </h1>
-
-                    <p className="text-xl md:text-2xl text-foreground/90 leading-relaxed mb-12 max-w-2xl mx-auto font-medium">
-                        Transformasikan cara mengajar Anda dengan pembuatan kuis berbasis AI dan game multiplayer real-time.
+                    <p className="max-w-[800px] text-xl text-muted-foreground sm:text-2xl leading-relaxed mx-auto">
+                        The next generation of <span className="font-bold text-foreground">AI Quizzing</span> is here. <br />
+                        Battle friends, win coins, and claim your legend.
                     </p>
+                </div>
 
+                {/* Primary Actions */}
+                <div className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto items-center mt-8">
                     {!loading && (
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center mb-24">
+                        <>
                             {user ? (
                                 <Link href="/dashboard">
-                                    <Button size="lg" className="rounded-xl px-12 h-14 text-base font-bold shadow-lg transition-all hover:scale-105 active:scale-95">
-                                        Lanjut ke Dashboard
+                                    <Button size="lg" className="h-16 px-10 rounded-full text-lg font-bold">
+                                        <Gamepad2 className="mr-2 h-5 w-5" />
+                                        Launch Lobby
                                     </Button>
                                 </Link>
                             ) : (
                                 <>
                                     <Link href="/register">
-                                        <Button size="lg" className="rounded-xl px-12 h-14 text-base font-bold shadow-lg transition-all hover:scale-105 active:scale-95">
-                                            Register
+                                        <Button size="lg" className="h-16 px-10 rounded-full text-lg font-bold">
+                                            <Zap className="mr-2 h-5 w-5 fill-current" />
+                                            Play Now
                                         </Button>
                                     </Link>
-                                    <Link href="/login">
-                                        <Button size="lg" variant="outline" className="rounded-xl px-12 h-14 text-base font-bold bg-background shadow-sm transition-all hover:bg-accent group">
-                                            Login
+                                    <Link href="#game">
+                                        <Button variant="outline" size="lg" className="h-16 px-10 rounded-full text-lg font-medium">
+                                            Browse Games
                                         </Button>
                                     </Link>
                                 </>
                             )}
-                        </div>
+                        </>
                     )}
-                </motion.div>
-
-                <motion.div
-                    initial={{ opacity: 0, y: 40 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                    className="relative max-w-4xl mx-auto"
-                >
-                    <div className="relative p-2 bg-muted/30 rounded-[2rem] border border-border/50 shadow-sm backdrop-blur-sm">
-                        <div className="bg-card rounded-[1.5rem] overflow-hidden border border-border shadow-2xl relative">
-                            <Image
-                                src="/academy-dashboard-light.svg"
-                                alt="Dashboard Preview"
-                                width={1400}
-                                height={900}
-                                className="w-full h-auto object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-background/40 to-transparent pointer-events-none" />
-                        </div>
-                    </div>
-
-                    {/* Subtle Floating Status */}
-                    <motion.div
-                        animate={{ y: [0, -8, 0] }}
-                        transition={{ duration: 5, repeat: Infinity, ease: "easeInOut" }}
-                        className="absolute top-1/2 -right-12 z-20 bg-card/90 backdrop-blur-xl p-4 rounded-2xl shadow-xl border border-border hidden xl:flex items-center gap-4"
-                    >
-                        <div className="w-10 h-10 rounded-xl bg-green-500/10 flex items-center justify-center">
-                            <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-                        </div>
-                        <div className="text-left">
-                            <div className="text-sm font-bold">Live Session</div>
-                            <div className="text-[10px] text-muted-foreground font-bold tracking-tight">1,240 STUDENTS ACTIVE</div>
-                        </div>
-                    </motion.div>
-                </motion.div>
+                </div>
             </div>
         </section>
     );

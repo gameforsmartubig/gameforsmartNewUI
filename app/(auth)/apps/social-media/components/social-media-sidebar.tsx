@@ -16,6 +16,7 @@ import {
   Users,
   X
 } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -46,6 +47,13 @@ const navItems: NavItem[] = [
 
 export function SocialMediaSidebar() {
   const isMobile = useIsMobile();
+  const { user, profile } = useAuth();
+
+  const userData = {
+    name: profile?.fullname || profile?.username || "Guest",
+    username: profile?.username || "guest",
+    avatar: profile?.avatar_url || "https://i.pravatar.cc/150?img=19"
+  };
 
   const SidebarContent = () => {
     return (
@@ -60,11 +68,10 @@ export function SocialMediaSidebar() {
             <Button
               variant="ghost"
               key={item.label}
-              className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors ${
-                item.active
-                  ? "bg-accent text-foreground font-medium"
-                  : "text-muted-foreground hover:bg-muted hover:text-foreground"
-              }`}>
+              className={`flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm transition-colors ${item.active
+                ? "bg-accent text-foreground font-medium"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                }`}>
               <div className="flex items-center gap-3">
                 {item.icon}
                 <span>{item.label}</span>
@@ -88,12 +95,12 @@ export function SocialMediaSidebar() {
       <Card className="bg-muted flex-1 py-4">
         <CardHeader className="flex items-center gap-3 px-4">
           <Avatar>
-            <AvatarImage src="https://i.pravatar.cc/150?img=19" />
-            <AvatarFallback>TB</AvatarFallback>
+            <AvatarImage src={userData.avatar} />
+            <AvatarFallback>{userData.name.substring(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
           <div>
-            <div className="text-sm">Toby Belhome</div>
-            <div className="text-muted-foreground text-xs">@toby</div>
+            <div className="text-sm">{userData.name}</div>
+            <div className="text-muted-foreground text-xs">@{userData.username}</div>
           </div>
           <div className="ms-auto flex">
             <Button size="icon" variant="ghost">
@@ -123,12 +130,12 @@ export function SocialMediaSidebar() {
       <Card className="bg-muted flex-1">
         <CardHeader className="flex items-center gap-3">
           <Avatar className="size-10">
-            <AvatarImage src="https://i.pravatar.cc/150?img=19" />
-            <AvatarFallback>TB</AvatarFallback>
+            <AvatarImage src={userData.avatar} />
+            <AvatarFallback>{userData.name.substring(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
           <div>
-            <div className="text-sm">Toby Belhome</div>
-            <div className="text-muted-foreground text-xs">@toby</div>
+            <div className="text-sm">{userData.name}</div>
+            <div className="text-muted-foreground text-xs">@{userData.username}</div>
           </div>
           <Button size="icon" variant="ghost" className="ms-auto">
             <SettingsIcon />

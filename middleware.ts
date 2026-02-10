@@ -5,7 +5,22 @@ import { detectSuspiciousActivity } from "@/lib/security-validation";
 import { corsHandler } from "@/lib/cors-config";
 
 // Protected routes that require account status check
-const protectedRoutes = ["/dashboard", "/host", "/create", "/learn", "/tryout", "/edit", "/join"];
+const protectedRoutes = [
+  "/dashboard",
+  "/profile",
+  "/friend",
+  "/group",
+  "/history",
+  "/evaluation",
+  "/notifications",
+  "/reports",
+  "/host",
+  "/create",
+  "/learn",
+  "/tryout",
+  "/edit",
+  "/join"
+];
 
 // API routes that need extra security
 const sensitiveApiRoutes = ["/api/admin", "/api/ai", "/api/reports"];
@@ -137,10 +152,9 @@ export async function middleware(request: NextRequest) {
     }
 
     // Redirect authenticated users from landing page to dashboard
-    // TEMPORARILY DISABLED so you can check the Landing Page UI
-    // if (pathname === "/" && user) {
-    //   return NextResponse.redirect(new URL("/dashboard", request.url));
-    // }
+    if (pathname === "/" && user) {
+      return NextResponse.redirect(new URL("/dashboard", request.url));
+    }
 
     // Protect admin routes - require admin role
     if (pathname.startsWith("/admin")) {
@@ -188,6 +202,13 @@ export const config = {
 
     // Protected pages
     "/dashboard/:path*",
+    "/profile/:path*",
+    "/friend/:path*",
+    "/group/:path*",
+    "/history/:path*",
+    "/evaluation/:path*",
+    "/notifications/:path*",
+    "/reports/:path*",
     "/host/:path*",
     "/create/:path*",
     "/learn/:path*",

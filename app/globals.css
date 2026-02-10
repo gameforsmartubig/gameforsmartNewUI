@@ -20,14 +20,14 @@
   --base-950: oklch(0.141 0.004 285.83);
   --base-1000: oklch(0.096 0.0027 285.79);
 
-  --background: var(--color-white);
+  --background: #ffffff;
   --foreground: var(--base-800);
-  --card: var(--color-white);
+  --card: #ffffff;
   --card-foreground: var(--base-800);
-  --popover: var(--color-white);
+  --popover: #ffffff;
   --popover-foreground: var(--base-800);
   --primary: var(--base-950);
-  --primary-foreground: var(--color-white);
+  --primary-foreground: #ffffff;
   --secondary: var(--base-300);
   --secondary-foreground: var(--base-800);
   --muted: var(--color-neutral-100);
@@ -47,7 +47,7 @@
   --sidebar: var(--base-100);
   --sidebar-foreground: var(--base-800);
   --sidebar-primary: var(--base-950);
-  --sidebar-primary-foreground: var(--color-white);
+  --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: var(--base-200);
   --sidebar-accent-foreground: var(--base-800);
   --sidebar-border: var(--base-200);
@@ -66,6 +66,8 @@
   --fc-border-color: var(--border);
   --fc-page-bg-color: var(--muted);
   --fc-today-bg-color: var(--muted);
+
+  --primary-rgb: 9 9 11;
 }
 
 .dark {
@@ -100,6 +102,8 @@
   --sidebar-accent-foreground: var(--base-200);
   --sidebar-border: var(--base-800);
   --sidebar-ring: var(--base-200);
+
+  --primary-rgb: 250 250 250;
 }
 
 @theme inline {
@@ -112,11 +116,13 @@
   }
 
   @keyframes pulse-dot {
+
     0%,
     100% {
       transform: scale(1);
       opacity: 0.8;
     }
+
     50% {
       transform: scale(1.5);
       opacity: 1;
@@ -162,6 +168,46 @@
   --font-display: var(--display-family);
   --display-weight: var(--display-weight);
   --font-sans: var(--text-family);
+
+  --animate-scanline: scanline 8s linear infinite;
+  --animate-neon-pulse: neon-pulse 2s ease-in-out infinite;
+  --animate-float: float 6s ease-in-out infinite;
+
+  @keyframes scanline {
+    0% {
+      transform: translateY(-100%);
+    }
+
+    100% {
+      transform: translateY(100%);
+    }
+  }
+
+  @keyframes neon-pulse {
+
+    0%,
+    100% {
+      opacity: 0.5;
+      filter: drop-shadow(0 0 5px var(--primary));
+    }
+
+    50% {
+      opacity: 1;
+      filter: drop-shadow(0 0 15px var(--primary));
+    }
+  }
+
+  @keyframes float {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-20px);
+    }
+  }
 }
 
 * {
@@ -173,10 +219,11 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background text-foreground;
   }
-  
+
   html {
     scroll-behavior: smooth;
   }
@@ -194,11 +241,19 @@
   [data-slot="popover-trigger"],
   [data-slot="tooltip-trigger"],
   [data-slot="sheet-trigger"],
-  [data-slot="collapsible-trigger"]{
-    @apply cursor-pointer!
+  [data-slot="collapsible-trigger"] {
+    @apply cursor-pointer;
   }
 
-  [data-slot="dialog-overlay"], [data-slot="sheet-overlay"], [data-slot="drawer-overlay"] {
-    @apply bg-black/20! backdrop-blur-sm;
+  [data-slot="dialog-overlay"],
+  [data-slot="sheet-overlay"],
+  [data-slot="drawer-overlay"] {
+    @apply bg-black/20 backdrop-blur-sm;
   }
+
+  .glass-morph {
+    @apply bg-muted/10 dark:bg-white/5 backdrop-blur-md border border-border/50 dark:border-white/10;
+  }
+
+  /* Gaming UI Utilities - Removed for Simple Design */
 }

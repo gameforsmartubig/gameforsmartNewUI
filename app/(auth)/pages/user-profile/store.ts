@@ -58,27 +58,28 @@ interface ProfileState {
   connections: Connection[];
   teams: Team[];
   projects: Project[];
+  setUser: (user: ProfileState["user"]) => void;
 }
 
-export const useProfileStore = create<ProfileState>(() => ({
+export const useProfileStore = create<ProfileState>((set) => ({
   user: {
-    name: "Toby Belhome",
-    verified: true,
-    avatar:
-      "https://images.unsplash.com/photo-1654110455429-cf322b40a906?ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8OHx8YXZhdGFyfGVufDB8fDB8fHww&auto=format&fit=crop&q=60&w=200",
-    role: "Developer",
-    location: "San Francisco, US",
-    joinedDate: "March 2025",
-    email: "hi@shadcnuikit.com",
-    phone: "+1 (609) 972-22-22",
-    department: "No department",
-    teams: 7,
-    projects: 8,
-    online: true
+    name: "",
+    verified: false,
+    avatar: "",
+    role: "",
+    location: "",
+    joinedDate: "",
+    email: "",
+    phone: "",
+    department: "",
+    teams: 0,
+    projects: 0,
+    online: false
   },
-  profileCompletion: 82,
+  profileCompletion: 0,
   activities: [],
   connections: [],
   teams: [],
-  projects: []
+  projects: [],
+  setUser: (user) => set({ user })
 }));

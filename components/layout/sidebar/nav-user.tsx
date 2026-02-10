@@ -30,11 +30,17 @@ export function NavUser() {
   };
 
   // Fallback data
+  const userMeta = user?.user_metadata || {};
+  const dbName = (profile?.fullname && profile?.fullname !== "User") ? profile.fullname : null;
+
+  const gmailName = userMeta.full_name || userMeta.name || userMeta.custom_claims?.name || dbName || profile?.username || user?.email?.split('@')[0] || "User";
+  const gmailAvatar = userMeta.avatar_url || userMeta.picture || userMeta.custom_claims?.picture || profile?.avatar_url || "/images/avatars/01.png";
+
   const userData = {
-    name: profile?.fullname || profile?.username || "Guest",
-    username: profile?.username || "Guest",
-    email: user?.email || "guest@example.com",
-    avatar: profile?.avatar_url || "/images/avatars/01.png"
+    name: gmailName,
+    username: profile?.username || user?.user_metadata?.username || user?.email?.split('@')[0] || "user",
+    email: user?.email || profile?.email || "user@example.com",
+    avatar: gmailAvatar
   };
 
   return (

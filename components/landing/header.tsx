@@ -2,186 +2,149 @@
 
 import React from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/auth-context";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Menu } from "lucide-react";
+import { Menu, Zap, BookOpen, Gamepad2, LogIn, UserPlus, LayoutDashboard, Info, Sparkles } from "lucide-react";
+import ThemeSwitch from "@/components/layout/header/theme-switch";
+import { useTheme } from "next-themes";
+import { Logo } from "@/components/ui/logo";
+import { cn } from "@/lib/utils";
 
 export function LandingHeader() {
-    const { user, loading, signOut } = useAuth();
+    const { user, loading } = useAuth();
     const [isOpen, setIsOpen] = React.useState(false);
+    const { theme, resolvedTheme } = useTheme();
+    const [mounted, setMounted] = React.useState(false);
+    const [scrolled, setScrolled] = React.useState(false);
+
+    React.useEffect(() => {
+        setMounted(true);
+        const handleScroll = () => setScrolled(window.scrollY > 20);
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
+    }, []);
+
+    const navLinks = [
+        { href: "#about", label: "About", icon: Info, color: "text-blue-500", bg: "bg-blue-500/10" },
+        { href: "#game", label: "Game", icon: Gamepad2, color: "text-orange-500", bg: "bg-orange-500/10" },
+        { href: "#features", label: "Quiz", icon: BookOpen, color: "text-purple-500", bg: "bg-purple-500/10" },
+    ];
+
+    const headerClasses = cn(
+        "sticky top-0 z-50 w-full transition-all duration-500 border-b",
+        scrolled
+            ? "h-16 bg-background/90 dark:bg-[#0a0a0f]/90 backdrop-blur-2xl border-border/50 dark:border-primary/20 shadow-lg dark:shadow-[0_4px_30px_rgba(0,0,0,0.5)]"
+            : "h-20 bg-transparent border-transparent"
+    );
+
+    if (!mounted) return null;
 
     return (
-        <header className="bg-background/80 sticky top-0 z-50 flex h-16 shrink-0 items-center border-b backdrop-blur-xl transition-all">
-            <div className="container mx-auto px-4 flex items-center justify-between">
-                <Link href="/" className="flex items-center gap-2 group">
-                    <Image
-                        src="/gameforsmartlogo.png"
-                        alt="GameForSmart Logo"
-                        width={130}
-                        height={40}
-                        className="h-8 w-auto"
-                    />
-                </Link>
-
-                {/* Desktop Navigation */}
-                <nav className="hidden md:flex items-center gap-8 text-[14px] font-bold tracking-tight text-muted-foreground/80">
-                    <Link href="#about" className="hover:text-foreground transition-colors">
-                        About
+        <header className={headerClasses}>
+            <div className="container flex h-full items-center justify-between px-6 md:px-12">
+                <div className="flex items-center group">
+                    <Link href="/" className="flex items-center transition-transform group-hover:scale-105 active:scale-95">
+                        <Logo className="md:flex" />
                     </Link>
-                    <Link href="#features" className="hover:text-foreground transition-colors">
-                        Features
-                    </Link>
-                    <Link href="#quiz" className="hover:text-foreground transition-colors">
-                        Quiz
-                    </Link>
-                </nav>
-
-                {/* Desktop Auth Buttons */}
-                <div className="hidden md:flex items-center gap-6">
-                    {!loading && (
-                        <>
-                            {user ? (
-                                <Link href="/dashboard">
-                                    <Button size="sm" className="rounded-lg h-10 px-6 font-bold shadow-md">
-                                        Buka Dashboard
-                                    </Button>
-                                </Link>
-                            ) : (
-                                <>
-                                    <Link href="/login">
-                                        <Button variant="ghost" size="sm" className="font-bold text-muted-foreground hover:text-primary transition-colors">
-                                            Login
-                                        </Button>
-                                    </Link>
-                                    <Link href="/register">
-                                        <Button size="sm" className="rounded-lg h-10 px-6 font-bold shadow-md">
-                                            Register
-                                        </Button>
-                                    </Link>
-                                </>
-                            )}
-                            {user && (
-                                <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => signOut().then(() => window.location.reload())}
-                                    className="text-muted-foreground hover:text-destructive"
-                                >
-                                    Log out
-                                </Button>
-                            )}
-                        </>
-                    )}
                 </div>
 
-                {/* Mobile Menu (Hamburger) */}
-                <div className="md:hidden flex items-center gap-4">
-                    {!loading && user && (
-                        <Link href="/dashboard">
-                            <Button size="sm" className="rounded-lg h-9 px-4 text-xs font-bold shadow-sm">
-                                Dashboard
-                            </Button>
-                        </Link>
-                    )}
-                    <Sheet open={isOpen} onOpenChange={setIsOpen}>
-                        <SheetTrigger asChild>
-                            <Button variant="ghost" size="icon" className="h-10 w-10 text-muted-foreground hover:text-foreground">
-                                <Menu className="h-6 w-6" />
-                                <span className="sr-only">Open menu</span>
-                            </Button>
-                        </SheetTrigger>
-                        <SheetContent side="right" className="w-[300px] sm:w-[400px] flex flex-col">
-                            <SheetHeader className="text-left border-b pb-6 mb-6">
-                                <SheetTitle>
-                                    <Image
-                                        src="/gameforsmartlogo.png"
-                                        alt="GameForSmart Logo"
-                                        width={140}
-                                        height={42}
-                                        className="h-9 w-auto"
-                                    />
-                                </SheetTitle>
-                            </SheetHeader>
-                            <div className="flex flex-col gap-6 flex-1">
-                                <nav className="flex flex-col gap-2">
-                                    <Link
-                                        href="#about"
-                                        onClick={() => setIsOpen(false)}
-                                        className="flex items-center gap-4 px-4 py-3 text-base font-medium text-foreground/80 hover:text-primary hover:bg-accent/50 rounded-xl transition-all"
-                                    >
-                                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600"><circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" /></svg>
-                                        </div>
-                                        About
-                                    </Link>
-                                    <Link
-                                        href="#features"
-                                        onClick={() => setIsOpen(false)}
-                                        className="flex items-center gap-4 px-4 py-3 text-base font-medium text-foreground/80 hover:text-primary hover:bg-accent/50 rounded-xl transition-all"
-                                    >
-                                        <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-orange-600"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
-                                        </div>
-                                        Features
-                                    </Link>
-                                    <Link
-                                        href="#quiz"
-                                        onClick={() => setIsOpen(false)}
-                                        className="flex items-center gap-4 px-4 py-3 text-base font-medium text-foreground/80 hover:text-primary hover:bg-accent/50 rounded-xl transition-all"
-                                    >
-                                        <div className="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
-                                        </div>
-                                        Quiz
-                                    </Link>
-                                </nav>
+                <div className="hidden md:flex flex-1 items-center ml-12">
+                    <nav className="flex items-center gap-1">
+                        {navLinks.map((link) => (
+                            <Link
+                                key={link.href}
+                                href={link.href}
+                                className="group/nav relative px-5 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white transition-all overflow-hidden"
+                            >
+                                <div className="relative z-10 flex items-center gap-2">
+                                    {link.label}
 
-                                <div className="mt-auto">
-                                    <div className="bg-muted/30 p-4 rounded-2xl border border-border/50">
+                                </div>
+                                <div className="absolute inset-x-2 bottom-0 h-0.5 bg-primary scale-x-0 group-hover/nav:scale-x-100 transition-transform origin-left" />
+                            </Link>
+                        ))}
+                    </nav>
+                </div>
+
+                <div className="flex items-center gap-4 md:gap-8">
+                    <div className="hidden md:flex items-center gap-6">
+                        <ThemeSwitch />
+                        {!loading && (
+                            <div className="flex items-center gap-4">
+                                {user ? (
+                                    <Link href="/dashboard">
+                                        <Button size="lg" className="h-12 px-10 rounded-2xl font-black text-xs bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)] transition-all hover:scale-110 active:scale-95 uppercase tracking-widest italic border border-primary/10 dark:border-white/10 group overflow-hidden">
+                                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shine_1.5s_infinite]" />
+                                            Enter Arena
+                                        </Button>
+                                    </Link>
+                                ) : (
+                                    <>
+                                        <Link href="/login">
+                                            <Button variant="ghost" className="font-black text-xs uppercase tracking-widest text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 px-6 transition-all rounded-xl">Lobby Access</Button>
+                                        </Link>
+                                        <Link href="/register">
+                                            <Button size="lg" className="h-12 px-10 rounded-2xl font-black text-xs bg-primary text-primary-foreground hover:bg-primary/90 shadow-[0_0_20px_rgba(var(--primary-rgb),0.3)] transition-all hover:scale-110 active:scale-95 uppercase tracking-widest italic border border-primary/10 dark:border-white/10 group overflow-hidden">
+                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shine_1.5s_infinite]" />
+                                                Recruit Now
+                                            </Button>
+                                        </Link>
+                                    </>
+                                )}
+                            </div>
+                        )}
+                    </div>
+
+                    {/* Mobile Navigation Controls */}
+                    <div className="flex items-center gap-2 md:hidden">
+                        <ThemeSwitch />
+                        <Sheet open={isOpen} onOpenChange={setIsOpen}>
+                            <SheetTrigger asChild>
+                                <Button variant="ghost" size="icon" className="h-12 w-12 rounded-2xl bg-muted/50 dark:bg-white/5 border border-border/50 dark:border-white/10 hover:bg-primary/20 transition-all">
+                                    <Menu className="h-7 w-7 text-foreground dark:text-white" />
+                                </Button>
+                            </SheetTrigger>
+                            <SheetContent side="right" className="w-[300px] border-l-border dark:border-l-primary/20 bg-background/95 dark:bg-[#0a0a0f]/95 backdrop-blur-2xl">
+                                <SheetHeader>
+                                    <SheetTitle className="text-left flex items-center gap-2">
+                                        <Logo className="scale-75 origin-left" />
+                                    </SheetTitle>
+                                </SheetHeader>
+                                <div className="flex flex-col h-full py-10 px-6">
+                                    <div className="flex flex-col gap-6">
+                                        {navLinks.map((link) => (
+                                            <Link
+                                                key={link.href}
+                                                href={link.href}
+                                                onClick={() => setIsOpen(false)}
+                                                className="text-lg font-medium hover:text-primary transition-colors"
+                                            >
+                                                {link.label}
+                                            </Link>
+                                        ))}
+                                    </div>
+
+                                    <div className="mt-auto space-y-6">
                                         {!loading && (
-                                            <div className="flex flex-col gap-3">
+                                            <div className="grid gap-3 pt-8 border-t">
                                                 {user ? (
-                                                    <>
-                                                        <div className="flex items-center gap-3 mb-2 px-1">
-                                                            <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
-                                                                {user.email?.charAt(0).toUpperCase()}
-                                                            </div>
-                                                            <div className="overflow-hidden">
-                                                                <p className="text-sm font-bold truncate">{user.email}</p>
-                                                                <p className="text-xs text-muted-foreground">Logged in</p>
-                                                            </div>
-                                                        </div>
-                                                        <Link href="/dashboard" onClick={() => setIsOpen(false)}>
-                                                            <Button className="w-full rounded-xl h-12 text-base font-bold shadow-sm">
-                                                                Buka Dashboard
-                                                            </Button>
-                                                        </Link>
-                                                        <Button
-                                                            variant="outline"
-                                                            className="w-full rounded-xl h-11 text-sm font-medium border-border hover:bg-destructive/10 hover:text-destructive hover:border-destructive/30"
-                                                            onClick={() => {
-                                                                setIsOpen(false);
-                                                                signOut().then(() => window.location.reload());
-                                                            }}
-                                                        >
-                                                            Log out
+                                                    <Link href="/dashboard" onClick={() => setIsOpen(false)}>
+                                                        <Button className="w-full rounded-xl font-bold">
+                                                            <LayoutDashboard className="mr-2 h-4 w-4" />
+                                                            Enter Lobby
                                                         </Button>
-                                                    </>
+                                                    </Link>
                                                 ) : (
                                                     <>
-                                                        <p className="text-sm text-center text-muted-foreground font-medium mb-1">
-                                                            Mulai petualangan belajarmu
-                                                        </p>
-                                                        <Link href="/login" onClick={() => setIsOpen(false)}>
-                                                            <Button variant="outline" className="w-full rounded-xl h-11 text-base font-bold border-2 bg-background">
-                                                                Login
+                                                        <Link href="/register" onClick={() => setIsOpen(false)}>
+                                                            <Button className="w-full rounded-xl font-bold">
+                                                                Sign Up
                                                             </Button>
                                                         </Link>
-                                                        <Link href="/register" onClick={() => setIsOpen(false)}>
-                                                            <Button className="w-full rounded-xl h-11 text-base font-bold shadow-sm">
-                                                                Register
+                                                        <Link href="/login" onClick={() => setIsOpen(false)}>
+                                                            <Button variant="outline" className="w-full rounded-xl font-bold">
+                                                                Log In
                                                             </Button>
                                                         </Link>
                                                     </>
@@ -190,9 +153,9 @@ export function LandingHeader() {
                                         )}
                                     </div>
                                 </div>
-                            </div>
-                        </SheetContent>
-                    </Sheet>
+                            </SheetContent>
+                        </Sheet>
+                    </div>
                 </div>
             </div>
         </header>

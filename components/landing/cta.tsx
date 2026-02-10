@@ -1,60 +1,51 @@
 "use client";
 
 import React from "react";
-import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { useAuth } from "@/contexts/auth-context";
+import { Sparkles } from "lucide-react";
 
 export function CTA() {
     const { user, loading } = useAuth();
 
     return (
-        <section className="py-32 md:py-48 bg-background border-t overflow-hidden relative">
-            <div className="container mx-auto px-4 relative z-10 text-center">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.5 }}
-                    viewport={{ once: true }}
-                    className="max-w-3xl mx-auto"
-                >
-                    <h2 className="text-4xl md:text-7xl font-extrabold tracking-tighter mb-10 text-foreground font-display">
-                        Mulai Belajar Lebih <span className="italic">Cerdas</span> Hari Ini.
+        <section className="py-24 bg-background">
+            <div className="container flex flex-col items-center gap-8 text-center max-w-4xl px-6">
+                <div className="space-y-4">
+                    <h2 className="text-4xl sm:text-6xl font-bold tracking-tight text-foreground">
+                        Ready to Dominate?
                     </h2>
-                    <p className="text-xl md:text-2xl text-muted-foreground mb-12 font-medium max-w-xl mx-auto">
-                        Bergabunglah dengan ribuan pengajar dan transformasi pengalaman belajar siswa Anda.
+                    <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+                        Join the next evolution of AI-powered competitive learning. <br />
+                        <span className="text-foreground font-medium">Your legend begins here.</span>
                     </p>
+                </div>
 
-                    {!loading && (
-                        <div className="flex flex-col sm:flex-row justify-center gap-6">
-                            {user ? (
-                                <Link href="/dashboard">
-                                    <Button size="lg" className="rounded-xl px-12 h-16 text-lg font-bold shadow-xl transition-all hover:scale-105 active:scale-95 bg-primary text-primary-foreground">
-                                        Buka Dashboard Sekarang
+                {!loading && (
+                    <div className="flex flex-col sm:flex-row gap-4 mt-4">
+                        {user ? (
+                            <Link href="/dashboard">
+                                <Button size="lg" className="h-14 px-10 rounded-full text-lg font-bold">
+                                    Launch Arena
+                                </Button>
+                            </Link>
+                        ) : (
+                            <>
+                                <Link href="/register">
+                                    <Button size="lg" className="h-14 px-10 rounded-full text-lg font-bold">
+                                        Recruit Now
                                     </Button>
                                 </Link>
-                            ) : (
-                                <>
-                                    <Link href="/register">
-                                        <Button size="lg" className="rounded-xl px-12 h-16 text-lg font-bold shadow-xl transition-all hover:scale-105 active:scale-95 bg-primary text-primary-foreground">
-                                            Register
-                                        </Button>
-                                    </Link>
-                                    <Link href="/login">
-                                        <Button size="lg" variant="outline" className="rounded-xl px-12 h-16 text-lg font-bold border-2 hover:bg-accent transition-all text-foreground">
-                                            Login
-                                        </Button>
-                                    </Link>
-                                </>
-                            )}
-                        </div>
-                    )}
-
-                    <p className="mt-10 text-sm font-bold text-muted-foreground uppercase tracking-widest">
-                        Tidak perlu kartu kredit.
-                    </p>
-                </motion.div>
+                                <Link href="/login">
+                                    <Button variant="outline" size="lg" className="h-14 px-10 rounded-full text-lg font-medium">
+                                        Member Login
+                                    </Button>
+                                </Link>
+                            </>
+                        )}
+                    </div>
+                )}
             </div>
         </section>
     );
