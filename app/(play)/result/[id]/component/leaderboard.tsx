@@ -118,7 +118,7 @@ function HostLeaderboard({ players }: HostLeaderboardProps) {
   const top1 = sortedPlayers[0];
   const top2 = sortedPlayers[1];
   const top3 = sortedPlayers[2];
-  const others = sortedPlayers.slice(3);
+  const others = sortedPlayers;
 
   // Component for the list of other players
   const OtherPlayersList = () => (
@@ -130,7 +130,7 @@ function HostLeaderboard({ players }: HostLeaderboardProps) {
             className="hover:bg-muted/50 flex items-center gap-3 border-b p-3 transition-colors last:border-0 md:px-6 md:py-2">
             {/* Rank Number */}
             <div className="bg-muted text-muted-foreground flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold md:text-sm">
-              {index + 4}
+              {index + 1}
             </div>
 
             {/* Avatar */}

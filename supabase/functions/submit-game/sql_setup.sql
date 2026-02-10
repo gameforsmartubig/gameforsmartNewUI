@@ -15,12 +15,13 @@ CREATE OR REPLACE FUNCTION calculate_score_new_rt(
 RETURNS VOID AS $$
 DECLARE
   v_questions JSONB;
-  v_q RECORD;
   v_r RECORD;
-  v_score INT;
   v_part_rec RECORD;
+  v_score NUMERIC;
+  v_total_questions INT;
+  v_point_per_question NUMERIC;
 BEGIN
-  -- 1. Ambil soal dari sesi
+  -- Ambil soal dari sesi
   SELECT current_questions INTO v_questions
   FROM game_sessions_rt
   WHERE id = p_session_id;
@@ -29,40 +30,51 @@ BEGIN
     RETURN;
   END IF;
 
-  -- 2. Loop Participant (Satu atau Semua)
+  -- Hitung jumlah soal
+  v_total_questions := jsonb_array_length(v_questions);
+
+  IF v_total_questions = 0 THEN
+    RETURN;
+  END IF;
+
+  -- Hitung poin per soal (total max 100)
+  v_point_per_question := 100.0 / v_total_questions;
+
+  -- Loop participant
   FOR v_part_rec IN 
-    SELECT id, responses FROM game_participants_rt 
+    SELECT id, responses 
+    FROM game_participants_rt 
     WHERE session_id = p_session_id 
-    AND (p_participant_id IS NULL OR id = p_participant_id)
+      AND (p_participant_id IS NULL OR id = p_participant_id)
   LOOP
     v_score := 0;
 
-    -- Iterasi Respon Player
+    -- Loop jawaban player
     IF v_part_rec.responses IS NOT NULL THEN
-        FOR v_r IN SELECT * FROM jsonb_to_recordset(v_part_rec.responses) AS x(question_id text, answer_id text)
-        LOOP
-            -- Cari soal yang sesuai di JSONB Questions
-            -- Menggunakan jsonb_path_query_first untuk performa (PG 12+)
-            -- Mencocokkan ID dan Correct Answer
-            -- Asumsi: questions = [{id: "...", correct: "...", ...}]
-            
-            -- Cek apakah jawaban benar
-            IF EXISTS (
-                SELECT 1 
-                FROM jsonb_array_elements(v_questions) AS q
-                WHERE q->>'id' = v_r.question_id 
-                AND q->>'correct' = v_r.answer_id
-            ) THEN
-                v_score := v_score + 100; -- Atau logika poin dinamis lainnya
-            END IF;
-        END LOOP;
+      FOR v_r IN 
+        SELECT * 
+        FROM jsonb_to_recordset(v_part_rec.responses)
+        AS x(question_id TEXT, answer_id TEXT)
+      LOOP
+        -- Cek jawaban benar
+        IF EXISTS (
+          SELECT 1
+          FROM jsonb_array_elements(v_questions) AS q
+          WHERE q->>'id' = v_r.question_id
+            AND q->>'correct' = v_r.answer_id
+        ) THEN
+          v_score := v_score + v_point_per_question;
+        END IF;
+      END LOOP;
     END IF;
 
-    -- Update Skor Participant
+    -- Amankan skor maksimal 100
+    v_score := LEAST(100, ROUND(v_score));
+
+    -- Update skor
     UPDATE game_participants_rt
     SET score = v_score
     WHERE id = v_part_rec.id;
-    
   END LOOP;
 END;
 $$ LANGUAGE plpgsql;

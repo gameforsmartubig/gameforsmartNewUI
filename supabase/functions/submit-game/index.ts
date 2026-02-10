@@ -222,7 +222,7 @@ async function syncSingleParticipantToMain(mainClient: any, sessionId: string, p
         id: participant.id,
         user_id: participant.user_id,
         nickname: participant.nickname,
-        score: normalizedScore, // Saved as 0-100
+        score: rawScore, // Saved as 0-100
         started: participant.started,
         ended: participant.ended
     };
@@ -276,7 +276,7 @@ async function syncAllParticipantsToMain(mainClient: any, sessionId: string, all
             id: p.id,
             user_id: p.user_id,
             nickname: p.nickname,
-            score: normalizedScore, // Saved as 0-100
+            score: rawScore, // Saved as 0-100
             started: p.started,
             ended: p.ended
         };
