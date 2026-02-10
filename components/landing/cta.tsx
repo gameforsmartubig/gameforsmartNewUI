@@ -11,7 +11,7 @@ export function CTA() {
 
     return (
         <section className="py-24 bg-background">
-            <div className="container flex flex-col items-center gap-8 text-center max-w-4xl px-6">
+            <div className="container mx-auto flex flex-col items-center gap-8 text-center max-w-4xl px-6">
                 <div className="space-y-4">
                     <h2 className="text-4xl sm:text-6xl font-bold tracking-tight text-foreground">
                         Ready to Dominate?
