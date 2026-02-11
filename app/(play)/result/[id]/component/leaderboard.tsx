@@ -23,7 +23,8 @@ import {
   Home,
   Award,
   Target,
-  CheckCircle2
+  CheckCircle2,
+  Timer
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -44,6 +45,7 @@ interface Player {
   correctAnswers: number; // Number of correct answers
   totalQuestions: number; // Total questions in the quiz
   responses: any[]; // Raw responses
+  duration?: number; // Duration in ms for tie-breaking
 }
 
 interface HostLeaderboardProps {
@@ -120,6 +122,15 @@ function HostLeaderboard({ players }: HostLeaderboardProps) {
   const top3 = sortedPlayers[2];
   const others = sortedPlayers;
 
+  const formatDuration = (ms: number) => {
+    if (!ms) return "-";
+    const seconds = ms / 1000;
+    if (seconds < 60) return `${seconds.toFixed(2)}s`;
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}m ${s}s`;
+  };
+
   // Component for the list of other players
   const OtherPlayersList = () => (
     <div className="bg-card text-card-foreground overflow-hidden rounded-xl border shadow-sm">
@@ -144,6 +155,13 @@ function HostLeaderboard({ players }: HostLeaderboardProps) {
             {/* Name & Stats */}
             <div className="flex min-w-0 flex-1 flex-col justify-center">
               <p className="truncate text-sm font-semibold">{p.name}</p>
+            </div>
+
+            {/* Duration */}
+            <div className="pl-4 text-right">
+              <span className="text-base font-bold md:text-lg">
+                {formatDuration(p.duration || 0)}
+              </span>
             </div>
 
             {/* Score */}
@@ -268,6 +286,16 @@ function HostLeaderboard({ players }: HostLeaderboardProps) {
 // Player View: Personal Result
 function PlayerResult({ player }: PlayerResultProps) {
   const router = useRouter();
+
+  const formatDuration = (ms: number) => {
+    if (!ms) return "-";
+    const seconds = ms / 1000;
+    if (seconds < 60) return `${seconds.toFixed(2)}s`;
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}m ${s}s`;
+  };
+
   const accuracyPercent =
     player.totalQuestions > 0
       ? Math.round((player.correctAnswers / player.totalQuestions) * 100)
@@ -297,12 +325,20 @@ function PlayerResult({ player }: PlayerResultProps) {
               </Avatar>
               <div className="flex flex-col text-left">
                 <h2 className="text-base leading-tight font-bold">{player.name}</h2>
-                <div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-xs font-medium">
-                  <Trophy className="h-3 w-3 text-orange-500" />
-                  <span>
-                    Rank <span className="text-foreground text-sm font-bold">#{player.rank}</span>{" "}
-                    of {player.totalPlayers}
-                  </span>
+                <div className="text-muted-foreground mt-1 flex items-center gap-2 text-xs font-medium">
+                  <div className="flex items-center gap-1">
+                    <Trophy className="h-3 w-3 text-orange-500" />
+                    <span>
+                      Rank <span className="text-foreground text-sm font-bold">#{player.rank}</span>{" "}
+                      of {player.totalPlayers}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Timer className="h-3 w-3 text-orange-500"/>
+                    <span>
+                      {formatDuration(player.duration || 0)}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -740,6 +776,16 @@ export default function Leaderboard() {
                 // Normalize score to max 100 for display
                 const normalizedScore = totalQ > 0 ? Math.round((correctAns / totalQ) * 100) : 0;
 
+                // Calculate Duration for Tie-Breaker
+                let duration = Number.MAX_SAFE_INTEGER; // Default to max so unfinished are last
+                if (p.started && p.ended) {
+                  const start = new Date(p.started).getTime();
+                  const end = new Date(p.ended).getTime();
+                  if (!isNaN(start) && !isNaN(end) && end >= start) {
+                    duration = end - start;
+                  }
+                }
+
                 return {
                   id: p.user_id || p.id,
                   name: p.nickname || "Unknown",
@@ -749,10 +795,20 @@ export default function Leaderboard() {
                   normalizedScore,
                   correctAnswers: correctAns,
                   totalQuestions: totalQ,
-                  responses: responses
+                  responses: responses,
+                  duration: duration
                 };
               })
-              .sort((a, b) => b.score - a.score);
+              .sort((a, b) => {
+                // Primary: Score (Higher is better)
+                if (b.score !== a.score) {
+                  return b.score - a.score;
+                }
+                // Secondary: Duration (Lower is better)
+                const durA = a.duration || Number.MAX_SAFE_INTEGER;
+                const durB = b.duration || Number.MAX_SAFE_INTEGER;
+                return durA - durB;
+              });
 
             console.log("Mapped Players:", mappedPlayers);
             setPlayers(mappedPlayers);
