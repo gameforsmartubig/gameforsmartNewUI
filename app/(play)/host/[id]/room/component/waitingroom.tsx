@@ -27,7 +27,8 @@ import {
   Users,
   UserX,
   Phone,
-  Settings
+  Settings,
+  Check
 } from "lucide-react";
 import Image from "next/image";
 import { QRCodeSVG } from "qrcode.react";
@@ -44,7 +45,8 @@ import {
   setCachedProfile,
   subscribeToCountdownBroadcast,
   sendCountdownSignal,
-  unsubscribeFromCountdownBroadcast
+  unsubscribeFromCountdownBroadcast,
+  addParticipantRT
 } from "@/lib/supabase-realtime";
 import { RealtimeChannel } from "@supabase/supabase-js";
 import { toast } from "sonner";
@@ -98,6 +100,29 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   // State for showing countdown overlay
   const countdownChannelRef = useRef<RealtimeChannel | null>(null);
 
+  const isHostJoined = participants.some((p) => p.user_id === profileId);
+
+  const handleJoinAsPlayer = async () => {
+    if (!profileId || isHostJoined) return;
+
+    try {
+      setIsLoading(true); // temporary loading
+      if (isRealtimeDbConfigured && supabaseRealtime) {
+        await addParticipantRT({
+          session_id: sessionId,
+          user_id: profileId,
+          nickname: quizData?.creator_name || "Host"
+        });
+        toast.success("Joined as player!");
+      }
+    } catch (e) {
+      console.error("Failed to join:", e);
+      toast.error("Failed to join game");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Start handling logic: Broadcast countdown then call Edge Function
   const handleStartGame = async () => {
     if (!gameSession) return;
@@ -119,7 +144,10 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
       // 2. Redirect immediately to play screen (Old Design)
       // The play screen will handle the countdown using the 'ts' parameter
-      router.push(`/host/${sessionId}/play?ts=${now}`);
+      const targetUrl = isHostJoined
+        ? `/player/${sessionId}/play?ts=${now}`
+        : `/host/${sessionId}/play?ts=${now}`;
+      router.push(targetUrl);
 
       // 3. Call Edge Function in background (it will handle DB updates)
       supabase.functions
@@ -140,7 +168,10 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
     const channel = subscribeToCountdownBroadcast(sessionId, (payload) => {
       // If we receive broadcast (e.g. from another tab or glitch), redirect
       if (payload.startedAt) {
-        router.push(`/host/${sessionId}/play?ts=${payload.startedAt}`);
+        const targetUrl = isHostJoined
+          ? `/player/${sessionId}/play?ts=${payload.startedAt}`
+          : `/host/${sessionId}/play?ts=${payload.startedAt}`;
+        router.push(targetUrl);
       }
     });
 
@@ -385,6 +416,20 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   const joinLink =
     typeof window !== "undefined" ? `${window.location.origin}/join/${gameSession.game_pin}` : "";
 
+  const shareToWhatsApp = () => {
+    const message = `🎯 *GameforSmart*\n*${quizData?.title}*\n\nAyo main quiz bareng! 🎮\nTest pengetahuanmu dan menangkan hadiah!\n\n📌 PIN: *${gameSession?.game_pin}*\n👤 Host: ${quizData?.creator_name}\n\nKlik link untuk join:\n${joinLink}\n\n🏆 Gratis & Seru!`;
+    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
+    window.open(whatsappUrl, "_blank");
+  };
+
+  const shareToTelegram = () => {
+    const message = `🎯 GameforSmart - ${quizData?.title}\n\nAyo main quiz bareng! 🎮\nTest pengetahuanmu dan menangkan hadiah!\n\nPIN: ${gameSession?.game_pin}\nHost: ${quizData?.creator_name}\n\nJoin sekarang:\n${joinLink}\n\n🏆 Gratis & Seru!`;
+    const telegramUrl = `https://t.me/share/url?url=${encodeURIComponent(
+      window.location.origin
+    )}&text=${encodeURIComponent(message)}`;
+    window.open(telegramUrl, "_blank");
+  };
+
   return (
     <div className="relative h-screen overflow-y-auto bg-rose-50 dark:bg-zinc-950">
       <div className="grid min-h-full grid-cols-1 lg:grid-cols-[1fr_480px]">
@@ -581,8 +626,21 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                     onClick={handleStartGame}>
                     <Play className="mr-2 fill-current" /> Start Game
                   </Button>
-                  <Button variant="outline" size="lg" className="w-full font-semibold">
-                    <UserPlus className="mr-2" /> Join as Player
+                  <Button
+                    variant={isHostJoined ? "secondary" : "outline"}
+                    size="lg"
+                    className="w-full font-semibold"
+                    onClick={handleJoinAsPlayer}
+                    disabled={isHostJoined || isLoading}>
+                    {isHostJoined ? (
+                      <>
+                        <Check className="mr-2" /> Joined as Player
+                      </>
+                    ) : (
+                      <>
+                        <UserPlus className="mr-2" /> Join as Player
+                      </>
+                    )}
                   </Button>
                 </div>
 
@@ -599,11 +657,13 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
                 <div className="grid grid-cols-2 gap-3">
                   <Button
+                    onClick={shareToWhatsApp}
                     variant="ghost"
                     className="border border-dashed text-xs text-black dark:text-white">
                     WhatsApp
                   </Button>
                   <Button
+                    onClick={shareToTelegram}
                     variant="ghost"
                     className="border border-dashed text-xs text-black dark:text-white">
                     Telegram
