@@ -57,7 +57,7 @@ import {
   calculateOffsetFromTimestamp
 } from "@/lib/server-time";
 import { motion, AnimatePresence } from "framer-motion";
-import {InviteGroup, InviteFriend} from "./dialogInvite";
+import { InviteGroup, InviteFriend } from "./dialogInvite";
 
 interface WaitingRoomProps {
   sessionId: string;
@@ -548,8 +548,8 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
         </div>
 
         {/* Right Column: Controls & QR */}
-        <div className="order-1 p-4 pb-0 lg:pb-4 lg:order-2 lg:pl-0">
-          <Card className="border-0 sticky top-0 lg:top-4 h-fit bg-white shadow-sm lg:order-2 dark:bg-zinc-900">
+        <div className="order-1 p-4 pb-0 lg:order-2 lg:pb-4 lg:pl-0">
+          <Card className="sticky top-0 h-fit border-0 bg-white shadow-sm lg:top-4 lg:order-2 dark:bg-zinc-900">
             <CardContent className="flex h-full flex-col gap-6">
               {/* Settings */}
               <div className="relative flex items-center justify-center">
@@ -648,7 +648,12 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
                 <div className="grid grid-cols-2 gap-3">
                   <InviteGroup />
-                  <InviteFriend />
+                  <InviteFriend
+                    sessionId={sessionId}
+                    gamePin={gameSession?.game_pin}
+                    quizTitle={quizData?.title}
+                    hostName={quizData?.creator_name}
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
