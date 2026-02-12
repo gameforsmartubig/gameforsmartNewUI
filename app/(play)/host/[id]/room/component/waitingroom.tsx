@@ -57,6 +57,7 @@ import {
   calculateOffsetFromTimestamp
 } from "@/lib/server-time";
 import { motion, AnimatePresence } from "framer-motion";
+import {InviteGroup, InviteFriend} from "./dialogInvite";
 
 interface WaitingRoomProps {
   sessionId: string;
@@ -288,13 +289,13 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
       // Fetch Host Profile
       const { data: hostProfile } = await supabase
         .from("profiles")
-        .select("username, avatar_url")
+        .select("nickname, avatar_url")
         .eq("id", session.host_id)
         .single();
 
       const normalizedQuiz = {
         ...quiz,
-        creator_name: hostProfile?.username || "Unknown",
+        creator_name: hostProfile?.nickname || "Unknown",
         creator_avatar: hostProfile?.avatar_url,
         question_count: session.question_limit
           ? parseInt(session.question_limit)
@@ -432,7 +433,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
   return (
     <div className="relative h-screen overflow-y-auto bg-rose-50 dark:bg-zinc-950">
-      <div className="grid min-h-full grid-cols-1 lg:grid-cols-[1fr_480px]">
+      <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1fr_480px]">
         {/* Left Column: Stats & Participants */}
         <div className="order-2 space-y-4 p-4 lg:order-1">
           <Card className="border-0 bg-slate-50 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
@@ -547,11 +548,10 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
         </div>
 
         {/* Right Column: Controls & QR */}
-        <div className="order-1 p-4 pb-0 sm:pb-4 sm:pl-0">
-          <Card className="h-full border-0 bg-white shadow-sm lg:order-2 dark:bg-zinc-900">
-            <CardContent className="sticky top-0 flex h-full flex-col gap-6">
-              {/* Branding */}
-              {/* Branding & Exit */}
+        <div className="order-1 p-4 pb-0 lg:pb-4 lg:order-2 lg:pl-0">
+          <Card className="border-0 sticky top-0 lg:top-4 h-fit bg-white shadow-sm lg:order-2 dark:bg-zinc-900">
+            <CardContent className="flex h-full flex-col gap-6">
+              {/* Settings */}
               <div className="relative flex items-center justify-center">
                 <Image
                   src="/gameforsmartlogo.png"
@@ -647,12 +647,8 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                 <Separator />
 
                 <div className="grid grid-cols-2 gap-3">
-                  <Button variant="outline" className="text-xs">
-                    <Users className="mr-2 size-3" /> Invite Group
-                  </Button>
-                  <Button variant="outline" className="text-xs">
-                    <Share2 className="mr-2 size-3" /> Invite Friends
-                  </Button>
+                  <InviteGroup />
+                  <InviteFriend />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">

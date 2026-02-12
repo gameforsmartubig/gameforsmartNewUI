@@ -37,13 +37,13 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
   useEffect(() => {
     const pinFromUrl = searchParams.get("pin");
     const pinFromStorage = localStorage.getItem("pin");
-    const oauthPin = localStorage.getItem("oauth_game_pin"); 
-    
+    const oauthPin = localStorage.getItem("oauth_game_pin");
+
     console.log("🔍 Join Debug - Init Params:", {
-        urlPin: pinFromUrl, 
-        initialPin, 
-        storagePin: pinFromStorage,
-        oauthPin
+      urlPin: pinFromUrl,
+      initialPin,
+      storagePin: pinFromStorage,
+      oauthPin
     });
 
     let targetPin = "";
@@ -86,7 +86,7 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
   useEffect(() => {
     if (shouldAutoJoin && isReadyToJoin && !authLoading && gamePin) {
       console.log("🚀 Auto Join Triggered!", { user: user?.email, gamePin });
-      
+
       if (user) {
         joinGame();
       } else {
@@ -94,14 +94,14 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
         console.log("Redirecting to login... (DISABLED FOR DEBUGGING)");
         // window.location.href = `${window.location.origin}/login?redirect=/join&pin=${gamePin}`;
       }
-      
-      // We don't turn off shouldAutoJoin immediately if joining, 
-      // let joinGame or redirect handle navigation. 
+
+      // We don't turn off shouldAutoJoin immediately if joining,
+      // let joinGame or redirect handle navigation.
       // If user is guest, we redirect -> component unmounts.
       // If user is logged in, joinGame -> loading state -> redirect to room.
       if (user) {
-          // Optional: setShouldAutoJoin(false) only if join fails? 
-          // For now let joinGame handle UI.
+        // Optional: setShouldAutoJoin(false) only if join fails?
+        // For now let joinGame handle UI.
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -146,7 +146,7 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
     } catch (err: any) {
       console.error("Error starting scanner:", err);
       setScanning(false);
-      toast.error("Tidak dapat mengakses kamera");
+      toast.error("Cannot access the camera");
     }
   };
 
@@ -157,7 +157,7 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
     let pin = "";
     try {
       const url = new URL(data);
-      
+
       // 1. Check query parameter: ?pin=123456
       const urlPin = url.searchParams.get("pin");
       if (urlPin) {
@@ -182,7 +182,7 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
       localStorage.setItem("pin", pin);
       toast.success("QR Code detected: " + pin);
     } else {
-      toast.error("QR code tidak valid");
+      toast.error("QR code not valid");
     }
   };
 
@@ -241,13 +241,13 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
         .single();
 
       if (sessionError || !session) {
-        toast.error("Game PIN tidak valid");
+        toast.error("PIN not valid");
         setLoading(false);
         return;
       }
 
       if (session.status === "finished") {
-        toast.error("Game sudah selesai");
+        toast.error("sessions finished");
         setLoading(false);
         return;
       }
@@ -272,6 +272,13 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
         localStorage.removeItem("pin");
         localStorage.removeItem("oauth_game_pin");
         router.push(`/player/${session.id}/room`);
+        return;
+      }
+
+      // Check if joining is allowed for new participants
+      if (session.status === "active" && !session.allow_join_after_start) {
+        toast.error("The session has started and is not accepting new participants");
+        setLoading(false);
         return;
       }
 
@@ -317,11 +324,11 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
       // Clear PIN from storage to prevent auto-join on next visit
       localStorage.removeItem("pin");
       localStorage.removeItem("oauth_game_pin");
-      
+
       router.push(`/player/${session.id}/room`);
     } catch (err: any) {
       console.error(err);
-      toast.error(err.message || "Gagal join game");
+      toast.error(err.message || "Failed to join session");
     } finally {
       setLoading(false);
     }
@@ -330,12 +337,14 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
   // RENDER LOADING SCREEN IF AUTO JOINING
   if (shouldAutoJoin && !authLoading) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white dark:from-zinc-900 dark:to-zinc-950 p-4">
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mb-6 animate-pulse">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4 dark:from-zinc-900 dark:to-zinc-950">
+        <div className="bg-primary/10 mb-6 flex h-16 w-16 animate-pulse items-center justify-center rounded-full">
+          <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
         </div>
-        <h2 className="text-2xl font-bold text-center mb-2">Joining Game...</h2>
-        <p className="text-muted-foreground text-center">Please wait while we connect you to the session.</p>
+        <h2 className="mb-2 text-center text-2xl font-bold">Joining Game...</h2>
+        <p className="text-muted-foreground text-center">
+          Please wait while we connect you to the session.
+        </p>
       </div>
     );
   }
