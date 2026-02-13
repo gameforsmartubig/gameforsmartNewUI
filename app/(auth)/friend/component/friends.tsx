@@ -54,13 +54,13 @@ interface Profile {
 
 import { useSearchParams, useRouter } from "next/navigation";
 
-const DUMMY_USERS: Profile[] = [
-  { id: "1", username: "alex_g", fullname: "Alex Garrett", nickname: "Alex", avatar_url: null, country_id: null, state_id: null, city_id: null, cities: { name: "New York" }, states: { name: "NY" }, countries: { name: "USA" } },
-  { id: "2", username: "sarah_m", fullname: "Sarah Miller", nickname: "Sarah", avatar_url: null, country_id: null, state_id: null, city_id: null, cities: { name: "Los Angeles" }, states: { name: "CA" }, countries: { name: "USA" } },
-  { id: "3", username: "jhon_d", fullname: "Jhon Doe", nickname: "Jhon", avatar_url: null, country_id: null, state_id: null, city_id: null, cities: { name: "Chicago" }, states: { name: "IL" }, countries: { name: "USA" } },
-  { id: "4", username: "emily_r", fullname: "Emily Rose", nickname: "Em", avatar_url: null, country_id: null, state_id: null, city_id: null, cities: { name: "Houston" }, states: { name: "TX" }, countries: { name: "USA" } },
-  { id: "5", username: "michael_b", fullname: "Michael Brown", nickname: "Mike", avatar_url: null, country_id: null, state_id: null, city_id: null, cities: { name: "Phoenix" }, states: { name: "AZ" }, countries: { name: "USA" } },
-];
+// const DUMMY_USERS: Profile[] = [
+//   { id: "1", username: "alex_g", fullname: "Alex Garrett", nickname: "Alex", avatar_url: null, country_id: null, state_id: null, city_id: null, cities: { name: "New York" }, states: { name: "NY" }, countries: { name: "USA" } },
+//   { id: "2", username: "sarah_m", fullname: "Sarah Miller", nickname: "Sarah", avatar_url: null, country_id: null, state_id: null, city_id: null, cities: { name: "Los Angeles" }, states: { name: "CA" }, countries: { name: "USA" } },
+//   { id: "3", username: "jhon_d", fullname: "Jhon Doe", nickname: "Jhon", avatar_url: null, country_id: null, state_id: null, city_id: null, cities: { name: "Chicago" }, states: { name: "IL" }, countries: { name: "USA" } },
+//   { id: "4", username: "emily_r", fullname: "Emily Rose", nickname: "Em", avatar_url: null, country_id: null, state_id: null, city_id: null, cities: { name: "Houston" }, states: { name: "TX" }, countries: { name: "USA" } },
+//   { id: "5", username: "michael_b", fullname: "Michael Brown", nickname: "Mike", avatar_url: null, country_id: null, state_id: null, city_id: null, cities: { name: "Phoenix" }, states: { name: "AZ" }, countries: { name: "USA" } },
+// ];
 
 export function Friends({ currentUserId }: { currentUserId: string }) {
   const searchParams = useSearchParams();
@@ -245,17 +245,17 @@ export function Friends({ currentUserId }: { currentUserId: string }) {
       data = (res as any) || [];
 
       // Fallback to dummy data if empty as requested
-      if (data.length === 0) {
-        setUsers(DUMMY_USERS);
-      } else {
+      // if (data.length === 0) {
+      //   setUsers(DUMMY_USERS);
+      // } else {
         setUsers(data);
-      }
+      // }
 
     } catch (err) {
       console.error("Error fetching data:", err);
       // Fallback to dummy data on error too
-      setUsers(DUMMY_USERS);
-      toast.error("Gagal memuat data, menampilkan data dummy");
+      // setUsers(DUMMY_USERS);
+      toast.error("Gagal memuat data");
     } finally {
       setLoading(false);
     }

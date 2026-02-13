@@ -647,12 +647,11 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                 <Separator />
 
                 <div className="grid grid-cols-2 gap-3">
-                  <InviteGroup />
+                  <InviteGroup
+                    sessionId={sessionId}
+                  />
                   <InviteFriend
                     sessionId={sessionId}
-                    gamePin={gameSession?.game_pin}
-                    quizTitle={quizData?.title}
-                    hostName={quizData?.creator_name}
                   />
                 </div>
 
