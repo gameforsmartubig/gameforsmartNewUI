@@ -20,7 +20,9 @@ import {
   User,
   Star,
   StarOff,
-  Calendar
+  Calendar,
+  Trash,
+  CircleOff
 } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { Input } from "@/components/ui/input";
@@ -362,9 +364,14 @@ export function DashboardContent({
     const renderPageButton = (page: number) => (
       <Button
         key={page}
+        // Tetap menggunakan variant kondisional
         variant={currentPage === page ? "default" : "outline"}
         size="icon"
-        className="h-8 w-8"
+        className={`h-8 w-8 transition-colors ${
+          currentPage === page
+            ? "border-orange-400 bg-orange-400 text-white hover:bg-orange-500" // Saat aktif (Halaman sekarang)
+            : "border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600" // Saat tidak aktif
+        }`}
         onClick={() => onPageChange(page)}>
         {page}
       </Button>
@@ -381,7 +388,7 @@ export function DashboardContent({
             }}
             className="flex items-center">
             <Input
-              className="h-8 w-12 px-1 text-center"
+              className="h-8 w-8 border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-300 dark:hover:bg-orange-50 dark:hover:text-orange-600"
               autoFocus
               onBlur={() => {
                 setTimeout(() => setActiveInput(null), 200);
@@ -397,7 +404,7 @@ export function DashboardContent({
           key={position}
           variant="ghost"
           size="icon"
-          className="h-8 w-8"
+          className="h-8 w-8 border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-300 dark:hover:bg-orange-50 dark:hover:text-orange-600"
           onClick={() => {
             setActiveInput(position);
             setJumpPage("");
@@ -414,7 +421,7 @@ export function DashboardContent({
         key="prev"
         variant="outline"
         size="icon"
-        className="h-8 w-8"
+        className="h-8 w-8 border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-300 dark:hover:bg-orange-50 dark:hover:text-orange-600"
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}>
         &lt;
@@ -466,7 +473,7 @@ export function DashboardContent({
         key="next"
         variant="outline"
         size="icon"
-        className="h-8 w-8"
+        className="h-8 w-8 border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-300 dark:hover:bg-orange-50 dark:hover:text-orange-600"
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
         disabled={currentPage === totalPages}>
         &gt;
@@ -503,7 +510,7 @@ export function DashboardContent({
             return (
               <Card
                 key={quiz.id}
-                className="hover:border-via-yellow-200 relative flex flex-row overflow-hidden border-slate-200 py-0 shadow-sm transition-all hover:border-orange-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                className="hover:border-via-yellow-200 relative flex flex-row gap-0 overflow-hidden border-slate-200 py-0 shadow-sm transition-all hover:border-orange-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
                 {/* Garis Gradient di sisi Kiri (Vertical) */}
                 <div className="h-full w-1.5 shrink-0 bg-gradient-to-b from-orange-400 via-yellow-400 to-green-500" />
 
@@ -527,7 +534,7 @@ export function DashboardContent({
                           variant="ghost"
                           size="icon"
                           className="h-8 w-8 text-orange-600 hover:bg-orange-50">
-                          <EllipsisVertical className="h-4 w-4" />
+                          <MoreHorizontal className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
@@ -545,9 +552,15 @@ export function DashboardContent({
                           )}
                         </DropdownMenuItem>
                         {tabKey === "myQuiz" ? (
-                          <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                          <DropdownMenuItem className="text-red-600">
+                            <Trash className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
                         ) : (
-                          <DropdownMenuItem>Report</DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <CircleOff className="mr-2 h-4 w-4" />
+                            Report
+                          </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -559,62 +572,63 @@ export function DashboardContent({
                     {quiz.title}
                   </h1>
 
-                  <div className="flex items-center gap-2 text-sm text-zinc-500 italic">
+                  <div className="text-md flex items-center gap-2 text-sm font-semibold text-slate-700">
                     <User size={14} className="text-orange-500" />
                     <span className="line-clamp-1">{quiz.creator}</span>
                   </div>
 
-                  <div className="mt-1 flex items-center gap-4 text-xs font-medium text-zinc-600 dark:text-gray-400">
-                    <div className="flex items-center gap-1.5">
-                      <CircleQuestionMark size={14} className="text-green-500" />
-                      <div>{quiz.questions} Soal</div>
+                  <div className="flex flex-wrap justify-between gap-2 border-zinc-50 pt-3 dark:border-zinc-800">
+                    <div className="flex items-center gap-4 text-xs font-medium text-zinc-600 dark:text-gray-400">
+                      <div className="flex items-center gap-1.5">
+                        <CircleQuestionMark size={14} className="text-green-500" />
+                        <div>{quiz.questions} Soal</div>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <Play size={14} className="text-yellow-500" />
+                        <div>{quiz.played} Main</div>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-1.5">
-                      <Play size={14} className="text-yellow-500" />
-                      <div>{quiz.played} Main</div>
+                    <div className="flex items-center gap-2">
+                      {tabKey === "myQuiz" ? (
+                        <>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-900/50"
+                            onClick={() => handleEditClick(quiz.id)}>
+                            Edit
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-green-200 text-green-600 hover:bg-green-50 dark:border-green-900/50"
+                            onClick={() => handleAnalyticClick(quiz.id)}>
+                            Analytic
+                          </Button>
+                          <Button
+                            size="sm"
+                            className="bg-orange-500 text-white hover:bg-orange-600"
+                            onClick={() => handleHostClick(quiz.id)}>
+                            Host
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <Button
+                            size="sm"
+                            className="bg-orange-500 text-white hover:bg-orange-600"
+                            onClick={() => handleHostClick(quiz.id)}>
+                            <Play className="mr-1 h-3 w-3 fill-current" /> Host
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="border-yellow-400 text-yellow-700 hover:bg-yellow-50 dark:border-yellow-900/50">
+                            Tryout
+                          </Button>
+                        </>
+                      )}
                     </div>
-                  </div>
-
-                  <div className="mt-3 flex flex-wrap justify-end gap-2 border-t border-zinc-50 pt-3 dark:border-zinc-800">
-                    {tabKey === "myQuiz" ? (
-                      <>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-900/50"
-                          onClick={() => handleEditClick(quiz.id)}>
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-green-200 text-green-600 hover:bg-green-50 dark:border-green-900/50"
-                          onClick={() => handleAnalyticClick(quiz.id)}>
-                          Analytic
-                        </Button>
-                        <Button
-                          size="sm"
-                          className="bg-orange-500 text-white hover:bg-orange-600"
-                          onClick={() => handleHostClick(quiz.id)}>
-                          Host
-                        </Button>
-                      </>
-                    ) : (
-                      <>
-                        <Button
-                          size="sm"
-                          className="bg-orange-500 text-white hover:bg-orange-600"
-                          onClick={() => handleHostClick(quiz.id)}>
-                          <Play className="mr-1 h-3 w-3 fill-current" /> Host
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="border-yellow-400 text-yellow-700 hover:bg-yellow-50 dark:border-yellow-900/50">
-                          Tryout
-                        </Button>
-                      </>
-                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -672,7 +686,7 @@ export function DashboardContent({
           <div className="relative w-full sm:w-auto">
             <Input
               ref={searchInputRef}
-              placeholder="Search"
+              placeholder="Search...."
               className="w-full pr-20 pl-3 sm:w-[250px]"
               value={searchInputValue}
               onChange={(e) => setSearchInputValue(e.target.value)}
@@ -684,7 +698,7 @@ export function DashboardContent({
             />
             <Button
               variant="default"
-              className="absolute top-1 right-1 h-7 w-7 p-2"
+              className="absolute top-1 right-1 h-7 w-7 bg-orange-400 p-2"
               onClick={handleSearchSubmit}>
               <Search size={20} />
             </Button>
@@ -693,33 +707,57 @@ export function DashboardContent({
       </div>
 
       {/* Tabs Layout */}
-      <div className="flex flex-row items-center justify-between gap-2 sm:flex-row">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-4">
-          <div className="flex items-center justify-between">
-            <TabsList>
-              <TabsTrigger value="quiz">Quiz</TabsTrigger>
-              <TabsTrigger value="myQuiz">My Quiz</TabsTrigger>
-              <TabsTrigger value="favorite">Favorite</TabsTrigger>
+      {/* Tabs Layout */}
+      <div className="flex flex-col gap-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <div className="flex items-center justify-between border-gray-100 dark:border-gray-800">
+            <TabsList className="h-auto w-fit justify-start rounded-none bg-transparent p-0">
+              {[
+                { value: "quiz", label: "Quiz" },
+                { value: "myQuiz", label: "My Quiz" },
+                { value: "favorite", label: "Favorite" }
+              ].map((tab) => (
+                <TabsTrigger
+                  key={tab.value}
+                  value={tab.value}
+                  className="text-muted-foreground data-[state=active]:text-foreground /* Bagian Indikator Gradasi */ relative h-10 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pt-2 pb-3 font-semibold shadow-none transition-none data-[state=active]:shadow-none data-[state=active]:after:absolute data-[state=active]:after:bottom-[-2px] data-[state=active]:after:left-0 data-[state=active]:after:h-[3px] data-[state=active]:after:w-full data-[state=active]:after:bg-gradient-to-r data-[state=active]:after:from-orange-500 data-[state=active]:after:via-yellow-400 data-[state=active]:after:to-green-500 data-[state=active]:after:content-['']">
+                  {tab.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
 
-            <div className="flex w-full flex-row items-center justify-end gap-2 sm:w-auto">
+            <div className="hidden flex-row items-center justify-end gap-2 sm:flex sm:w-auto">
               <Button
                 variant="outline"
                 className="flex bg-lime-500 text-white hover:bg-lime-600 hover:text-white"
                 onClick={() => router.push("/create")}>
-                <PlusIcon className="hidden sm:block" />
-                <span className="hidden sm:inline">Create Quiz</span>
-                <span className="inline sm:hidden">Create</span>
+                <PlusIcon className="mr-1 h-4 w-4" />
+                <span>Create Quiz</span>
               </Button>
               <Button
                 onClick={() => router.push("/join")}
                 variant="outline"
                 className="flex bg-yellow-300 hover:bg-yellow-400">
-                <Play className="hidden sm:block" />
-                <span className="hidden sm:inline">Join Quiz</span>
-                <span className="inline sm:hidden">Join</span>
+                <Play className="mr-1 h-4 w-4" />
+                <span>Join Quiz</span>
               </Button>
             </div>
+          </div>
+
+          {/* Tombol Mobile (Muncul di bawah tab jika layar kecil) */}
+          <div className="mt-4 flex w-full gap-2 sm:hidden">
+            <Button
+              variant="outline"
+              className="flex-1 bg-lime-500 text-white"
+              onClick={() => router.push("/create")}>
+              Create
+            </Button>
+            <Button
+              variant="outline"
+              className="flex-1 bg-yellow-300"
+              onClick={() => router.push("/join")}>
+              Join
+            </Button>
           </div>
 
           <TabsContent value="quiz" className="mt-4">
