@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 
 export async function generateMetadata() {
   return generateMeta({
-    title: "Friend Admin Dashboard",
+    title: "Friend",
     description:
       "A friend dashboard is an admin panel that visualizes key friend data such as income, expenses, cash flow, budget, and profit. Built with shadcn/ui, Tailwind CSS, Next.js.",
     canonical: "/friend"

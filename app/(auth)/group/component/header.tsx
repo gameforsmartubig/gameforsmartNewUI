@@ -11,9 +11,15 @@ import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ChevronDownIcon, Play, PlusIcon, Search } from "lucide-react";
 import { useState } from "react";
-import GroupCard from "./groupCard";
+import GroupCard, { GroupData } from "./groupCard";
+import DialogCreate from "./dialogcreate";
 
-export default function Header() {
+interface HeaderProps {
+  discoverGroups: GroupData[];
+  myGroups: GroupData[];
+}
+
+export default function Header({ discoverGroups, myGroups }: HeaderProps) {
   const [activeTab, setActiveTab] = useState("Discover");
   return (
     <div className="space-y-4">
@@ -56,19 +62,15 @@ export default function Header() {
             </TabsList>
 
             <div className="flex w-full flex-row items-center justify-end gap-2 sm:w-auto">
-              <Button variant="outline" className="">
-                <PlusIcon className="hidden sm:block" />
-                <span className="hidden sm:inline">Create Group</span>
-                <span className="inline sm:hidden">Create</span>
-              </Button>
+              <DialogCreate />
             </div>
           </div>
 
           <TabsContent value="Discover" className="mt-4">
-            <GroupCard />
+            <GroupCard groups={discoverGroups} />
           </TabsContent>
           <TabsContent value="MyGroup" className="mt-4">
-            <GroupCard />
+            <GroupCard groups={myGroups} isMyGroup={true} />
           </TabsContent>
         </Tabs>
       </div>

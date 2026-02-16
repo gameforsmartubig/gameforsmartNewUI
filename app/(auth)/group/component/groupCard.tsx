@@ -1,416 +1,303 @@
+"use client";
+
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { BookOpen, Calendar, EyeOff, Globe, Lock, Users } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
+import { supabase } from "@/lib/supabase";
+import { Calendar, EyeOff, Lock, Users } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { toast } from "sonner";
 
-export const groups = [
-  {
-    id: "1",
-    category: "SCIENCE",
-    name: "Quantum Mechanics Enthusiasts",
-    members: 1248,
-    status: "public",
-    admins_approval: false,
-    created_at: "17 Dec 2025",
-    creator_id: {
-      fullname: "Dr. Sheldon Cooper",
-      nickname: "Sheldon",
-      username: "sheldoncooper",
-      city: "Pasadena",
-      state: "California"
+export type GroupData = {
+  id: string;
+  name: string;
+  category: string | null;
+  members: any[]; // JSONB
+  join_requests: any[]; // JSONB
+  settings: any; // JSONB
+  created_at: string | null;
+  creator: {
+    fullname: string | null;
+    nickname: string | null;
+    username: string | null;
+    avatar_url?: string | null;
+    city?: { name: string } | null;
+    state?: { name: string } | null;
+  } | null;
+};
+
+export default function GroupCard({
+  groups,
+  isMyGroup = false
+}: {
+  groups: GroupData[];
+  isMyGroup?: boolean;
+}) {
+  const { profileId } = useAuth();
+  const router = useRouter();
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  // Optimistic UI state: keys are group IDs, values are 'pending' or 'none'
+  const [optimisticStatus, setOptimisticStatus] = useState<Record<string, "pending" | "none">>({});
+
+  const handleJoin = async (groupId: string, currentMembers: any[]) => {
+    if (!profileId) {
+      toast.error("You must be logged in to join");
+      return;
     }
-  },
-  {
-    id: "2",
-    category: "HISTORY",
-    name: "Victorian Era Scholars",
-    members: 432,
-    status: "public",
-    admins_approval: true,
-    created_at: "5 Jan 2025",
-    creator_id: {
-      fullname: "Eleanor Vance",
-      nickname: "Eleanor",
-      username: "eleanorvance",
-      city: "Madiun",
-      state: "Jawa Tengah"
+
+    setLoadingId(groupId);
+
+    try {
+      const newMember = {
+        role: "member",
+        user_id: profileId
+      };
+
+      const members = Array.isArray(currentMembers) ? currentMembers : [];
+      const isAlreadyMember = members.some(
+        (m: any) => m.user_id === profileId || m.id === profileId
+      );
+
+      if (isAlreadyMember) {
+        toast.info("You are already a member");
+        setLoadingId(null);
+        return;
+      }
+
+      const updatedMembers = [...members, newMember];
+
+      const { error } = await supabase
+        .from("groups")
+        .update({ members: updatedMembers })
+        .eq("id", groupId);
+
+      if (error) throw error;
+
+      toast.success("Successfully joined the group!");
+      router.refresh(); // Refresh server data without full reload
+    } catch (error: any) {
+      console.error("Join error:", error);
+      toast.error(error.message || "Failed to join group");
+    } finally {
+      setLoadingId(null);
     }
-  },
-  {
-    id: "3",
-    category: "POP CULTURE",
-    name: "90s Sitcom Trivia",
-    members: 2841,
-    status: "private",
-    admins_approval: false,
-    created_at: "28 Feb 2025",
-    creator_id: {
-      fullname: "Joey Tribbiani",
-      nickname: "Joey",
-      username: "joeytribbiani",
-      city: "Kabupaten Malang",
-      state: "Jawa Timur"
+  };
+
+  const handleRequestJoin = async (groupId: string, currentRequests: any[]) => {
+    if (!profileId) {
+      toast.error("You must be logged in to request join");
+      return;
     }
-  },
-  {
-    id: "4",
-    category: "TECHNOLOGY",
-    name: "Rust Programming Masters",
-    members: 890,
-    status: "secret",
-    admins_approval: false,
-    created_at: "12 Mar 2025",
-    creator_id: {
-      fullname: "Ferris Rust",
-      nickname: "Ferris",
-      username: "ferrisrust",
-      city: "Berlin",
-      state: "Germany"
+
+    setLoadingId(groupId);
+
+    try {
+      const requests = Array.isArray(currentRequests) ? currentRequests : [];
+
+      const alreadyRequested = requests.some(
+        (r: any) => r.user_id === profileId && r.status === "pending"
+      );
+      if (alreadyRequested) {
+        toast.info("You have already sent a request");
+        setLoadingId(null);
+        return;
+      }
+
+      const newRequest = {
+        status: "pending",
+        user_id: profileId,
+        requested_at: new Date().toISOString()
+      };
+
+      const updatedRequests = [...requests, newRequest];
+
+      const { error } = await supabase
+        .from("groups")
+        .update({ join_requests: updatedRequests })
+        .eq("id", groupId);
+
+      if (error) throw error;
+
+      // Optimistic update
+      setOptimisticStatus((prev) => ({ ...prev, [groupId]: "pending" }));
+      toast.success("Join request sent!");
+      router.refresh();
+    } catch (error: any) {
+      console.error("Request join error:", error);
+      toast.error(error.message || "Failed to send request");
+    } finally {
+      setLoadingId(null);
     }
-  },
-  {
-    id: "5",
-    category: "GEOGRAPHY",
-    name: "Hidden Gems Explorers",
-    members: 212,
-    status: "private",
-    admins_approval: true,
-    created_at: "1 Apr 2025",
-    creator_id: {
-      fullname: "Marta Wander",
-      nickname: "Marta",
-      username: "martawander",
-      city: "Lisbon",
-      state: "Portugal"
+  };
+
+  const handleCancelRequest = async (groupId: string, currentRequests: any[]) => {
+    if (!profileId) return;
+
+    setLoadingId(groupId);
+
+    try {
+      const requests = Array.isArray(currentRequests) ? currentRequests : [];
+
+      const updatedRequests = requests.filter(
+        (r: any) => !(r.user_id === profileId && r.status === "pending")
+      );
+
+      const { error } = await supabase
+        .from("groups")
+        .update({ join_requests: updatedRequests })
+        .eq("id", groupId);
+
+      if (error) throw error;
+
+      // Optimistic update
+      setOptimisticStatus((prev) => ({ ...prev, [groupId]: "none" }));
+      toast.success("Request cancelled");
+      router.refresh();
+    } catch (error: any) {
+      console.error("Cancel request error:", error);
+      toast.error(error.message || "Failed to cancel request");
+    } finally {
+      setLoadingId(null);
     }
-  },
-  {
-    id: "6",
-    category: "SPACE",
-    name: "Mars Colonization Society",
-    members: 5512,
-    status: "public",
-    admins_approval: false,
-    created_at: "20 Feb 2025",
-    creator_id: {
-      fullname: "Elon Mars",
-      nickname: "Elon",
-      username: "elonmars",
-      city: "Boca Chica",
-      state: "Texas"
-    }
-  },
-  {
-    id: "7",
-    category: "BUSINESS",
-    name: "Startup Growth Hub",
-    members: 1675,
-    status: "public",
-    admins_approval: true,
-    created_at: "9 Jan 2025",
-    creator_id: {
-      fullname: "Alicia Grant",
-      nickname: "Alicia",
-      username: "aliciagrant",
-      city: "Jakarta",
-      state: "DKI Jakarta"
-    }
-  },
-  {
-    id: "8",
-    category: "ART",
-    name: "Digital Artists Collective",
-    members: 980,
-    status: "private",
-    admins_approval: false,
-    created_at: "15 May 2025",
-    creator_id: {
-      fullname: "Luna Sketch",
-      nickname: "Luna",
-      username: "lunasketch",
-      city: "Bandung",
-      state: "Jawa Barat"
-    }
-  },
-  {
-    id: "9",
-    category: "SPORT",
-    name: "Football Strategy Talk",
-    members: 2210,
-    status: "public",
-    admins_approval: false,
-    created_at: "2 Jun 2025",
-    creator_id: {
-      fullname: "Marco Silva",
-      nickname: "Marco",
-      username: "marcosilva",
-      city: "Madrid",
-      state: "Spain"
-    }
-  },
-  {
-    id: "10",
-    category: "MUSIC",
-    name: "Indie Music Lovers",
-    members: 1450,
-    status: "private",
-    admins_approval: true,
-    created_at: "11 Jul 2025",
-    creator_id: {
-      fullname: "Clara Tune",
-      nickname: "Clara",
-      username: "claratune",
-      city: "Surabaya",
-      state: "Jawa Timur"
-    }
-  },
-  {
-    id: "11",
-    category: "EDUCATION",
-    name: "Modern Teaching Methods",
-    members: 620,
-    status: "public",
-    admins_approval: false,
-    created_at: "19 Jan 2025",
-    creator_id: {
-      fullname: "Samuel Bright",
-      nickname: "Sam",
-      username: "sambright",
-      city: "Yogyakarta",
-      state: "DIY"
-    }
-  },
-  {
-    id: "12",
-    category: "HEALTH",
-    name: "Healthy Lifestyle Community",
-    members: 1990,
-    status: "public",
-    admins_approval: true,
-    created_at: "7 Feb 2025",
-    creator_id: {
-      fullname: "Nina Fit",
-      nickname: "Nina",
-      username: "ninafit",
-      city: "Denpasar",
-      state: "Bali"
-    }
-  },
-  {
-    id: "13",
-    category: "GAMING",
-    name: "Competitive Esports Arena",
-    members: 3400,
-    status: "public",
-    admins_approval: false,
-    created_at: "25 Mar 2025",
-    creator_id: {
-      fullname: "Rex Hunter",
-      nickname: "Rex",
-      username: "rexhunter",
-      city: "Seoul",
-      state: "South Korea"
-    }
-  },
-  {
-    id: "14",
-    category: "LITERATURE",
-    name: "Classic Novel Readers",
-    members: 410,
-    status: "private",
-    admins_approval: false,
-    created_at: "30 Apr 2025",
-    creator_id: {
-      fullname: "Emily Words",
-      nickname: "Emily",
-      username: "emilywords",
-      city: "London",
-      state: "UK"
-    }
-  },
-  {
-    id: "15",
-    category: "PHOTOGRAPHY",
-    name: "Street Photography ID",
-    members: 875,
-    status: "public",
-    admins_approval: false,
-    created_at: "18 May 2025",
-    creator_id: {
-      fullname: "Raka Lens",
-      nickname: "Raka",
-      username: "rakalens",
-      city: "Semarang",
-      state: "Jawa Tengah"
-    }
-  },
-  {
-    id: "16",
-    category: "FOOD",
-    name: "Culinary Experiment Lab",
-    members: 1230,
-    status: "public",
-    admins_approval: true,
-    created_at: "9 Jun 2025",
-    creator_id: {
-      fullname: "Chef Anton",
-      nickname: "Anton",
-      username: "chefanton",
-      city: "Makassar",
-      state: "Sulawesi Selatan"
-    }
-  },
-  {
-    id: "17",
-    category: "FINANCE",
-    name: "Crypto Investors Circle",
-    members: 2780,
-    status: "private",
-    admins_approval: true,
-    created_at: "12 Jul 2025",
-    creator_id: {
-      fullname: "Daniel Coin",
-      nickname: "Daniel",
-      username: "danielcoin",
-      city: "Singapore",
-      state: "SG"
-    }
-  },
-  {
-    id: "18",
-    category: "ANIME",
-    name: "Anime Discussion Room",
-    members: 3560,
-    status: "public",
-    admins_approval: false,
-    created_at: "22 Aug 2025",
-    creator_id: {
-      fullname: "Hikari Chan",
-      nickname: "Hikari",
-      username: "hikarichan",
-      city: "Tokyo",
-      state: "Japan"
-    }
-  },
-  {
-    id: "19",
-    category: "AI",
-    name: "Artificial Intelligence Lab",
-    members: 1890,
-    status: "public",
-    admins_approval: false,
-    created_at: "3 Sep 2025",
-    creator_id: {
-      fullname: "Alan Neural",
-      nickname: "Alan",
-      username: "alanneural",
-      city: "San Francisco",
-      state: "California"
-    }
-  },
-  {
-    id: "20",
-    category: "ENVIRONMENT",
-    name: "Climate Action Network",
-    members: 980,
-    status: "private",
-    admins_approval: true,
-    created_at: "10 Oct 2025",
-    creator_id: {
-      fullname: "Greta Earth",
-      nickname: "Greta",
-      username: "gretaearth",
-      city: "Stockholm",
-      state: "Sweden"
-    }
+  };
+
+  if (!groups || groups.length === 0) {
+    return <div className="py-10 text-center text-gray-500">No groups found</div>;
   }
-];
 
-export default function GroupCard() {
   return (
-    <>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {groups.map((group) => (
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {groups.map((group) => {
+        const memberCount = Array.isArray(group.members) ? group.members.length : 0;
+        const status = group.settings?.status || "public";
+        const adminsApproval = group.settings?.admins_approval || false;
+
+        // Check if user already requested (with optimistic override)
+        let isPending = false;
+        if (optimisticStatus[group.id]) {
+          isPending = optimisticStatus[group.id] === "pending";
+        } else {
+          isPending =
+            Array.isArray(group.join_requests) &&
+            group.join_requests.some((r: any) => r.user_id === profileId && r.status === "pending");
+        }
+
+        const createdDate = group.created_at
+          ? new Date(group.created_at).toLocaleDateString("en-GB", {
+              day: "numeric",
+              month: "short",
+              year: "numeric"
+            })
+          : "-";
+
+        return (
           <Card key={group.id} className="rounded-2xl border shadow-sm">
             <CardContent className="space-y-5 px-6">
               <div className="flex items-center justify-between">
                 {/* Category */}
-                <Badge className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-600">
-                  {group.category}
+                <Badge className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-200">
+                  {group.category || "General"}
                 </Badge>
 
-                <div className="flex items-center gap-2">
-                  {group.status == "private" ? (
-                    <>
-                      <Lock size={16} />
-                    </>
-                  ) : group.status == "secret" ? (
-                    <>
-                      <EyeOff size={16} />
-                    </>
-                  ) : (
-                    <>
-                      
-                    </>
-                  )}
+                <div className="flex items-center gap-2 text-gray-500">
+                  {status === "private" ? (
+                    <Lock size={16} />
+                  ) : status === "secret" ? (
+                    <EyeOff size={16} />
+                  ) : null}
                 </div>
               </div>
 
               {/* Title */}
               <div>
-                <h3 className="text-lg font-semibold">{group.name}</h3>
+                <h3 className="line-clamp-1 text-lg font-semibold" title={group.name}>
+                  {group.name}
+                </h3>
               </div>
 
               {/* Stats */}
               <div className="text-muted-foreground flex items-center gap-6 text-sm">
                 <div className="flex items-center gap-2">
                   <Users size={16} />
-                  {group.members.toLocaleString()} members
+                  {memberCount.toLocaleString()} members
                 </div>
                 <div className="flex items-center gap-2">
                   <Calendar size={16} />
-                  {group.created_at}
+                  {createdDate}
                 </div>
               </div>
 
               {/* Owner */}
               <div className="flex items-center gap-3">
                 <Avatar className="h-10 w-10 border-2 border-lime-400">
-                  <AvatarImage src="" />
+                  <AvatarImage src={group.creator?.avatar_url || ""} />
                   <AvatarFallback className="bg-lime-400 text-white">
                     {(
-                      group.creator_id.nickname?.[0] ||
-                      group.creator_id.fullname?.[0] ||
-                      group.creator_id.username?.[0] ||
+                      group.creator?.nickname?.[0] ||
+                      group.creator?.fullname?.[0] ||
+                      group.creator?.username?.[0] ||
                       "?"
                     ).toUpperCase()}
                   </AvatarFallback>
                 </Avatar>
-                <div>
-                  <p className="text-sm font-medium">
-                    {group.creator_id.nickname} - {group.creator_id.fullname}
+                <div className="overflow-hidden">
+                  <p className="truncate text-sm font-medium">
+                    {[group.creator?.nickname, group.creator?.fullname]
+                      .filter(Boolean)
+                      .join(" - ") || ""}
                   </p>
-                  <p className="text-muted-foreground text-xs">
-                    @{group.creator_id.username} - {group.creator_id.city}, {group.creator_id.state}
+                  <p className="text-muted-foreground truncate text-xs">
+                    {[
+                      group.creator?.username ? `@${group.creator.username}` : null,
+                      [group.creator?.state?.name, group.creator?.city?.name]
+                        .filter(Boolean)
+                        .join(", ")
+                    ]
+                      .filter(Boolean)
+                      .join(" - ") || ""}
                   </p>
                 </div>
               </div>
 
               {/* Button */}
-              {group.admins_approval ? (
-                <Button variant="outline" className="w-full rounded-xl">
-                  Request to Join
+              {isMyGroup ? (
+                <Button onClick={() => router.push(`/group/${group.id}`)} variant="secondary" className="w-full rounded-xl">
+                  Detail
                 </Button>
+              ) : adminsApproval ? (
+                isPending ? (
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-xl border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600"
+                    onClick={() => handleCancelRequest(group.id, group.join_requests)}
+                    disabled={loadingId === group.id}>
+                    {loadingId === group.id ? "Cancelling..." : "Cancel Request"}
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="w-full rounded-xl"
+                    onClick={() => handleRequestJoin(group.id, group.join_requests)}
+                    disabled={loadingId === group.id}>
+                    {loadingId === group.id ? "Requesting..." : "Request to Join"}
+                  </Button>
+                )
               ) : (
-                <Button className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700">
-                  Join Group
+                <Button
+                  className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700"
+                  onClick={() => handleJoin(group.id, group.members)}
+                  disabled={loadingId === group.id}>
+                  {loadingId === group.id ? "Joining..." : "Join"}
                 </Button>
               )}
             </CardContent>
           </Card>
-        ))}
-      </div>
-    </>
+        );
+      })}
+    </div>
   );
 }
