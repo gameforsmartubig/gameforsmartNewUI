@@ -503,20 +503,30 @@ export function DashboardContent({
             return (
               <Card
                 key={quiz.id}
-                className="transition-colors hover:bg-neutral-50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-900/50">
-                <CardContent className="flex flex-col gap-2 px-5 py-0">
+                className="hover:border-via-yellow-200 relative flex flex-row overflow-hidden border-slate-200 py-0 shadow-sm transition-all hover:border-orange-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                {/* Garis Gradient di sisi Kiri (Vertical) */}
+                <div className="h-full w-1.5 shrink-0 bg-gradient-to-b from-orange-400 via-yellow-400 to-green-500" />
+
+                {/* Tambahkan flex-1 agar konten memenuhi sisa lebar card */}
+                <CardContent className="flex flex-1 flex-col gap-2 px-5 py-4">
                   <div className="flex items-center justify-between">
-                    <div className="text-muted-foreground flex gap-1 dark:text-zinc-400">
-                      <div className="rounded-lg border border-gray-200 bg-blue-50 px-1.5 py-1 text-sm font-medium dark:border-zinc-700 dark:bg-blue-950/30 dark:text-blue-200">
+                    <div className="text-muted-foreground flex gap-1">
+                      {/* Badge Kategori */}
+                      <div className="rounded-lg border border-green-200 bg-green-50 px-2 py-0.5 text-xs font-bold text-green-700 uppercase dark:bg-green-900/30 dark:text-green-300">
                         {category?.title || "Umum"}
                       </div>
-                      <div className="rounded-lg border border-gray-200 px-1.5 py-1 text-sm font-medium uppercase dark:border-zinc-700">
+                      {/* Badge Bahasa */}
+                      <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-2 py-0.5 text-xs font-bold text-yellow-700 uppercase dark:bg-yellow-900/30 dark:text-yellow-300">
                         {quiz.language}
                       </div>
                     </div>
+
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-orange-600 hover:bg-orange-50">
                           <EllipsisVertical className="h-4 w-4" />
                         </Button>
                       </DropdownMenuTrigger>
@@ -524,12 +534,12 @@ export function DashboardContent({
                         <DropdownMenuItem onClick={() => toggleFavoriteQuiz(quiz)}>
                           {isFavorite ? (
                             <>
-                              <StarOff className="mr-2 h-4 w-4" />
+                              <StarOff className="mr-2 h-4 w-4 text-orange-500" />
                               <span>Unfavorite</span>
                             </>
                           ) : (
                             <>
-                              <Star className="mr-2 h-4 w-4" />
+                              <Star className="mr-2 h-4 w-4 text-orange-500" />
                               <span>Favorite</span>
                             </>
                           )}
@@ -543,60 +553,64 @@ export function DashboardContent({
                     </DropdownMenu>
                   </div>
 
-                  <h1 className="line-clamp-1 text-lg font-bold" title={quiz.title}>
+                  <h1
+                    className="line-clamp-1 text-lg font-bold text-zinc-800 dark:text-zinc-100"
+                    title={quiz.title}>
                     {quiz.title}
                   </h1>
 
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
-                    <User size={14} />
+                  <div className="flex items-center gap-2 text-sm text-zinc-500 italic">
+                    <User size={14} className="text-orange-500" />
                     <span className="line-clamp-1">{quiz.creator}</span>
                   </div>
 
-                  <div className="mt-1 flex items-center gap-6 text-sm text-gray-500 dark:text-gray-400">
+                  <div className="mt-1 flex items-center gap-4 text-xs font-medium text-zinc-600 dark:text-gray-400">
                     <div className="flex items-center gap-1.5">
-                      <CircleQuestionMark size={14} />
-                      <div>{quiz.questions} Questions</div>
+                      <CircleQuestionMark size={14} className="text-green-500" />
+                      <div>{quiz.questions} Soal</div>
                     </div>
                     <div className="flex items-center gap-1.5">
-                      <Play size={14} />
-                      <div>{quiz.played} Plays</div>
+                      <Play size={14} className="text-yellow-500" />
+                      <div>{quiz.played} Main</div>
                     </div>
                   </div>
 
-                  <div className="mt-auto flex flex-wrap justify-end gap-2 pt-4">
+                  <div className="mt-3 flex flex-wrap justify-end gap-2 border-t border-zinc-50 pt-3 dark:border-zinc-800">
                     {tabKey === "myQuiz" ? (
                       <>
                         <Button
                           variant="outline"
                           size="sm"
+                          className="border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-900/50"
                           onClick={() => handleEditClick(quiz.id)}>
                           Edit
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
+                          className="border-green-200 text-green-600 hover:bg-green-50 dark:border-green-900/50"
                           onClick={() => handleAnalyticClick(quiz.id)}>
                           Analytic
                         </Button>
                         <Button
-                          variant="outline"
                           size="sm"
+                          className="bg-orange-500 text-white hover:bg-orange-600"
                           onClick={() => handleHostClick(quiz.id)}>
                           Host
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          Tryout
                         </Button>
                       </>
                     ) : (
                       <>
                         <Button
+                          size="sm"
+                          className="bg-orange-500 text-white hover:bg-orange-600"
+                          onClick={() => handleHostClick(quiz.id)}>
+                          <Play className="mr-1 h-3 w-3 fill-current" /> Host
+                        </Button>
+                        <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => handleHostClick(quiz.id)}>
-                          Host
-                        </Button>
-                        <Button variant="outline" size="sm">
+                          className="border-yellow-400 text-yellow-700 hover:bg-yellow-50 dark:border-yellow-900/50">
                           Tryout
                         </Button>
                       </>
@@ -625,27 +639,6 @@ export function DashboardContent({
         </div>
 
         <div className="flex w-full items-center space-x-2 sm:w-auto">
-          <div className="relative w-full sm:w-auto">
-            <Input
-              ref={searchInputRef}
-              placeholder="Search"
-              className="w-full pl-3 pr-20 sm:w-[250px]"
-              value={searchInputValue}
-              onChange={(e) => setSearchInputValue(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  handleSearchSubmit();
-                }
-              }}
-            />
-            <Button
-              variant="default"
-              className="absolute top-1 right-1 h-7 w-7 p-2"
-              onClick={handleSearchSubmit}>
-              <Search size={20} />
-            </Button>
-          </div>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto">
@@ -676,6 +669,26 @@ export function DashboardContent({
               })}
             </DropdownMenuContent>
           </DropdownMenu>
+          <div className="relative w-full sm:w-auto">
+            <Input
+              ref={searchInputRef}
+              placeholder="Search"
+              className="w-full pr-20 pl-3 sm:w-[250px]"
+              value={searchInputValue}
+              onChange={(e) => setSearchInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSearchSubmit();
+                }
+              }}
+            />
+            <Button
+              variant="default"
+              className="absolute top-1 right-1 h-7 w-7 p-2"
+              onClick={handleSearchSubmit}>
+              <Search size={20} />
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -690,12 +703,18 @@ export function DashboardContent({
             </TabsList>
 
             <div className="flex w-full flex-row items-center justify-end gap-2 sm:w-auto">
-              <Button variant="outline" className="">
+              <Button
+                variant="outline"
+                className="flex bg-lime-500 text-white hover:bg-lime-600 hover:text-white"
+                onClick={() => router.push("/create")}>
                 <PlusIcon className="hidden sm:block" />
                 <span className="hidden sm:inline">Create Quiz</span>
                 <span className="inline sm:hidden">Create</span>
               </Button>
-              <Button onClick={() => router.push("/join")} variant="outline" className="flex">
+              <Button
+                onClick={() => router.push("/join")}
+                variant="outline"
+                className="flex bg-yellow-300 hover:bg-yellow-400">
                 <Play className="hidden sm:block" />
                 <span className="hidden sm:inline">Join Quiz</span>
                 <span className="inline sm:hidden">Join</span>
