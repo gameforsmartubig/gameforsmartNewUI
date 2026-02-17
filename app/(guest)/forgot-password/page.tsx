@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Loader2Icon, MailIcon } from "lucide-react";
 import { toast } from "sonner";
+import Link from "next/link";
 
 const formSchema = z.object({
   email: z.string().email("Please enter a valid email address")
@@ -47,11 +48,11 @@ export default function Page() {
   };
 
   return (
-    <div className="flex items-center justify-center py-4 lg:h-screen">
-      <Card className="mx-auto w-96">
+    <div className="flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-yellow-50/30 py-4 lg:h-screen">
+      <Card className="mx-auto w-96 border-t-4 border-t-orange-500 shadow-xl">
         <CardHeader>
-          <CardTitle className="text-2xl">Forgot Password</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl font-bold text-orange-900">Forgot Password</CardTitle>
+          <CardDescription className="text-gray-600">
             Enter your email address and we&#39;ll send you instructions to reset your password.
           </CardDescription>
         </CardHeader>
@@ -68,25 +69,28 @@ export default function Page() {
                     </Label>
                     <FormControl>
                       <div className="relative">
-                        <MailIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform opacity-30" />
+                        <MailIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-orange-400" />
                         <Input
                           {...field}
                           id="email"
                           type="email"
                           autoComplete="email"
-                          className="w-full pl-10"
-                          placeholder="Enter your email addresss"
+                          className="w-full border-orange-100 bg-white/50 pl-10 focus-visible:ring-orange-500"
+                          placeholder="Enter your email address"
                         />
                       </div>
                     </FormControl>
-                    <FormMessage />
+                    <FormMessage className="text-xs text-red-500" />
                   </FormItem>
                 )}
               />
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                className="w-full bg-orange-500 font-bold text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-600 active:scale-[0.98]"
+                disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
-                    <Loader2Icon className="animate-spin" />
+                    <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
                     Please wait
                   </>
                 ) : (
@@ -95,15 +99,17 @@ export default function Page() {
               </Button>
             </form>
           </Form>
+          <div className="mt-6 text-center text-sm text-gray-600">
+            <p className="text-sm text-gray-600">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="font-semibold text-orange-600 underline underline-offset-4 transition-colors hover:text-orange-700">
+                Log in
+              </Link>
+            </p>
+          </div>
         </CardContent>
-        <CardFooter className="flex justify-center">
-          <p className="text-sm">
-            Already have an account?{" "}
-            <a href="/dashboard/login/v2" className="underline">
-              Log in
-            </a>
-          </p>
-        </CardFooter>
       </Card>
     </div>
   );

@@ -174,7 +174,7 @@ export default function LoginForm() {
   };
   return (
     <div className="flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-yellow-50/30 py-4 lg:h-screen">
-      <Card className="mx-auto w-96 border-t-4 border-t-orange-500 shadow-xl shadow-orange-100/50">
+      <Card className="mx-auto w-96 border-t-4 border-t-orange-500 shadow-xl">
         <CardHeader>
           <div className="flex items-center justify-center">
             <img src="/gameforsmartlogo.png" alt="Logo" className="h-full w-11/12 px-8" />
@@ -241,7 +241,7 @@ export default function LoginForm() {
                     Password
                   </Label>
                   <Link
-                    href="/dashboard/forgot-password"
+                    href="/forgot-password"
                     className="ml-auto inline-block text-sm font-medium text-yellow-700 underline-offset-4 hover:text-yellow-800 hover:underline">
                     Forgot your password?
                   </Link>
