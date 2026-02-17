@@ -406,18 +406,22 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="my-32 flex items-center justify-center lg:h-screen">
-      <Card className="mx-auto w-96">
+    <div className="flex h-screen items-center justify-center bg-gradient-to-br from-orange-50 to-white">
+      <Card className="mx-auto w-96 border-t-4 border-t-orange-500 shadow-xl">
         <CardHeader>
           <div className="flex items-center justify-center">
-            <img src="/gameforsmartlogo.png" alt="" className="h-full w-11/12 px-8" />
+            {/* Logo area */}
+            <img src="/gameforsmartlogo.png" alt="Logo" className="h-full w-11/12 px-8" />
           </div>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4">
             <div className="grid grid-cols-1 gap-3">
-              <Button variant="outline" className="w-full" onClick={handleGoogleSignIn}>
-                <svg viewBox="0 0 24 24">
+              <Button
+                variant="outline"
+                className="w-full border-orange-200 text-orange-700 transition-all hover:border-orange-400 hover:bg-orange-50 hover:text-orange-800"
+                onClick={handleGoogleSignIn}>
+                <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                   <path
                     fill="currentColor"
                     d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -441,15 +445,19 @@ export default function RegisterForm() {
 
             <div className="my-4">
               <div className="flex items-center gap-3">
-                <div className="w-full border-t" />
-                <span className="text-muted-foreground shrink-0 text-sm">or continue with</span>
-                <div className="w-full border-t" />
+                <div className="w-full border-t border-orange-100" />
+                <span className="shrink-0 text-sm font-medium text-orange-400">
+                  or continue with
+                </span>
+                <div className="w-full border-t border-orange-100" />
               </div>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid gap-2">
-                <Label htmlFor="first_name">Full Name</Label>
+                <Label htmlFor="fullname" className="text-orange-700">
+                  Full Name
+                </Label>
                 <Input
                   id="fullname"
                   name="fullname"
@@ -457,24 +465,27 @@ export default function RegisterForm() {
                   placeholder="Full Name"
                   value={formData.fullname}
                   onChange={handleInputChange}
-                  className="w-full"
+                  className="w-full border-orange-100 focus-visible:ring-orange-500"
                   required
                 />
               </div>
+
               <div className="grid gap-2">
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="username" className="text-orange-700">
+                  Username
+                </Label>
                 <div className="relative">
                   <Input
                     id="username"
                     name="username"
                     type="text"
                     required
-                    className={`w-full ${
+                    className={`w-full transition-all focus-visible:ring-orange-500 ${
                       formData.username
                         ? usernameValidation.isValid
-                          ? "border-green-500 focus:border-green-600"
-                          : "border-red-500 focus:border-red-600"
-                        : "border-gray-200 focus:border-blue-500"
+                          ? "border-green-500 bg-green-50 focus-visible:ring-green-500"
+                          : "border-red-500 bg-red-50 focus-visible:ring-red-500"
+                        : "border-orange-100"
                     }`}
                     placeholder="Username"
                     value={formData.username}
@@ -484,7 +495,7 @@ export default function RegisterForm() {
                   {formData.username && (
                     <div className="absolute top-2 right-4 flex h-5 w-5 items-center justify-center">
                       {usernameValidation.isChecking ? (
-                        <Loader2 className="h-4 w-4 animate-spin text-blue-500" />
+                        <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
                       ) : usernameValidation.isValid ? (
                         <div className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500">
                           <svg
@@ -495,7 +506,7 @@ export default function RegisterForm() {
                             <path
                               strokeLinecap="round"
                               strokeLinejoin="round"
-                              strokeWidth={2}
+                              strokeWidth={3}
                               d="M5 13l4 4L19 7"
                             />
                           </svg>
@@ -510,7 +521,7 @@ export default function RegisterForm() {
                             <path
                               strokeLinecap="round"
                               strokeLinejoin="round"
-                              strokeWidth={2}
+                              strokeWidth={3}
                               d="M6 18L18 6M6 6l12 12"
                             />
                           </svg>
@@ -522,7 +533,7 @@ export default function RegisterForm() {
                 {/* Validation message */}
                 {formData.username && usernameValidation.message && (
                   <p
-                    className={`mt-1 text-sm ${
+                    className={`mt-1 text-xs font-medium ${
                       usernameValidation.isValid ? "text-green-600" : "text-red-600"
                     }`}>
                     {usernameValidation.message}
@@ -537,22 +548,24 @@ export default function RegisterForm() {
                 variant="outline"
                 onClick={detectLocation}
                 disabled={detectingLocation || loading}
-                className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border-2 border-blue-200 text-sm text-blue-700 transition-colors hover:border-blue-400 hover:bg-blue-50">
+                className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border-2 border-yellow-200 bg-yellow-50/30 text-sm text-orange-700 transition-all hover:border-yellow-400 hover:bg-yellow-50">
                 {detectingLocation ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
                     <span className="font-medium">Mendeteksi lokasi...</span>
                   </>
                 ) : (
                   <>
-                    <Navigation className="h-4 w-4" />
-                    <span className="font-medium">Deteksi Lokasi Otomatis</span>
+                    <Navigation className="h-4 w-4 text-orange-500" />
+                    <span className="font-medium text-orange-700">Deteksi Lokasi Otomatis</span>
                   </>
                 )}
               </Button>
 
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-orange-700">
+                  Email
+                </Label>
                 <Input
                   id="email"
                   name="email"
@@ -560,29 +573,48 @@ export default function RegisterForm() {
                   placeholder="johndoe@example.com"
                   value={formData.email}
                   onChange={handleInputChange}
+                  className="border-orange-100 focus-visible:ring-orange-500"
                   required
                 />
               </div>
-              <div className="flex items-center">
-                <Label htmlFor="password">Password</Label>
+
+              <div className="grid gap-2">
+                <Label htmlFor="password" className="text-orange-700">
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  name="password"
+                  type="password"
+                  required
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  className="border-orange-100 focus-visible:ring-orange-500"
+                  minLength={6}
+                />
               </div>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                required
-                value={formData.password}
-                onChange={handleInputChange}
-                minLength={6}
-              />
-              <Button type="submit" className="w-full">
-                {loading ? "Loading..." : "Register"}
+
+              <Button
+                type="submit"
+                className="w-full bg-lime-500 font-bold text-white shadow-lg shadow-yellow-200 transition-transform hover:bg-lime-600 active:scale-[0.98]"
+                disabled={loading}>
+                {loading ? (
+                  <div className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    <span>Processing...</span>
+                  </div>
+                ) : (
+                  "Register"
+                )}
               </Button>
             </form>
           </div>
-          <div className="mt-4 text-center text-sm">
-            already have an account?{" "}
-            <Link href="/login" className="underline">
+
+          <div className="mt-6 text-center text-sm text-gray-600">
+            Already have an account?{" "}
+            <Link
+              href="/login"
+              className="font-semibold text-orange-600 underline underline-offset-4 transition-colors hover:text-orange-700">
               Sign in
             </Link>
           </div>
