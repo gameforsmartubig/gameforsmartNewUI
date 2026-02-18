@@ -370,7 +370,7 @@ export function DashboardContent({
         className={`h-8 w-8 transition-colors ${
           currentPage === page
             ? "border-orange-400 bg-orange-400 text-white hover:bg-orange-500" // Saat aktif (Halaman sekarang)
-            : "border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600" // Saat tidak aktif
+            : "border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-400 dark:hover:bg-orange-950/50 dark:hover:text-orange-400" // Saat tidak aktif
         }`}
         onClick={() => onPageChange(page)}>
         {page}
@@ -388,7 +388,7 @@ export function DashboardContent({
             }}
             className="flex items-center">
             <Input
-              className="h-8 w-8 border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-300 dark:hover:bg-orange-50 dark:hover:text-orange-600"
+              className="h-8 w-8 border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-400 dark:hover:bg-orange-950/50 dark:hover:text-orange-400"
               autoFocus
               onBlur={() => {
                 setTimeout(() => setActiveInput(null), 200);
@@ -404,7 +404,7 @@ export function DashboardContent({
           key={position}
           variant="ghost"
           size="icon"
-          className="h-8 w-8 border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-300 dark:hover:bg-orange-50 dark:hover:text-orange-600"
+          className="h-8 w-8 border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-400 dark:hover:bg-orange-950/50 dark:hover:text-orange-400"
           onClick={() => {
             setActiveInput(position);
             setJumpPage("");
@@ -421,7 +421,7 @@ export function DashboardContent({
         key="prev"
         variant="outline"
         size="icon"
-        className="h-8 w-8 border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-300 dark:hover:bg-orange-50 dark:hover:text-orange-600"
+        className="h-8 w-8 border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-400 dark:hover:bg-orange-950/50 dark:hover:text-orange-400"
         onClick={() => onPageChange(Math.max(1, currentPage - 1))}
         disabled={currentPage === 1}>
         &lt;
@@ -473,7 +473,7 @@ export function DashboardContent({
         key="next"
         variant="outline"
         size="icon"
-        className="h-8 w-8 border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-300 dark:hover:bg-orange-50 dark:hover:text-orange-600"
+        className="h-8 w-8 border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-400 dark:hover:bg-orange-950/50 dark:hover:text-orange-400"
         onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
         disabled={currentPage === totalPages}>
         &gt;
