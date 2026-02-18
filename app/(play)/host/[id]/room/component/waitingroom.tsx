@@ -514,7 +514,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                   {participants.map((player) => (
                     <Card
                       key={player.id}
-                      className="group relative overflow-hidden border-0 bg-gradient-to-br from-orange-400 to-orange-600 shadow-md shadow-orange-100 transition-colors">
+                      className="group relative overflow-hidden border-0 bg-gradient-to-br from-orange-400 to-yellow-400 shadow-md shadow-orange-100 transition-colors">
                       <Button
                         variant="ghost"
                         size="icon"

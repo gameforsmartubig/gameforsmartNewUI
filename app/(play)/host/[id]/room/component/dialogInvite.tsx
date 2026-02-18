@@ -22,9 +22,7 @@ export interface InviteProps {
   sessionId?: string;
 }
 
-export function InviteFriend({
-  sessionId = ""
-}: InviteProps) {
+export function InviteFriend({ sessionId = "" }: InviteProps) {
   const [open, setOpen] = useState(false);
   const { profileId } = useAuth();
   const [isSending, setIsSending] = useState(false);
@@ -145,42 +143,46 @@ export function InviteFriend({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full text-xs">
+        <Button
+          variant="outline"
+          className="w-full border-orange-200 text-xs text-orange-600 hover:bg-orange-50">
           <Share2 className="mr-2 size-3" /> Invite Friends
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full max-w-md min-w-0 gap-0 overflow-hidden rounded-2xl border border-lime-400 bg-white p-0">
-        <DialogHeader className="border-b border-lime-200 p-6">
-          <DialogTitle className="text-lg font-semibold text-lime-600">Invite Friends</DialogTitle>
+      <DialogContent className="w-full max-w-md min-w-0 gap-0 overflow-hidden rounded-2xl border border-orange-500 bg-white p-0">
+        <DialogHeader className="border-b border-orange-100 p-6">
+          <DialogTitle className="text-lg font-semibold text-orange-600">
+            Invite Friends
+          </DialogTitle>
         </DialogHeader>
 
         <div className="max-w-full min-w-0 space-y-5 p-6">
           <Input
             placeholder="Search by name or username..."
-            className="border-lime-300 focus-visible:ring-lime-400"
+            className="border-orange-200 focus-visible:ring-orange-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
 
           {selected.length > 0 && (
             <div className="w-full">
-              <p className="mb-2 text-xs font-medium text-orange-500">
+              <p className="mb-2 text-xs font-bold tracking-wider text-green-600">
                 SELECTED ({selected.length})
               </p>
               <div className="max-h-20 w-full overflow-x-auto">
                 <div className="flex gap-2 py-2">
                   {selected.map((friend) => (
                     <div key={friend.id} className="relative flex-shrink-0">
-                      <Avatar className="h-10 w-10 border-2 border-lime-400">
+                      <Avatar className="h-10 w-10 border-2 border-orange-400">
                         <AvatarImage src={friend.avatar_url || ""} />
-                        <AvatarFallback className="bg-lime-400 text-white">
+                        <AvatarFallback className="bg-orange-500 text-white">
                           {(friend.fullname?.[0] || friend.username?.[0] || "?").toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
 
                       <button
                         onClick={() => toggleSelect(friend)}
-                        className="absolute -top-1 -right-1 rounded-full bg-orange-500 p-1 text-white hover:bg-orange-600">
+                        className="absolute -top-1 -right-1 rounded-full bg-green-600 p-1 text-white shadow-sm hover:bg-green-700">
                         <X size={12} />
                       </button>
                     </div>
@@ -192,7 +194,7 @@ export function InviteFriend({
 
           <div className="max-h-60 overflow-y-auto pr-2">
             {loading ? (
-              <div className="flex justify-center py-4 text-lime-600">
+              <div className="flex justify-center py-4 text-orange-500">
                 <Loader2 className="animate-spin" />
               </div>
             ) : filtered.length === 0 ? (
@@ -206,11 +208,11 @@ export function InviteFriend({
                 return (
                   <div
                     key={friend.id}
-                    className="flex items-center justify-between border-b border-lime-200 py-1.5 last:border-0">
+                    className="flex items-center justify-between border-b border-orange-50 py-1.5 last:border-0">
                     <div className="flex items-center gap-3">
                       <Avatar>
                         <AvatarImage src={friend.avatar_url || ""} />
-                        <AvatarFallback className="bg-lime-400 text-white">
+                        <AvatarFallback className="bg-green-500 font-bold text-white">
                           {(friend.fullname?.[0] || friend.username?.[0] || "?").toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
@@ -225,8 +227,8 @@ export function InviteFriend({
                       onClick={() => toggleSelect(friend)}
                       className={
                         isSelected
-                          ? "bg-lime-500 text-white hover:bg-lime-600"
-                          : "bg-orange-500 text-white hover:bg-orange-600"
+                          ? "bg-green-500 text-white shadow-sm hover:bg-green-600"
+                          : "bg-orange-500 text-white shadow-sm hover:bg-orange-600"
                       }>
                       {isSelected ? "Added" : "Add"}
                     </Button>
@@ -237,20 +239,23 @@ export function InviteFriend({
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-lime-200 p-6">
-          <Button variant="ghost" onClick={() => setOpen(false)} className="text-gray-500">
+        <div className="flex items-center justify-between border-t border-orange-100 bg-orange-50/20 p-6">
+          <Button
+            variant="ghost"
+            onClick={() => setOpen(false)}
+            className="text-gray-500 hover:bg-orange-50 hover:text-orange-600">
             Cancel
           </Button>
 
           <div className="flex items-center gap-4">
             <RefreshCcw
-              className={`size-5 cursor-pointer text-orange-500 hover:text-orange-600 focus:outline-none ${isSending ? "pointer-events-none opacity-50" : ""}`}
+              className={`size-5 cursor-pointer text-yellow-500 hover:text-yellow-600 focus:outline-none ${isSending ? "pointer-events-none opacity-50" : ""}`}
               onClick={() => !isSending && setSelected([])}
               role="button"
               aria-label="Refresh selection"
             />
             <Button
-              className="bg-orange-500 px-6 font-semibold text-white hover:bg-orange-600"
+              className="bg-orange-500 px-6 font-semibold text-white shadow-md shadow-orange-100 hover:bg-orange-600"
               onClick={handleSendInvites}
               disabled={selected.length === 0 || isSending}>
               {isSending ? (
@@ -268,9 +273,7 @@ export function InviteFriend({
   );
 }
 
-export function InviteGroup({
-  sessionId = ""
-}: InviteProps) {
+export function InviteGroup({ sessionId = "" }: InviteProps) {
   const [open, setOpen] = useState(false);
   const { profileId } = useAuth();
   const [isSending, setIsSending] = useState(false);
@@ -399,26 +402,28 @@ export function InviteGroup({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full text-xs">
+        <Button
+          variant="outline"
+          className="w-full border-orange-200 text-xs text-orange-600 hover:bg-orange-50">
           <Users className="mr-2 size-3" /> Invite Group
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md gap-0 overflow-hidden rounded-2xl border border-lime-400 bg-white p-0">
-        <DialogHeader className="border-b border-lime-200 p-6">
-          <DialogTitle className="text-lg font-semibold text-lime-600">Invite Groups</DialogTitle>
+      <DialogContent className="max-w-md gap-0 overflow-hidden rounded-2xl border border-orange-500 bg-white p-0">
+        <DialogHeader className="border-b border-orange-100 p-6">
+          <DialogTitle className="text-lg font-semibold text-orange-600">Invite Groups</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-5 p-6">
           <Input
             placeholder="Search group..."
-            className="border-lime-300 focus-visible:ring-lime-400"
+            className="border-orange-200 focus-visible:ring-orange-500"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
 
           {selected.length > 0 && (
             <div>
-              <p className="mb-2 text-xs font-medium text-orange-500">
+              <p className="mb-2 text-xs font-bold tracking-wider text-green-600">
                 SELECTED ({selected.length})
               </p>
 
@@ -426,11 +431,11 @@ export function InviteGroup({
                 {selected.map((group) => (
                   <div
                     key={group.id}
-                    className="flex items-center gap-2 rounded-full border-b-2 bg-lime-400 px-3 py-1 text-xs font-medium text-white">
+                    className="flex items-center gap-2 rounded-full border-b-2 border-green-600 bg-green-500 px-3 py-1 text-xs font-medium text-white shadow-sm">
                     {group.name}
                     <button
                       onClick={() => toggleSelect(group)}
-                      className="text-white hover:text-orange-600">
+                      className="text-white transition-colors hover:text-orange-200">
                       ✕
                     </button>
                   </div>
@@ -441,7 +446,7 @@ export function InviteGroup({
 
           <div className="max-h-60 overflow-y-auto pr-2">
             {loading ? (
-              <div className="flex justify-center py-4 text-lime-600">
+              <div className="flex justify-center py-4 text-orange-500">
                 <Loader2 className="animate-spin" />
               </div>
             ) : filtered.length === 0 ? (
@@ -457,10 +462,12 @@ export function InviteGroup({
                 return (
                   <div
                     key={group.id}
-                    className="flex items-center justify-between border-b border-lime-200 py-1.5 last:border-0">
+                    className="flex items-center justify-between border-b border-orange-50 py-1.5 last:border-0">
                     <div>
                       <p className="text-sm font-medium text-gray-800">{group.name}</p>
-                      <p className="text-xs text-gray-500">{group.member_count} members</p>
+                      <p className="text-xs font-medium text-orange-400">
+                        {group.member_count} members
+                      </p>
                     </div>
 
                     <Button
@@ -468,8 +475,8 @@ export function InviteGroup({
                       onClick={() => toggleSelect(group)}
                       className={
                         isSelected
-                          ? "bg-lime-500 text-white hover:bg-lime-600"
-                          : "bg-orange-500 text-white hover:bg-orange-600"
+                          ? "bg-green-500 text-white shadow-sm hover:bg-green-600"
+                          : "bg-orange-500 text-white shadow-sm hover:bg-orange-600"
                       }>
                       {isSelected ? "Added" : "Add"}
                     </Button>
@@ -480,20 +487,23 @@ export function InviteGroup({
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-lime-200 p-6">
-          <Button variant="ghost" onClick={() => setOpen(false)} className="text-gray-500">
+        <div className="flex items-center justify-between border-t border-orange-100 bg-orange-50/20 p-6">
+          <Button
+            variant="ghost"
+            onClick={() => setOpen(false)}
+            className="text-gray-500 hover:text-orange-600">
             Cancel
           </Button>
 
           <div className="flex items-center gap-4">
             <RefreshCcw
-              className={`size-5 cursor-pointer text-orange-500 hover:text-orange-600 focus:outline-none ${isSending ? "pointer-events-none opacity-50" : ""}`}
+              className={`size-5 cursor-pointer text-yellow-500 hover:text-yellow-600 focus:outline-none ${isSending ? "pointer-events-none opacity-50" : ""}`}
               onClick={() => !isSending && setSelected([])}
               role="button"
               aria-label="Refresh selection"
             />
             <Button
-              className="bg-lime-500 px-6 font-semibold text-white hover:bg-lime-600"
+              className="bg-orange-500 px-6 font-semibold text-white shadow-md shadow-orange-100 hover:bg-orange-600"
               onClick={handleSendInvites}
               disabled={selected.length === 0 || isSending}>
               {isSending ? (
