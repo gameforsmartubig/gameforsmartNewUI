@@ -166,10 +166,10 @@ function HostLeaderboard({ players }: HostLeaderboardProps) {
               Player
             </th>
             <th className="px-4 py-3 text-center text-[10px] font-bold tracking-widest text-zinc-500 uppercase md:px-6 dark:text-zinc-400">
-              Duration
+              Score
             </th>
             <th className="px-4 py-3 text-right text-[10px] font-bold tracking-widest text-zinc-500 uppercase md:px-6 dark:text-zinc-400">
-              Score
+              Duration
             </th>
           </tr>
         </thead>
@@ -213,6 +213,13 @@ function HostLeaderboard({ players }: HostLeaderboardProps) {
                   </div>
                 </td>
 
+                {/* Score */}
+                <td className="px-4 py-3 text-right md:px-6">
+                  <span className="text-base font-black tracking-tight text-orange-600 md:text-lg dark:text-orange-500">
+                    {p.normalizedScore}
+                  </span>
+                </td>
+
                 {/* Duration */}
                 <td className="px-4 py-3 text-center md:px-6">
                   <div className="flex items-center justify-center gap-1.5">
@@ -221,13 +228,6 @@ function HostLeaderboard({ players }: HostLeaderboardProps) {
                       {formatDuration(p.duration || 0)}
                     </span>
                   </div>
-                </td>
-
-                {/* Score */}
-                <td className="px-4 py-3 text-right md:px-6">
-                  <span className="text-base font-black tracking-tight text-orange-600 md:text-lg dark:text-orange-500">
-                    {p.normalizedScore}
-                  </span>
                 </td>
               </tr>
             );
