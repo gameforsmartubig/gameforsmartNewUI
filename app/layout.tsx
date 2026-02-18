@@ -37,7 +37,7 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        className={cn("bg-background group/layout font-sans", fontVariables)}
+        className={cn("bg-background group/layout font-sans dark:bg-white", fontVariables)}
         {...bodyAttributes}>
         <ThemeProvider
           attribute="class"
@@ -46,10 +46,15 @@ export default async function RootLayout({
           disableTransitionOnChange>
           <ActiveThemeProvider initialTheme={themeSettings}>
             <AuthProvider>
-            {children}
-            <Toaster position="top-center" richColors />
-            <NextTopLoader color="var(--primary)" showSpinner={false} height={2} shadow-sm="none" />
-            {process.env.NODE_ENV === "production" ? <GoogleAnalyticsInit /> : null}
+              {children}
+              <Toaster position="top-center" richColors />
+              <NextTopLoader
+                color="linear-gradient(to right, #fb923c 0%, #fb923c 60%, #facc15 95%, #a3e635 100%)"
+                showSpinner={false}
+                height={3}
+                shadow={false}
+              />
+              {process.env.NODE_ENV === "production" ? <GoogleAnalyticsInit /> : null}
             </AuthProvider>
           </ActiveThemeProvider>
         </ThemeProvider>

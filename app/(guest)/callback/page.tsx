@@ -197,14 +197,19 @@ function AuthCallbackPageContent() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="mx-auto max-w-md p-6 text-center">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 via-white to-yellow-50/50">
+      <div className="mx-auto max-w-md rounded-3xl border border-orange-100 bg-white/40 p-8 text-center shadow-xl shadow-orange-100/20 backdrop-blur-sm">
         {!isError ? (
-          <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-blue-600"></div>
+          <div className="relative mx-auto mb-6 h-16 w-16">
+            {/* Spinner Orange Utama */}
+            <div className="absolute inset-0 animate-spin rounded-full border-t-4 border-b-4 border-orange-500"></div>
+            {/* Ring Kuning di dalamnya */}
+            <div className="animate-spin-slow absolute inset-2 rounded-full border-r-4 border-l-4 border-yellow-400 opacity-50"></div>
+          </div>
         ) : (
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+          <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full border-2 border-red-100 bg-red-50">
             <svg
-              className="h-6 w-6 text-red-600"
+              className="h-8 w-8 text-red-600"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24">
@@ -217,11 +222,24 @@ function AuthCallbackPageContent() {
             </svg>
           </div>
         )}
-        <p className={`${isError ? "text-red-600" : "text-blue-600"} font-medium`}>{status}</p>
-        {isError && (
-          <p className="mt-2 text-sm text-gray-500">
-            Anda akan diarahkan kembali dalam beberapa detik...
+
+        <h2 className={`text-xl font-bold ${isError ? "text-red-600" : "text-orange-600"}`}>
+          {status}
+        </h2>
+
+        {isError ? (
+          <p className="mt-3 text-sm text-gray-500">
+            Terjadi kendala. Anda akan diarahkan kembali dalam beberapa detik...
           </p>
+        ) : (
+          <div className="mt-4 flex items-center justify-center gap-2">
+            <span className="h-2 w-2 animate-bounce rounded-full bg-green-400"></span>
+            <span className="h-2 w-2 animate-bounce rounded-full bg-orange-400 [animation-delay:-0.15s]"></span>
+            <span className="h-2 w-2 animate-bounce rounded-full bg-yellow-400 [animation-delay:-0.3s]"></span>
+            <p className="ml-1 text-xs font-medium tracking-widest text-gray-400 uppercase">
+              Processing
+            </p>
+          </div>
         )}
       </div>
     </div>
@@ -232,10 +250,11 @@ export default function AuthCallbackPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-white">
+        <div className="flex min-h-screen items-center justify-center bg-orange-50/30">
           <div className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-b-2 border-purple-600"></div>
-            <p className="text-gray-600">Loading...</p>
+            {/* Loader Fallback dengan warna Orange & Kuning */}
+            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-yellow-200 border-t-orange-500"></div>
+            <p className="animate-pulse font-medium text-orange-600">Memuat halaman...</p>
           </div>
         </div>
       }>
