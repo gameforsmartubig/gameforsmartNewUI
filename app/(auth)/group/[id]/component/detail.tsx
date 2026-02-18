@@ -1,208 +1,170 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { Users, Calendar, Globe, Settings, Bell, Copy, LogOut } from "lucide-react";
+"use client";
 
-const group = {
-  "name" : "Elite Quiz Masters",
-  "description" : "A group dedicated to weekly science and history challenges. Join our community to test your knowledge and climb the leaderboard!",
-  "created" : "10 Oct 2025",
-  "settings" : {
-    "status" : "private",
-    "admins_approval" : true
-  }
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/auth-context";
+import { Bell, Calendar, Copy, Globe, LogOut, Settings, Users } from "lucide-react";
+import { useState } from "react";
+import { PaginationControl } from "./pagination-control";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator
+} from "@/components/ui/breadcrumb";
+
+interface GroupDetailProps {
+  group: any;
+  members: any[];
 }
 
-const members = [
-  {
-    name: "Alex Johnson",
-    username: "@alex_j",
-    role: "OWNER"
-  },
-  {
-    name: "Sarah Miller",
-    username: "@sarahm_quiz",
-    role: "ADMIN"
-  },
-  {
-    name: "Marcus Lee",
-    username: "@m_lee_99",
-    role: "MEMBER"
-  },
-  {
-    name: "Elena Rodriguez",
-    username: "@elena_rod",
-    role: "MEMBER"
-  },
-  {
-    name: "David Chen",
-    username: "@dchen_pro",
-    role: "MEMBER"
-  },
-  {
-    name: "Jessica White",
-    username: "@jess_w",
-    role: "MEMBER"
-  },
-  {
-    name: "Michael Brown",
-    username: "@mikebrown",
-    role: "ADMIN"
-  },
-  {
-    name: "Sophia Taylor",
-    username: "@soph_t",
-    role: "MEMBER"
-  },
-  {
-    name: "Daniel Wilson",
-    username: "@dan_wilson",
-    role: "MEMBER"
-  },
-  {
-    name: "Olivia Martinez",
-    username: "@oliviam",
-    role: "MEMBER"
-  },
-  {
-    name: "James Anderson",
-    username: "@janderson",
-    role: "MEMBER"
-  },
-  {
-    name: "Isabella Thomas",
-    username: "@isathomas",
-    role: "MEMBER"
-  },
-  {
-    name: "William Jackson",
-    username: "@willjack",
-    role: "MEMBER"
-  },
-  {
-    name: "Mia Harris",
-    username: "@miaharris",
-    role: "MEMBER"
-  },
-  {
-    name: "Benjamin Clark",
-    username: "@benclark",
-    role: "MEMBER"
-  },
-  {
-    name: "Charlotte Lewis",
-    username: "@charlotte_l",
-    role: "MEMBER"
-  },
-  {
-    name: "Lucas Walker",
-    username: "@lucaswalker",
-    role: "MEMBER"
-  },
-  {
-    name: "Amelia Hall",
-    username: "@ameliah",
-    role: "MEMBER"
-  },
-  {
-    name: "Henry Allen",
-    username: "@henryallen",
-    role: "MEMBER"
-  },
-  {
-    name: "Ava Young",
-    username: "@avayoung",
-    role: "MEMBER"
-  }
-];
+export default function GroupDetail({ group, members }: GroupDetailProps) {
+  const { profileId } = useAuth();
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 10;
 
-export default function GroupDetail() {
+  if (!group) return <div>Loading...</div>;
+
+  const createdAt = group.created_at
+    ? new Date(group.created_at).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      })
+    : "-";
+
+  const status = group.settings?.status || "public";
+  const approval = group.settings?.admins_approval;
+
+  // Determine current user role (ensure case-insensitive check if needed, but assuming lowercase from DB)
+  const currentUser = members.find((m) => m.id === profileId);
+  const userRole = currentUser?.role?.toLowerCase();
+
+  // Pagination Logic
+  const totalItems = members.length;
+  const currentMembers = members.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
     <div className="">
       <div className="grid gap-8 lg:grid-cols-3">
         {/* ================= LEFT SIDEBAR ================= */}
-        <Card className="h-fit rounded-2xl border py-0 shadow-sm">
-          <CardContent className="space-y-6 p-6">
-            <div>
-              <h2 className="text-xl font-semibold">{group.name}</h2>
-              <p className="text-muted-foreground mt-2 text-sm">
-                {group.description}
-              </p>
-            </div>
+        <div className="space-y-4">
+          <Breadcrumb>
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink href="/group">Group</BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator />
+              <BreadcrumbItem>
+                <BreadcrumbPage>Detail</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+          <Card className="h-fit rounded-2xl border py-0 shadow-sm">
+            <CardContent className="space-y-4 p-6">
+              <div>
+                <h2 className="text-xl font-semibold">{group.name}</h2>
+                <p className="text-muted-foreground mt-2 text-sm">{group.description}</p>
+              </div>
 
-            <div className="text-muted-foreground space-y-3 text-sm">
-              <div className="flex items-center gap-2">
-                <div title="Members">
-                <Users size={16} />
+              <div className="text-muted-foreground space-y-3 text-sm">
+                <div className="flex items-center gap-2">
+                  <div title="Members">
+                  <Users size={16} />
+                  </div>
+                  {members.length} members
                 </div>
-                {members.length} members
-              </div>
 
-              <div className="flex items-center gap-2">
-                <div title="Created">
-                <Calendar size={16} />
+                <div className="flex items-center gap-2">
+                  <div title="Created">
+                  <Calendar size={16} />
+
+                  </div>
+                  {createdAt}
                 </div>
-                {group.created}
-              </div>
 
-              <div className="flex items-center gap-2">
-                <div title="Visibility">
-                <Globe size={16}/>
+                <div className="flex items-center gap-2">
+                  <div title="Visibility">
+                  <Globe size={16} />
+                  </div>
+                  {status}
                 </div>
-                {group.settings.status}
-              </div>
-            </div>
-
-            <div>
-              <div className="space-y-3 pt-2">
-                <Button className="w-full rounded-xl bg-yellow-500 text-black hover:bg-yellow-600">
-                  Add Member
-                </Button>
-
-                <Button variant="outline" className="w-full rounded-xl">
-                  <Copy size={16} className="mr-2" />
-                  Copy Invite Link
-                </Button>
               </div>
 
-              <div className="flex gap-3 pt-4">
-                <Button variant="outline" className="flex-1 rounded-xl">
-                  <Settings size={16} className="mr-2" />
-                  Settings
-                </Button>
+              {/* Owner & Admin Actions */}
+              {(userRole === "owner" || userRole === "admin") && (
+                <div>
+                  <div className="space-y-3 pt-2">
+                    <Button className="w-full rounded-xl bg-yellow-500 text-black hover:bg-yellow-600">
+                      Add Member
+                    </Button>
 
-                <Button variant="outline" className="relative flex-1 rounded-xl">
-                  <LogOut size={16} className="mr-2" />
-                  Leave
-                </Button>
-              </div>
-            </div>
-            <div className="flex gap-3 pt-4">
-              <Button variant="outline" className="flex-1 rounded-xl">
-                <Copy size={16} className="mr-2" />
-                Copy Link
-              </Button>
+                    <Button variant="outline" className="w-full rounded-xl">
+                      <Copy size={16} className="mr-2" />
+                      Copy Invite Link
+                    </Button>
+                  </div>
 
-              <Button variant="outline" className="relative flex-1 rounded-xl">
-                <LogOut size={16} className="mr-2" />
-                Leave
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                  <div className="flex gap-3 pt-4">
+                    <Button variant="outline" className="flex-1 rounded-xl">
+                      <Settings size={16} className="mr-2" />
+                      Settings
+                    </Button>
+
+                    <Button variant="outline" className="relative flex-1 rounded-xl">
+                      <LogOut size={16} className="mr-2" />
+                      Leave
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Member Actions */}
+              {userRole === "member" && (
+                <div className="flex gap-3 pt-4">
+                  <Button variant="outline" className="flex-1 rounded-xl">
+                    <Copy size={16} className="mr-2" />
+                    Copy Link
+                  </Button>
+
+                  <Button variant="outline" className="relative flex-1 rounded-xl">
+                    <LogOut size={16} className="mr-2" />
+                    Leave
+                  </Button>
+                </div>
+              )}
+
+              {/* Non-Member Actions (Visitor) */}
+              {!userRole && (
+                <div className="pt-4">
+                  <Button className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700">
+                    Join Group
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
 
         {/* ================= RIGHT CONTENT ================= */}
         <div className="lg:col-span-2">
           <Tabs defaultValue="members">
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-2 flex items-center justify-between">
               <TabsList>
                 <TabsTrigger value="members">Members</TabsTrigger>
                 <TabsTrigger value="activities">Activities</TabsTrigger>
               </TabsList>
-              {group.settings.admins_approval && (
+              {(userRole === "admin" || userRole === "owner") && approval === true && (
                 <Button variant="outline" className="relative rounded-xl">
-                  <Bell size={16} className="" />
+                  <Bell size={16} />
                   <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
                 </Button>
               )}
@@ -211,53 +173,61 @@ export default function GroupDetail() {
             {/* MEMBERS TAB */}
             <TabsContent value="members">
               <div className="grid gap-4 md:grid-cols-2">
-                {members.map((member, i) => (
-                  <Card key={i} className="rounded-xl border py-0 shadow-sm">
-                    <CardContent className="flex items-center gap-4 p-4">
-                      {/* Avatar */}
-                      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-200 font-semibold">
-                        {member.name
-                          .split(" ")
-                          .map((n) => n[0])
-                          .join("")}
-                      </div>
+                {currentMembers.map((member: any, i: number) => {
+                  const role = member.role?.toLowerCase();
+                  return (
+                    <Card key={i} className="rounded-xl border py-0 shadow-sm">
+                      <CardContent className="flex items-center gap-4 p-4">
+                        {/* Avatar */}
+                        <Avatar>
+                          <AvatarImage src={member.avatar} alt={member.name} />
+                          <AvatarFallback className="rounded-lg">
+                            {(member.name || "?").substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
 
-                      {/* Info */}
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">{member.name}</p>
+                        {/* Info */}
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="truncate font-medium">{member.name}</p>
 
-                          {member.role === "OWNER" && (
-                            <Badge className="bg-yellow-100 text-xs text-yellow-700">OWNER</Badge>
-                          )}
+                            {role === "owner" && (
+                              <Badge className="bg-yellow-100 text-xs text-yellow-700">Owner</Badge>
+                            )}
 
-                          {member.role === "ADMIN" && (
-                            <Badge className="bg-blue-100 text-xs text-blue-700">ADMIN</Badge>
-                          )}
+                            {role === "admin" && (
+                              <Badge className="bg-blue-100 text-xs text-blue-700">Admin</Badge>
+                            )}
 
-                          {member.role === "MEMBER" && (
-                            <Badge variant="secondary" className="text-xs">
-                              MEMBER
-                            </Badge>
-                          )}
+                            {role === "member" && (
+                              <Badge variant="secondary" className="text-xs">
+                                Member
+                              </Badge>
+                            )}
+                          </div>
+
+                          <p className="text-muted-foreground truncate text-xs">
+                            {member.username}
+                          </p>
                         </div>
-
-                        <p className="text-muted-foreground text-xs">{member.username}</p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
 
               {/* Pagination */}
-              <div className="text-muted-foreground mt-6 flex items-center justify-between text-sm">
-                <p>Showing 6 of 128 members</p>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm">
-                    Previous
-                  </Button>
-                  <Button size="sm">Next</Button>
-                </div>
+              <div className="text-muted-foreground mt-4 flex flex-col items-center justify-between gap-4 text-sm sm:flex-row">
+                <p>
+                  Showing {Math.min(ITEMS_PER_PAGE * (currentPage - 1) + 1, totalItems)} -{" "}
+                  {Math.min(ITEMS_PER_PAGE * currentPage, totalItems)} of {totalItems} members
+                </p>
+                <PaginationControl
+                  totalItems={totalItems}
+                  currentPage={currentPage}
+                  onPageChange={setCurrentPage}
+                  itemsPerPage={ITEMS_PER_PAGE}
+                />
               </div>
             </TabsContent>
 

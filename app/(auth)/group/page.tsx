@@ -19,7 +19,7 @@ export default async function Page() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect("/auth/login");
+    redirect("/login?redirect=/group");
   }
 
   // Get profile id
