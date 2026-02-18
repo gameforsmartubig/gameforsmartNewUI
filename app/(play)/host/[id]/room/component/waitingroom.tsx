@@ -432,18 +432,18 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   };
 
   return (
-    <div className="relative h-screen overflow-y-auto bg-rose-50 dark:bg-zinc-950">
+    <div className="relative h-screen overflow-y-auto bg-orange-50/50 dark:bg-zinc-950">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1fr_480px]">
         {/* Left Column: Stats & Participants */}
         <div className="order-2 space-y-4 p-4 lg:order-1">
-          <Card className="border-0 bg-slate-50 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <Card className="border-0 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <CardContent>
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1">
-                  <p className="text-3xl font-bold tracking-tight text-gray-900 dark:text-zinc-100">
+                  <p className="text-3xl font-bold tracking-tight text-orange-950 dark:text-zinc-100">
                     {quizData.title}
                   </p>
-                  <p className="text-muted-foreground text-sm dark:text-zinc-400">
+                  <p className="text-sm text-orange-800/60 dark:text-zinc-400">
                     {quizData.description || "No description"}
                   </p>
                 </div>
@@ -453,15 +453,15 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                     <div className="flex items-center gap-3">
                       <Avatar className="size-10 border-2 border-white shadow-sm dark:border-zinc-800">
                         <AvatarImage src={quizData.creator_avatar} />
-                        <AvatarFallback className="bg-primary/10 text-primary">
+                        <AvatarFallback className="bg-orange-100 text-orange-600">
                           {quizData.creator_name?.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                       <div>
-                        <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase dark:text-zinc-500">
+                        <p className="text-[10px] font-bold tracking-wider text-orange-500 uppercase dark:text-zinc-500">
                           HOSTED BY
                         </p>
-                        <p className="text-sm font-semibold dark:text-zinc-100">
+                        <p className="text-sm font-semibold text-orange-950 dark:text-zinc-100">
                           {quizData.creator_name}
                         </p>
                       </div>
@@ -470,10 +470,10 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                     <div className="flex gap-8">
                       <div className="flex flex-col items-center justify-center">
                         <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-zinc-100">
-                          <CircleQuestionMark className="size-5 text-blue-500" />
+                          <CircleQuestionMark className="size-5 text-yellow-500" />
                           <span>{quizData.question_count}</span>
                         </div>
-                        <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase dark:text-zinc-500">
+                        <p className="text-[10px] font-bold tracking-wider text-orange-400 uppercase dark:text-zinc-500">
                           QUESTIONS
                         </p>
                       </div>
@@ -482,7 +482,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                           <Timer className="size-5 text-orange-500" />
                           <span>{gameSession.total_time_minutes}m</span>
                         </div>
-                        <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase dark:text-zinc-500">
+                        <p className="text-[10px] font-bold tracking-wider text-orange-400 uppercase dark:text-zinc-500">
                           TIME
                         </p>
                       </div>
@@ -491,7 +491,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                           <User className="size-5 text-green-500" />
                           <span>{participants.length}</span>
                         </div>
-                        <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase dark:text-zinc-500">
+                        <p className="text-[10px] font-bold tracking-wider text-orange-400 uppercase dark:text-zinc-500">
                           PLAYERS
                         </p>
                       </div>
@@ -505,20 +505,20 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
           <Card className="min-h-[75vh] border-0 bg-white shadow-sm dark:bg-zinc-900">
             <CardContent>
               {participants.length === 0 ? (
-                <div className="text-muted-foreground flex h-40 flex-col items-center justify-center dark:text-zinc-500">
-                  <Users className="mb-2 size-12 opacity-20" />
-                  <p>Waiting for players to join...</p>
+                <div className="flex h-40 flex-col items-center justify-center text-orange-200 dark:text-zinc-500">
+                  <Users className="mb-2 size-12 opacity-30" />
+                  <p className="font-medium text-orange-800/40">Waiting for players to join...</p>
                 </div>
               ) : (
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6">
                   {participants.map((player) => (
                     <Card
                       key={player.id}
-                      className="group relative overflow-hidden border-0 bg-gradient-to-br from-orange-400 to-orange-500 transition-colors dark:bg-gradient-to-br dark:from-purple-400 dark:to-purple-500">
+                      className="group relative overflow-hidden border-0 bg-gradient-to-br from-orange-400 to-orange-600 shadow-md shadow-orange-100 transition-colors">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="absolute top-1 right-1 z-10 size-6 text-white hover:bg-transparent hover:text-white"
+                        className="absolute top-1 right-1 z-10 size-6 text-white hover:bg-white/20 hover:text-white"
                         onClick={() => {
                           setParticipantToKick(player);
                           setKickDialogOpen(true);
@@ -529,7 +529,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                       <CardContent className="flex flex-col items-center px-3">
                         <Avatar className="mb-2 size-14 border-2 border-white shadow-sm dark:border-zinc-800">
                           <AvatarImage src={player.avatar_url || ""} />
-                          <AvatarFallback className="bg-purple-100 text-xs text-purple-600 dark:bg-purple-900/30 dark:text-purple-300">
+                          <AvatarFallback className="bg-green-100 text-xs text-green-700 dark:bg-green-900/30 dark:text-green-300">
                             {player.nickname.substring(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
@@ -558,12 +558,12 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                   width={200}
                   height={40}
                   alt="gameforsmart"
-                  className="opacity-80 dark:opacity-100"
+                  className="opacity-90 dark:opacity-100"
                   unoptimized
                 />
                 <Button
                   variant="ghost"
-                  className="absolute right-0 h-14 w-14 p-0 text-slate-400 hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-zinc-800"
+                  className="absolute right-0 h-14 w-14 p-0 text-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:hover:bg-zinc-800"
                   onClick={() => {
                     router.push(`/host/${sessionId}/settings?from=room`);
                   }}
@@ -574,14 +574,14 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
               {/* Game PIN */}
               <div className="space-y-2 text-center">
-                <p className="text-muted-foreground text-sm font-semibold tracking-wider uppercase dark:text-zinc-500">
+                <p className="text-sm font-semibold tracking-wider text-orange-400 uppercase dark:text-zinc-500">
                   Game PIN
                 </p>
                 <div
-                  className="flex cursor-pointer items-center justify-center gap-2 text-6xl font-black text-orange-500 transition-opacity hover:opacity-80 dark:text-purple-400"
+                  className="flex cursor-pointer items-center justify-center gap-2 text-6xl font-black text-orange-500 transition-opacity hover:opacity-80 dark:text-orange-400"
                   onClick={() => copyToClipboard(gameSession.game_pin)}>
                   {gameSession.game_pin}
-                  <Copy className="text-muted-foreground size-6 opacity-50 dark:text-zinc-500" />
+                  <Copy className="size-6 text-orange-300 opacity-50 dark:text-zinc-500" />
                 </div>
               </div>
 
@@ -589,7 +589,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
               <div className="flex justify-center">
                 <Dialog>
                   <DialogTrigger asChild>
-                    <div className="group cursor-pointer rounded-2xl border-2 border-gray-100 bg-white p-3 shadow-sm transition-colors hover:border-purple-200 dark:border-white/10 dark:bg-white dark:hover:border-purple-400">
+                    <div className="group cursor-pointer rounded-2xl border-2 border-orange-50 bg-white p-3 shadow-sm transition-colors hover:border-orange-400 dark:border-white/10 dark:bg-white dark:hover:border-orange-400">
                       <QRCodeSVG
                         value={joinLink}
                         size={200}
@@ -600,9 +600,9 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                   </DialogTrigger>
                   <DialogContent className="flex flex-col items-center sm:max-w-[620px]">
                     <DialogHeader>
-                      <DialogTitle>Join Game</DialogTitle>
+                      <DialogTitle className="text-orange-600">Join Game</DialogTitle>
                     </DialogHeader>
-                    <div className="rounded-xl border bg-white p-4 shadow-lg">
+                    <div className="rounded-xl border border-orange-100 bg-white p-4 shadow-lg">
                       <QRCodeSVG value={joinLink} size={540} level="H" />
                     </div>
                   </DialogContent>
@@ -611,10 +611,10 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
               {/* Join Link */}
               <div
-                className="relative flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm font-medium text-gray-600 transition-colors select-all hover:bg-gray-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                className="relative flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-orange-100 bg-orange-50/50 p-3 text-sm font-medium text-orange-800 transition-colors select-all hover:bg-orange-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800"
                 onClick={() => copyToClipboard(joinLink)}>
                 <span className="max-w-[240px] truncate">{joinLink}</span>
-                <Copy size={14} />
+                <Copy size={14} className="text-orange-400" />
               </div>
 
               {/* Action Buttons */}
@@ -622,19 +622,19 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                 <div className="flex flex-col gap-3">
                   <Button
                     size="lg"
-                    className="h-14 w-full bg-orange-500 text-lg font-bold shadow-md shadow-purple-600/20 hover:bg-orange-600 dark:text-white"
+                    className="h-14 w-full border-none bg-orange-500 text-lg font-bold shadow-md shadow-orange-200 hover:bg-orange-600 dark:text-white"
                     onClick={handleStartGame}>
                     <Play className="mr-2 fill-current" /> Start Game
                   </Button>
                   <Button
                     variant={isHostJoined ? "secondary" : "outline"}
                     size="lg"
-                    className="w-full font-semibold"
+                    className={`w-full font-semibold ${!isHostJoined ? "border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700" : ""}`}
                     onClick={handleJoinAsPlayer}
                     disabled={isHostJoined || isLoading}>
                     {isHostJoined ? (
                       <>
-                        <Check className="mr-2" /> Joined as Player
+                        <Check className="mr-2 text-green-600" /> Joined as Player
                       </>
                     ) : (
                       <>
@@ -644,28 +644,24 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                   </Button>
                 </div>
 
-                <Separator />
+                <Separator className="bg-orange-50" />
 
                 <div className="grid grid-cols-2 gap-3">
-                  <InviteGroup
-                    sessionId={sessionId}
-                  />
-                  <InviteFriend
-                    sessionId={sessionId}
-                  />
+                  <InviteGroup sessionId={sessionId} />
+                  <InviteFriend sessionId={sessionId} />
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
                   <Button
                     onClick={shareToWhatsApp}
                     variant="ghost"
-                    className="border border-dashed text-xs text-black dark:text-white">
+                    className="border border-dashed border-green-200 text-xs text-green-700 hover:bg-green-50">
                     WhatsApp
                   </Button>
                   <Button
                     onClick={shareToTelegram}
                     variant="ghost"
-                    className="border border-dashed text-xs text-black dark:text-white">
+                    className="border border-dashed border-orange-200 text-xs text-orange-700 hover:bg-orange-50">
                     Telegram
                   </Button>
                 </div>
@@ -688,10 +684,16 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setKickDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setKickDialogOpen(false)}
+              className="border-orange-100">
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleKickPlayer}>
+            <Button
+              variant="destructive"
+              onClick={handleKickPlayer}
+              className="bg-red-600 hover:bg-red-700">
               Kick
             </Button>
           </DialogFooter>

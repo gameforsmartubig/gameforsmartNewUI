@@ -48,11 +48,13 @@ export default function Page() {
   };
 
   return (
-    <div className="flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-yellow-50/30 py-4 lg:h-screen">
-      <Card className="mx-auto w-96 border-t-4 border-t-orange-500 shadow-xl">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 via-white to-yellow-50/30 py-4 lg:h-screen dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900">
+      <Card className="mx-auto w-96 border-t-4 border-t-orange-500 shadow-xl dark:border-t-orange-600 dark:bg-zinc-900 dark:shadow-2xl dark:shadow-black/50">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-orange-900">Forgot Password</CardTitle>
-          <CardDescription className="text-gray-600">
+          <CardTitle className="text-2xl font-bold text-orange-900 dark:text-zinc-100">
+            Forgot Password
+          </CardTitle>
+          <CardDescription className="text-gray-600 dark:text-zinc-400">
             Enter your email address and we&#39;ll send you instructions to reset your password.
           </CardDescription>
         </CardHeader>
@@ -69,24 +71,24 @@ export default function Page() {
                     </Label>
                     <FormControl>
                       <div className="relative">
-                        <MailIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-orange-400" />
+                        <MailIcon className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-orange-400 dark:text-orange-500" />
                         <Input
                           {...field}
                           id="email"
                           type="email"
                           autoComplete="email"
-                          className="w-full border-orange-100 bg-white/50 pl-10 focus-visible:ring-orange-500"
+                          className="w-full border-orange-100 bg-white/50 pl-10 focus-visible:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus-visible:ring-orange-600"
                           placeholder="Enter your email address"
                         />
                       </div>
                     </FormControl>
-                    <FormMessage className="text-xs text-red-500" />
+                    <FormMessage className="text-xs text-red-500 dark:text-red-400" />
                   </FormItem>
                 )}
               />
               <Button
                 type="submit"
-                className="w-full bg-orange-500 font-bold text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-600 active:scale-[0.98]"
+                className="w-full bg-orange-500 font-bold text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-600 active:scale-[0.98] dark:bg-orange-600 dark:shadow-none dark:hover:bg-orange-500"
                 disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
@@ -99,12 +101,12 @@ export default function Page() {
               </Button>
             </form>
           </Form>
-          <div className="mt-6 text-center text-sm text-gray-600">
-            <p className="text-sm text-gray-600">
+          <div className="mt-6 text-center text-sm text-gray-600 dark:text-zinc-500">
+            <p>
               Already have an account?{" "}
               <Link
                 href="/login"
-                className="font-semibold text-orange-600 underline underline-offset-4 transition-colors hover:text-orange-700">
+                className="font-semibold text-orange-600 underline underline-offset-4 transition-colors hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300">
                 Log in
               </Link>
             </p>

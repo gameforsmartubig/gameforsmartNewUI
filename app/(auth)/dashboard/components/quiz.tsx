@@ -109,7 +109,7 @@ export function DashboardContent({
     favorite: 1
   });
 
-  const ITEMS_PER_PAGE = 6;
+  const ITEMS_PER_PAGE = 12;
 
   // Reset pagination when search or category changes
   const handleFilterChange = (type: "search" | "category", value: string | null) => {

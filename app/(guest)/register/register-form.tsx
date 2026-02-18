@@ -406,12 +406,16 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gradient-to-br from-orange-50 to-white">
-      <Card className="mx-auto w-96 border-t-4 border-t-orange-500 shadow-xl">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 to-white py-8 dark:from-zinc-950 dark:to-zinc-900">
+      <Card className="mx-auto w-96 border-t-4 border-t-orange-500 shadow-xl dark:border-t-orange-600 dark:bg-zinc-900 dark:shadow-2xl dark:shadow-black/50">
         <CardHeader>
           <div className="flex items-center justify-center">
-            {/* Logo area */}
-            <img src="/gameforsmartlogo.png" alt="Logo" className="h-full w-11/12 px-8" />
+            {/* Logo area dengan filter agar tidak terlalu terang di dark mode */}
+            <img
+              src="/gameforsmartlogo.png"
+              alt="Logo"
+              className="h-full w-11/12 px-8 dark:brightness-90"
+            />
           </div>
         </CardHeader>
         <CardContent>
@@ -419,7 +423,7 @@ export default function RegisterForm() {
             <div className="grid grid-cols-1 gap-3">
               <Button
                 variant="outline"
-                className="w-full border-orange-200 text-orange-700 transition-all hover:border-orange-400 hover:bg-orange-50 hover:text-orange-800"
+                className="w-full border-orange-200 text-orange-700 transition-all hover:border-orange-400 hover:bg-orange-50 hover:text-orange-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
                 onClick={handleGoogleSignIn}>
                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                   <path
@@ -443,19 +447,19 @@ export default function RegisterForm() {
               </Button>
             </div>
 
-            <div className="my-4">
+            <div className="my-2">
               <div className="flex items-center gap-3">
-                <div className="w-full border-t border-orange-100" />
-                <span className="shrink-0 text-sm font-medium text-orange-400">
+                <div className="w-full border-t border-orange-100 dark:border-zinc-800" />
+                <span className="shrink-0 text-sm font-medium text-orange-400 dark:text-zinc-500">
                   or continue with
                 </span>
-                <div className="w-full border-t border-orange-100" />
+                <div className="w-full border-t border-orange-100 dark:border-zinc-800" />
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid gap-2">
-                <Label htmlFor="fullname" className="text-orange-700">
+            <form onSubmit={handleSubmit} className="space-y-3">
+              <div className="grid gap-1.5">
+                <Label htmlFor="fullname" className="text-orange-700 dark:text-zinc-300">
                   Full Name
                 </Label>
                 <Input
@@ -465,13 +469,13 @@ export default function RegisterForm() {
                   placeholder="Full Name"
                   value={formData.fullname}
                   onChange={handleInputChange}
-                  className="w-full border-orange-100 focus-visible:ring-orange-500"
+                  className="w-full border-orange-100 focus-visible:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:focus-visible:ring-orange-600"
                   required
                 />
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="username" className="text-orange-700">
+              <div className="grid gap-1.5">
+                <Label htmlFor="username" className="text-orange-700 dark:text-zinc-300">
                   Username
                 </Label>
                 <div className="relative">
@@ -480,24 +484,23 @@ export default function RegisterForm() {
                     name="username"
                     type="text"
                     required
-                    className={`w-full transition-all focus-visible:ring-orange-500 ${
+                    className={`w-full transition-all focus-visible:ring-orange-500 dark:focus-visible:ring-orange-600 ${
                       formData.username
                         ? usernameValidation.isValid
-                          ? "border-green-500 bg-green-50 focus-visible:ring-green-500"
-                          : "border-red-500 bg-red-50 focus-visible:ring-red-500"
-                        : "border-orange-100"
+                          ? "border-green-500 bg-green-50 focus-visible:ring-green-500 dark:border-green-900/50 dark:bg-green-950/20"
+                          : "border-red-500 bg-red-50 focus-visible:ring-red-500 dark:border-red-900/50 dark:bg-red-950/20"
+                        : "border-orange-100 dark:border-zinc-800 dark:bg-zinc-950"
                     }`}
                     placeholder="Username"
                     value={formData.username}
                     onChange={handleInputChange}
                   />
-                  {/* Validation indicator */}
                   {formData.username && (
-                    <div className="absolute top-2 right-4 flex h-5 w-5 items-center justify-center">
+                    <div className="absolute top-2.5 right-4 flex items-center justify-center">
                       {usernameValidation.isChecking ? (
                         <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
                       ) : usernameValidation.isValid ? (
-                        <div className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500">
+                        <div className="flex h-4 w-4 items-center justify-center rounded-full bg-green-500 dark:bg-green-600">
                           <svg
                             className="h-3 w-3 text-white"
                             fill="none"
@@ -512,7 +515,7 @@ export default function RegisterForm() {
                           </svg>
                         </div>
                       ) : (
-                        <div className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500">
+                        <div className="flex h-4 w-4 items-center justify-center rounded-full bg-red-500 dark:bg-red-600">
                           <svg
                             className="h-3 w-3 text-white"
                             fill="none"
@@ -530,40 +533,44 @@ export default function RegisterForm() {
                     </div>
                   )}
                 </div>
-                {/* Validation message */}
                 {formData.username && usernameValidation.message && (
                   <p
-                    className={`mt-1 text-xs font-medium ${
-                      usernameValidation.isValid ? "text-green-600" : "text-red-600"
-                    }`}>
+                    className={`text-xs font-medium ${usernameValidation.isValid ? "text-green-600 dark:text-green-500" : "text-red-600 dark:text-red-500"}`}>
                     {usernameValidation.message}
                   </p>
                 )}
               </div>
 
-              <LocationSelector value={location} onChange={setLocation} showDetectButton={false} />
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={detectLocation}
-                disabled={detectingLocation || loading}
-                className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border-2 border-yellow-200 bg-yellow-50/30 text-sm text-orange-700 transition-all hover:border-yellow-400 hover:bg-yellow-50">
-                {detectingLocation ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
-                    <span className="font-medium">Mendeteksi lokasi...</span>
-                  </>
-                ) : (
-                  <>
-                    <Navigation className="h-4 w-4 text-orange-500" />
-                    <span className="font-medium text-orange-700">Deteksi Lokasi Otomatis</span>
-                  </>
-                )}
-              </Button>
-
               <div className="grid gap-2">
-                <Label htmlFor="email" className="text-orange-700">
+                {/* Note: Pastikan komponen LocationSelector juga mendukung dark mode di dalamnya */}
+                <LocationSelector
+                  value={location}
+                  onChange={setLocation}
+                  showDetectButton={false}
+                />
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={detectLocation}
+                  disabled={detectingLocation || loading}
+                  className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border-2 border-yellow-200 bg-yellow-50/30 text-sm text-orange-700 transition-all hover:border-yellow-400 hover:bg-yellow-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-orange-400 dark:hover:bg-zinc-800">
+                  {detectingLocation ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
+                      <span className="font-medium">Mendeteksi...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Navigation className="h-4 w-4 text-orange-500 dark:text-orange-400" />
+                      <span className="font-medium">Deteksi Lokasi Otomatis</span>
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              <div className="grid gap-1.5">
+                <Label htmlFor="email" className="text-orange-700 dark:text-zinc-300">
                   Email
                 </Label>
                 <Input
@@ -573,13 +580,13 @@ export default function RegisterForm() {
                   placeholder="johndoe@example.com"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="border-orange-100 focus-visible:ring-orange-500"
+                  className="border-orange-100 focus-visible:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:focus-visible:ring-orange-600"
                   required
                 />
               </div>
 
-              <div className="grid gap-2">
-                <Label htmlFor="password" className="text-orange-700">
+              <div className="grid gap-1.5">
+                <Label htmlFor="password" className="text-orange-700 dark:text-zinc-300">
                   Password
                 </Label>
                 <Input
@@ -589,14 +596,14 @@ export default function RegisterForm() {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="border-orange-100 focus-visible:ring-orange-500"
+                  className="border-orange-100 focus-visible:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:focus-visible:ring-orange-600"
                   minLength={6}
                 />
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-lime-500 font-bold text-white shadow-lg shadow-yellow-200 transition-transform hover:bg-lime-600 active:scale-[0.98]"
+                className="w-full bg-lime-500 font-bold text-white shadow-lg shadow-yellow-200 transition-transform hover:bg-lime-600 active:scale-[0.98] dark:bg-lime-600 dark:shadow-none dark:hover:bg-lime-500"
                 disabled={loading}>
                 {loading ? (
                   <div className="flex items-center gap-2">
@@ -608,15 +615,15 @@ export default function RegisterForm() {
                 )}
               </Button>
             </form>
-          </div>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
-            Already have an account?{" "}
-            <Link
-              href="/login"
-              className="font-semibold text-orange-600 underline underline-offset-4 transition-colors hover:text-orange-700">
-              Sign in
-            </Link>
+            <div className="mt-4 text-center text-sm text-gray-600 dark:text-zinc-500">
+              Already have an account?{" "}
+              <Link
+                href="/login"
+                className="font-semibold text-orange-600 underline underline-offset-4 transition-colors hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300">
+                Sign in
+              </Link>
+            </div>
           </div>
         </CardContent>
       </Card>

@@ -173,11 +173,15 @@ export default function LoginForm() {
     }
   };
   return (
-    <div className="flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-yellow-50/30 py-4 lg:h-screen">
-      <Card className="mx-auto w-96 border-t-4 border-t-orange-500 shadow-xl">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 via-white to-yellow-50/30 py-4 lg:h-screen dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900">
+      <Card className="mx-auto w-96 border-t-4 border-t-orange-500 shadow-xl dark:border-t-orange-600 dark:bg-zinc-900 dark:shadow-2xl dark:shadow-black/50">
         <CardHeader>
           <div className="flex items-center justify-center">
-            <img src="/gameforsmartlogo.png" alt="Logo" className="h-full w-11/12 px-8" />
+            <img
+              src="/gameforsmartlogo.png"
+              alt="Logo"
+              className="h-full w-11/12 px-8 dark:brightness-90"
+            />
           </div>
         </CardHeader>
         <CardContent>
@@ -186,7 +190,7 @@ export default function LoginForm() {
               <Button
                 onClick={handleGoogleSignIn}
                 variant="outline"
-                className="w-full gap-2 border-orange-200 text-orange-700 transition-all hover:border-orange-400 hover:bg-orange-50">
+                className="w-full gap-2 border-orange-200 text-orange-700 transition-all hover:border-orange-400 hover:bg-orange-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100">
                 <svg className="h-4 w-4" viewBox="0 0 24 24">
                   <path
                     fill="currentColor"
@@ -211,17 +215,19 @@ export default function LoginForm() {
 
             <div className="my-4">
               <div className="flex items-center gap-3">
-                <div className="w-full border-t border-orange-100" />
-                <span className="shrink-0 text-sm font-medium text-orange-400">
+                <div className="w-full border-t border-orange-100 dark:border-zinc-800" />
+                <span className="shrink-0 text-sm font-medium text-orange-400 dark:text-zinc-500">
                   or continue with
                 </span>
-                <div className="w-full border-t border-orange-100" />
+                <div className="w-full border-t border-orange-100 dark:border-zinc-800" />
               </div>
             </div>
 
             <form onSubmit={handleSignIn} className="space-y-4">
               <div className="grid gap-2">
-                <Label htmlFor="signin-emailOrUsername" className="font-medium text-orange-700">
+                <Label
+                  htmlFor="signin-emailOrUsername"
+                  className="font-medium text-orange-700 dark:text-zinc-300">
                   Email or Username
                 </Label>
                 <Input
@@ -231,18 +237,20 @@ export default function LoginForm() {
                   placeholder="john_doe@bundui.com/johndoe"
                   value={formData.emailOrUsername}
                   onChange={handleInputChange}
-                  className="border-orange-100 bg-white/50 focus-visible:ring-orange-500"
+                  className="border-orange-100 bg-white/50 focus-visible:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus-visible:ring-orange-600"
                   required
                 />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
-                  <Label htmlFor="signin-password" className="font-medium text-orange-700">
+                  <Label
+                    htmlFor="signin-password"
+                    className="font-medium text-orange-700 dark:text-zinc-300">
                     Password
                   </Label>
                   <Link
                     href="/forgot-password"
-                    className="ml-auto inline-block text-sm font-medium text-yellow-700 underline-offset-4 hover:text-yellow-800 hover:underline">
+                    className="ml-auto inline-block text-sm font-medium text-yellow-700 underline-offset-4 hover:text-yellow-800 hover:underline dark:text-orange-400 dark:hover:text-orange-300">
                     Forgot your password?
                   </Link>
                 </div>
@@ -253,14 +261,14 @@ export default function LoginForm() {
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="border-orange-100 bg-white/50 focus-visible:ring-orange-500"
+                  className="border-orange-100 bg-white/50 focus-visible:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus-visible:ring-orange-600"
                   required
                 />
               </div>
 
               <Button
                 type="submit"
-                className="mt-2 w-full bg-lime-500 font-bold text-white shadow-lg shadow-yellow-200 transition-all hover:bg-lime-600 active:scale-[0.98]"
+                className="mt-2 w-full bg-lime-500 font-bold text-white shadow-lg shadow-yellow-200 transition-all hover:bg-lime-600 active:scale-[0.98] dark:bg-lime-600 dark:shadow-none dark:hover:bg-lime-500"
                 disabled={loading}>
                 {loading ? (
                   <div className="flex items-center gap-2">
@@ -274,11 +282,11 @@ export default function LoginForm() {
             </form>
           </div>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <div className="mt-6 text-center text-sm text-gray-600 dark:text-zinc-500">
             Don&apos;t have an account?{" "}
             <Link
               href="/register"
-              className="font-semibold text-orange-600 underline underline-offset-4 transition-colors hover:text-orange-700">
+              className="font-semibold text-orange-600 underline underline-offset-4 transition-colors hover:text-orange-700 dark:text-orange-400 dark:hover:text-orange-300">
               Sign up
             </Link>
           </div>
