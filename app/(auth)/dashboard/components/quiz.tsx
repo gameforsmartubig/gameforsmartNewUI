@@ -569,13 +569,13 @@ export function DashboardContent({
                     {quiz.title}
                   </h1>
 
-                  <div className="text-md flex items-center gap-2 text-sm font-semibold text-slate-700">
+                  <div className="text-md flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-zinc-400">
                     <User size={14} className="text-orange-500" />
                     <span className="line-clamp-1">{quiz.creator}</span>
                   </div>
 
                   <div className="flex flex-wrap justify-between gap-2 border-zinc-50 pt-3 dark:border-zinc-800">
-                    <div className="flex items-center gap-4 text-xs font-medium text-zinc-600 dark:text-gray-400">
+                    <div className="flex items-center gap-4 text-xs font-medium text-zinc-700 dark:text-zinc-400">
                       <div className="flex items-center gap-1.5">
                         <CircleQuestionMark size={14} className="text-green-500" />
                         <div>{quiz.questions} Soal</div>
