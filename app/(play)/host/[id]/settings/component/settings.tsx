@@ -243,25 +243,34 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
   const totalQuestions = quizData?.questions?.length || 0;
 
   return (
-    <div className="flex items-center justify-center lg:h-screen">
-      <Card className="mx-auto w-full max-w-4xl border-0 bg-white shadow-lg backdrop-blur-sm dark:border dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-yellow-50/30 lg:h-screen dark:from-zinc-950 dark:via-zinc-900 dark:to-orange-950/20">
+      <Card className="mx-auto w-full max-w-4xl border-t-4 border-t-orange-500 bg-white shadow-xl backdrop-blur-sm dark:border-x-zinc-800 dark:border-b-zinc-800 dark:bg-zinc-950/50">
         <CardHeader>
-          <CardTitle className="text-xl font-bold tracking-tight lg:text-2xl">Settings</CardTitle>
-          <CardDescription>{quizData?.title || "Quiz Title"}</CardDescription>
+          <CardTitle className="text-xl font-bold tracking-tight text-orange-600 lg:text-2xl dark:text-orange-500">
+            Settings
+          </CardTitle>
+          <CardDescription className="text-orange-800/60 dark:text-orange-200/40">
+            {quizData?.title || "Quiz Title"}
+          </CardDescription>
         </CardHeader>
-        <Separator />
+        <Separator className="bg-orange-100 dark:bg-zinc-800" />
         <CardContent className="space-y-6 pt-6">
           <div className="flex flex-col gap-6 md:flex-row">
             {/* Duration Select */}
             <div className="w-full flex-1 space-y-2">
-              <Label>Quiz Duration (Minutes)</Label>
+              <Label className="text-orange-900 dark:text-orange-100">
+                Quiz Duration (Minutes)
+              </Label>
               <Select value={totalTimeMinutes} onValueChange={setTotalTimeMinutes}>
-                <SelectTrigger className="w-full bg-white dark:border-zinc-800 dark:bg-zinc-950">
+                <SelectTrigger className="w-full border-orange-200 bg-white focus:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
                   <SelectValue placeholder="Select duration" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="dark:border-zinc-800 dark:bg-zinc-900">
                   {[5, 10, 15, 20, 25, 30].map((min) => (
-                    <SelectItem key={min} value={min.toString()}>
+                    <SelectItem
+                      key={min}
+                      value={min.toString()}
+                      className="dark:focus:bg-orange-900/20">
                       {min} Minutes
                     </SelectItem>
                   ))}
@@ -271,107 +280,148 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
 
             {/* Question Limit Select */}
             <div className="flex-1 space-y-2">
-              <Label>Total Questions</Label>
+              <Label className="text-orange-900 dark:text-orange-100">Total Questions</Label>
               <Select value={questionLimit} onValueChange={setQuestionLimit}>
-                <SelectTrigger className="w-full bg-white dark:border-zinc-800 dark:bg-zinc-950">
+                <SelectTrigger className="w-full border-orange-200 bg-white focus:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-100">
                   <SelectValue placeholder="Select question limit" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="dark:border-zinc-800 dark:bg-zinc-900">
                   {[5, 10, 20]
                     .filter((n) => n <= totalQuestions)
                     .map((n) => (
-                      <SelectItem key={n} value={n.toString()}>
+                      <SelectItem
+                        key={n}
+                        value={n.toString()}
+                        className="dark:focus:bg-orange-900/20">
                         {n} Questions
                       </SelectItem>
                     ))}
-                  {/* Fallback if exact options aren't available or total is unique */}
                   {![5, 10, 20].includes(totalQuestions) && totalQuestions <= 20 && (
-                    <SelectItem value={totalQuestions.toString()}>
+                    <SelectItem
+                      value={totalQuestions.toString()}
+                      className="dark:focus:bg-orange-900/20">
                       {totalQuestions} Questions
                     </SelectItem>
                   )}
-                  {/* Ensure current selection is always valid/visible if logic above fits */}
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          <Separator />
+          <Separator className="bg-orange-100 dark:bg-zinc-800" />
 
           {/* Game Mode */}
           <div className="space-y-4">
-            <Label>Game Mode</Label>
+            <Label className="text-orange-900 dark:text-orange-100">Game Mode</Label>
             <RadioGroup
               value={gameEndMode}
               onValueChange={setGameEndMode}
               className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div
-                className={`flex cursor-pointer items-center gap-4 rounded-xl border px-4 py-3 transition-all ${gameEndMode === "first_finish" ? "border-primary bg-primary/5 ring-primary dark:bg-primary/10 ring-1" : "hover:bg-gray-50 dark:border-zinc-800 dark:hover:bg-zinc-800"}`}>
-                <RadioGroupItem value="first_finish" id="first_finish" />
+                className={`flex cursor-pointer items-center gap-4 rounded-xl border px-4 py-3 transition-all ${
+                  gameEndMode === "first_finish"
+                    ? "border-orange-500 bg-orange-50 ring-1 ring-orange-500 dark:bg-orange-950/40 dark:ring-orange-600"
+                    : "border-orange-100 hover:bg-orange-50/50 dark:border-zinc-800 dark:hover:bg-zinc-900"
+                }`}>
+                <RadioGroupItem
+                  value="first_finish"
+                  id="first_finish"
+                  className="border-orange-500 text-orange-600 dark:border-orange-400 dark:text-orange-400"
+                />
                 <div className="flex flex-1 flex-col pl-2">
-                  <Label htmlFor="first_finish" className="cursor-pointer font-semibold">
+                  <Label
+                    htmlFor="first_finish"
+                    className="cursor-pointer font-semibold text-orange-900 dark:text-orange-100">
                     First Completed
                   </Label>
-                  <p className="text-muted-foreground mt-1 text-xs">
+                  <p className="mt-1 text-xs text-orange-800/60 dark:text-orange-300/40">
                     Game ends when the first person finishes all questions
                   </p>
                 </div>
-                <Trophy size={18} className="text-muted-foreground" />
+                <Trophy size={18} className="text-yellow-500" />
               </div>
 
               <div
-                className={`flex cursor-pointer items-center gap-4 rounded-xl border px-4 py-3 transition-all ${gameEndMode === "wait_timer" ? "border-primary bg-primary/5 ring-primary dark:bg-primary/10 ring-1" : "hover:bg-gray-50 dark:border-zinc-800 dark:hover:bg-zinc-800"}`}>
-                <RadioGroupItem value="wait_timer" id="wait_timer" />
+                className={`flex cursor-pointer items-center gap-4 rounded-xl border px-4 py-3 transition-all ${
+                  gameEndMode === "wait_timer"
+                    ? "border-orange-500 bg-orange-50 ring-1 ring-orange-500 dark:bg-orange-950/40 dark:ring-orange-600"
+                    : "border-orange-100 hover:bg-orange-50/50 dark:border-zinc-800 dark:hover:bg-zinc-900"
+                }`}>
+                <RadioGroupItem
+                  value="wait_timer"
+                  id="wait_timer"
+                  className="border-orange-500 text-orange-600 dark:border-orange-400 dark:text-orange-400"
+                />
                 <div className="flex flex-1 flex-col pl-2">
-                  <Label htmlFor="wait_timer" className="cursor-pointer font-semibold">
+                  <Label
+                    htmlFor="wait_timer"
+                    className="cursor-pointer font-semibold text-orange-900 dark:text-orange-100">
                     Wait for Time
                   </Label>
-                  <p className="text-muted-foreground mt-1 text-xs">
+                  <p className="mt-1 text-xs text-orange-800/60 dark:text-orange-300/40">
                     Everyone plays until the time fully runs out
                   </p>
                 </div>
-                <Hourglass size={18} className="text-muted-foreground" />
+                <Hourglass size={18} className="text-orange-500" />
               </div>
             </RadioGroup>
           </div>
 
           {/* Late Join */}
-          <div className="flex items-center gap-4 rounded-xl border bg-gray-50/50 p-4 dark:border-zinc-800 dark:bg-zinc-900/50">
+          <div className="flex items-center gap-4 rounded-xl border border-green-100 bg-green-50/30 p-4 dark:border-green-900/30 dark:bg-green-950/10">
             <Checkbox
               id="allow_late"
               checked={allowJoinAfterStart}
               onCheckedChange={(checked) => setAllowJoinAfterStart(checked as boolean)}
+              className="border-green-500 text-white data-[state=checked]:bg-green-500 dark:border-green-600 dark:data-[state=checked]:bg-green-600"
             />
             <div
               className="cursor-pointer"
               onClick={() => setAllowJoinAfterStart(!allowJoinAfterStart)}>
-              <Label htmlFor="allow_late" className="cursor-pointer font-semibold">
+              <Label
+                htmlFor="allow_late"
+                className="cursor-pointer font-semibold text-green-900 dark:text-green-100">
                 Allow late joiners
               </Label>
-              <p className="text-muted-foreground mt-0.5 text-xs">
+              <p className="mt-0.5 text-xs text-green-800/60 dark:text-green-300/40">
                 Users can join the quiz session even after it has started
               </p>
             </div>
           </div>
         </CardContent>
         <CardFooter className="flex justify-end gap-4 pt-2">
-          <Button variant="outline" onClick={handleCancel} disabled={isSaving}>
+          <Button
+            variant="outline"
+            onClick={handleCancel}
+            disabled={isSaving}
+            className="border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-zinc-800 dark:text-orange-500 dark:hover:bg-orange-950/30">
             Cancel
           </Button>
-          <Button onClick={handleSave} disabled={isSaving}>
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            className="bg-orange-500 text-white shadow-md shadow-orange-100 hover:bg-orange-600 dark:bg-orange-600 dark:shadow-none dark:hover:bg-orange-500">
             {isSaving ? "Saving..." : "Save"}
           </Button>
         </CardFooter>
       </Card>
 
       <AlertDialog open={showExitDialog} onOpenChange={setShowExitDialog}>
-        <AlertDialogContent>
+        <AlertDialogContent className="dark:border-zinc-800 dark:bg-zinc-950">
           <AlertDialogHeader>
-            <AlertDialogTitle>Do you want to leave?</AlertDialogTitle>
+            <AlertDialogTitle className="text-orange-900 dark:text-orange-100">
+              Do you want to leave?
+            </AlertDialogTitle>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleLeaveSession}>Leave</AlertDialogAction>
+            <AlertDialogCancel className="border-orange-100 dark:border-zinc-800 dark:bg-zinc-900">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleLeaveSession}
+              className="bg-orange-500 hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-500">
+              Leave
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

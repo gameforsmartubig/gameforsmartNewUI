@@ -510,11 +510,8 @@ export function DashboardContent({
             return (
               <Card
                 key={quiz.id}
-                className="hover:border-via-yellow-200 relative flex flex-row gap-0 overflow-hidden border-slate-200 py-0 shadow-sm transition-all hover:border-orange-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                {/* Garis Gradient di sisi Kiri (Vertical) */}
-                <div className="h-full w-1.5 shrink-0 bg-gradient-to-b from-orange-400 via-yellow-400 to-green-500" />
-
-                {/* Tambahkan flex-1 agar konten memenuhi sisa lebar card */}
+                className="hover:border-via-yellow-200 relative flex flex-row gap-0 overflow-hidden border-slate-200 py-0 shadow-sm transition-all hover:border-t-orange-300 hover:border-r-yellow-300 hover:border-b-lime-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
+                <div className="h-full w-1.5 shrink-0 bg-gradient-to-b from-orange-500 via-yellow-500 to-lime-500 dark:from-orange-700 dark:via-yellow-700 dark:to-emerald-600" />
                 <CardContent className="flex flex-1 flex-col gap-2 px-5 py-4">
                   <div className="flex items-center justify-between">
                     <div className="text-muted-foreground flex gap-1">
@@ -698,7 +695,7 @@ export function DashboardContent({
             />
             <Button
               variant="default"
-              className="absolute top-1 right-1 h-7 w-7 bg-orange-400 p-2"
+              className="absolute top-1 right-1 h-7 w-7 bg-orange-400 p-2 hover:bg-orange-500"
               onClick={handleSearchSubmit}>
               <Search size={20} />
             </Button>
@@ -720,7 +717,7 @@ export function DashboardContent({
                 <TabsTrigger
                   key={tab.value}
                   value={tab.value}
-                  className="text-muted-foreground data-[state=active]:text-foreground /* Bagian Indikator Gradasi */ relative h-10 rounded-none border-b-2 border-b-transparent bg-transparent px-4 pt-2 pb-3 font-semibold shadow-none transition-none data-[state=active]:shadow-none data-[state=active]:after:absolute data-[state=active]:after:bottom-[-2px] data-[state=active]:after:left-0 data-[state=active]:after:h-[3px] data-[state=active]:after:w-full data-[state=active]:after:bg-gradient-to-r data-[state=active]:after:from-orange-500 data-[state=active]:after:via-yellow-400 data-[state=active]:after:to-green-500 data-[state=active]:after:content-['']">
+                  className="text-muted-foreground data-[state=active]:text-foreground relative h-10 rounded-none border-0 border-b-2 border-b-transparent bg-transparent px-4 pt-2 pb-3 font-semibold shadow-none transition-none data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:absolute data-[state=active]:after:bottom-[-2px] data-[state=active]:after:left-0 data-[state=active]:after:h-[3px] data-[state=active]:after:w-full data-[state=active]:after:bg-orange-500 data-[state=active]:after:content-[''] dark:bg-transparent dark:data-[state=active]:bg-transparent">
                   {tab.label}
                 </TabsTrigger>
               ))}
@@ -729,7 +726,7 @@ export function DashboardContent({
             <div className="hidden flex-row items-center justify-end gap-2 sm:flex sm:w-auto">
               <Button
                 variant="outline"
-                className="flex bg-lime-500 text-white hover:bg-lime-600 hover:text-white"
+                className="flex bg-lime-500 text-white hover:bg-lime-600 hover:text-white dark:bg-lime-400 dark:text-zinc-900 dark:hover:bg-lime-500"
                 onClick={() => router.push("/create")}>
                 <PlusIcon className="mr-1 h-4 w-4" />
                 <span>Create Quiz</span>
@@ -737,7 +734,7 @@ export function DashboardContent({
               <Button
                 onClick={() => router.push("/join")}
                 variant="outline"
-                className="flex bg-yellow-300 hover:bg-yellow-400">
+                className="flex bg-yellow-300 text-white hover:bg-yellow-400 dark:bg-yellow-400 dark:text-zinc-900 dark:hover:bg-yellow-500">
                 <Play className="mr-1 h-4 w-4" />
                 <span>Join Quiz</span>
               </Button>
