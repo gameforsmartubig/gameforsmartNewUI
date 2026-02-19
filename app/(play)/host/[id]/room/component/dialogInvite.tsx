@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Share2, Users, X, Loader2, RefreshCcw } from "lucide-react";
+import { Share2, Users, X, Loader2, RefreshCcw, Search } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/auth-context";
 import { supabase } from "@/lib/supabase";
@@ -38,6 +38,11 @@ export function InviteFriend({ sessionId = "" }: InviteProps) {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [inputValue, setInputValue] = useState("");
+
+  const handleSearch = () => {
+    setSearchTerm(inputValue);
+  }
 
   const fetchFriends = async () => {
     if (!profileId) return;
@@ -157,12 +162,25 @@ export function InviteFriend({ sessionId = "" }: InviteProps) {
         </DialogHeader>
 
         <div className="max-w-full min-w-0 space-y-5 p-6">
+          <div className="relative">
           <Input
             placeholder="Search by name or username..."
             className="border-orange-200 focus-visible:ring-orange-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter"){
+                handleSearch();
+              }
+            }}
           />
+          <Button
+              variant="default"
+              className="absolute top-1 right-1 h-7 w-7 bg-orange-400 p-2 hover:bg-orange-500"
+              onClick={handleSearch}>
+              <Search size={20} />
+            </Button>
+          </div>
 
           {selected.length > 0 && (
             <div className="w-full">
@@ -239,7 +257,7 @@ export function InviteFriend({ sessionId = "" }: InviteProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-orange-100 bg-orange-50/20 p-6">
+        <div className="flex items-center justify-end gap-3 border-t border-orange-100 bg-orange-50/20 p-6">
           <Button
             variant="ghost"
             onClick={() => setOpen(false)}
@@ -247,26 +265,18 @@ export function InviteFriend({ sessionId = "" }: InviteProps) {
             Cancel
           </Button>
 
-          <div className="flex items-center gap-4">
-            <RefreshCcw
-              className={`size-5 cursor-pointer text-yellow-500 hover:text-yellow-600 focus:outline-none ${isSending ? "pointer-events-none opacity-50" : ""}`}
-              onClick={() => !isSending && setSelected([])}
-              role="button"
-              aria-label="Refresh selection"
-            />
-            <Button
-              className="bg-orange-500 px-6 font-semibold text-white shadow-md shadow-orange-100 hover:bg-orange-600"
-              onClick={handleSendInvites}
-              disabled={selected.length === 0 || isSending}>
-              {isSending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...
-                </>
-              ) : (
-                `Invite (${selected.length})`
-              )}
-            </Button>
-          </div>
+          <Button
+            className="bg-orange-500 px-6 font-semibold text-white shadow-md shadow-orange-100 hover:bg-orange-600"
+            onClick={handleSendInvites}
+            disabled={selected.length === 0 || isSending}>
+            {isSending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...
+              </>
+            ) : (
+              "Invite"
+            )}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
@@ -279,6 +289,11 @@ export function InviteGroup({ sessionId = "" }: InviteProps) {
   const [isSending, setIsSending] = useState(false);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [inputValue, setInputValue] = useState("");
+
+  const handleSearch = () => {
+    setSearchTerm(inputValue);
+  }
 
   type Group = {
     id: string; // id is string/uuid
@@ -414,12 +429,25 @@ export function InviteGroup({ sessionId = "" }: InviteProps) {
         </DialogHeader>
 
         <div className="space-y-5 p-6">
-          <Input
-            placeholder="Search group..."
-            className="border-orange-200 focus-visible:ring-orange-500"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+          <div className="relative">
+            <Input
+              placeholder="Search group..."
+              className="border-orange-200 focus-visible:ring-orange-500"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSearch();
+                }
+              }}
+            />
+            <Button
+              variant="default"
+              className="absolute top-1 right-1 h-7 w-7 bg-orange-400 p-2 hover:bg-orange-500"
+              onClick={handleSearch}>
+              <Search size={20} />
+            </Button>
+          </div>
 
           {selected.length > 0 && (
             <div>
@@ -487,7 +515,7 @@ export function InviteGroup({ sessionId = "" }: InviteProps) {
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-orange-100 bg-orange-50/20 p-6">
+        <div className="flex items-center justify-end gap-3 border-t border-orange-100 bg-orange-50/20 p-6">
           <Button
             variant="ghost"
             onClick={() => setOpen(false)}
@@ -495,26 +523,18 @@ export function InviteGroup({ sessionId = "" }: InviteProps) {
             Cancel
           </Button>
 
-          <div className="flex items-center gap-4">
-            <RefreshCcw
-              className={`size-5 cursor-pointer text-yellow-500 hover:text-yellow-600 focus:outline-none ${isSending ? "pointer-events-none opacity-50" : ""}`}
-              onClick={() => !isSending && setSelected([])}
-              role="button"
-              aria-label="Refresh selection"
-            />
-            <Button
-              className="bg-orange-500 px-6 font-semibold text-white shadow-md shadow-orange-100 hover:bg-orange-600"
-              onClick={handleSendInvites}
-              disabled={selected.length === 0 || isSending}>
-              {isSending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...
-                </>
-              ) : (
-                `Invite (${selected.length})`
-              )}
-            </Button>
-          </div>
+          <Button
+            className="bg-orange-500 px-6 font-semibold text-white shadow-md shadow-orange-100 hover:bg-orange-600"
+            onClick={handleSendInvites}
+            disabled={selected.length === 0 || isSending}>
+            {isSending ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending...
+              </>
+            ) : (
+              "Invite"
+            )}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
