@@ -71,17 +71,28 @@ export function GameTimer({ startedAt, totalTimeMinutes, onTimeUp, status }: Gam
 
   return (
     <div className="flex items-center justify-center gap-4">
-      <Card className="border-none bg-white/80 shadow-sm backdrop-blur">
-        <CardContent className="w-32 px-8 text-center sm:w-48 sm:px-16 sm:py-4">
-          <p className="text-3xl font-bold sm:text-5xl">
-            {isWaitingForStart ? "--" : Math.floor(timeLeft / 60).toString().padStart(2, "0")}
+      {/* Card Menit */}
+      <Card className="border-none bg-white/90 shadow-lg backdrop-blur dark:bg-zinc-900/90 dark:shadow-orange-950/20">
+        <CardContent className="w-32 rounded-t-xl border-t-4 border-orange-500 px-8 text-center sm:w-48 sm:px-16 sm:py-4 dark:border-orange-600">
+          <p className="text-3xl font-bold text-orange-600 sm:text-5xl dark:text-orange-400">
+            {isWaitingForStart
+              ? "--"
+              : Math.floor(timeLeft / 60)
+                  .toString()
+                  .padStart(2, "0")}
           </p>
         </CardContent>
       </Card>
-      <span className="text-3xl font-bold sm:text-5xl">:</span>
-      <Card className="border-none bg-white/80 shadow-sm backdrop-blur">
-        <CardContent className="w-32 px-8 text-center sm:w-48 sm:px-16 sm:py-4">
-          <p className="text-3xl font-bold sm:text-5xl">
+
+      {/* Pemisah (Titik Dua) - Warna Kuning */}
+      <span className="animate-pulse text-3xl font-bold text-yellow-500 sm:text-5xl dark:text-yellow-400">
+        :
+      </span>
+
+      {/* Card Detik */}
+      <Card className="border-none bg-white/90 shadow-lg backdrop-blur dark:bg-zinc-900/90 dark:shadow-orange-950/20">
+        <CardContent className="w-32 rounded-t-xl border-t-4 border-green-500 px-8 text-center sm:w-48 sm:px-16 sm:py-4 dark:border-green-600">
+          <p className="text-3xl font-bold text-orange-600 sm:text-5xl dark:text-orange-400">
             {isWaitingForStart ? "--" : (timeLeft % 60).toString().padStart(2, "0")}
           </p>
         </CardContent>

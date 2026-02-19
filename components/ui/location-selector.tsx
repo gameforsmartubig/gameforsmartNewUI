@@ -68,7 +68,13 @@ interface SearchableSelectProps {
   value: { id: number | null; name: string };
   options: Array<{ id: number; name: string; emoji?: string; iso2?: string }>;
   onSearch: (query: string) => void;
-  onSelect: (option: { id: number; name: string; emoji?: string; latitude?: number; longitude?: number }) => void;
+  onSelect: (option: {
+    id: number;
+    name: string;
+    emoji?: string;
+    latitude?: number;
+    longitude?: number;
+  }) => void;
   onClear: () => void;
   onOpen?: () => void;
   loading: boolean;
@@ -91,7 +97,7 @@ function SearchableSelect({
   disabled,
   searchQuery,
   icon,
-  showClearButton = true,
+  showClearButton = true
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [localFilter, setLocalFilter] = useState("");
@@ -120,30 +126,36 @@ function SearchableSelect({
   };
 
   const filteredOptions = localFilter
-    ? options.filter(opt => opt.name.toLowerCase().includes(localFilter.toLowerCase()))
+    ? options.filter((opt) => opt.name.toLowerCase().includes(localFilter.toLowerCase()))
     : options;
 
   return (
     <div className="space-y-1" ref={containerRef}>
-      <Label className="text-gray-700 font-medium text-sm">{label}</Label>
+      <Label className="text-sm font-medium text-orange-900 dark:text-orange-100">{label}</Label>
       <div className="relative">
-        <div className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400">
+        {/* Icon - Orange Accent */}
+        <div className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-orange-400">
           {icon || <MapPin className="h-4 w-4" />}
         </div>
-        
+
         <div
           className={cn(
-            "flex items-center justify-between pl-9 pr-3 h-10 border-2 border-gray-200 rounded-xl bg-white cursor-pointer",
-            disabled && "opacity-50 cursor-not-allowed bg-gray-50",
-            isOpen && "border-blue-500"
+            "flex h-10 cursor-pointer items-center justify-between rounded-xl border-2 border-orange-100 bg-white pr-3 pl-9 transition-all dark:border-zinc-800 dark:bg-zinc-900",
+            disabled && "cursor-not-allowed bg-orange-50/30 opacity-50 dark:bg-zinc-950",
+            isOpen && "border-orange-500 ring-2 ring-orange-100 dark:ring-orange-900/20"
           )}
-          onClick={handleOpen}
-        >
-          <span className={cn("text-sm truncate", value.id ? "text-gray-900" : "text-gray-400")}>
+          onClick={handleOpen}>
+          <span
+            className={cn(
+              "truncate text-sm",
+              value.id
+                ? "font-medium text-orange-950 dark:text-zinc-100"
+                : "text-orange-200 dark:text-zinc-600"
+            )}>
             {value.id ? value.name : placeholder}
           </span>
           <div className="flex items-center gap-1">
-            {loading && <Loader2 className="h-3.5 w-3.5 text-gray-400 animate-spin" />}
+            {loading && <Loader2 className="h-3.5 w-3.5 animate-spin text-orange-500" />}
             {value.id && !disabled && showClearButton && (
               <button
                 type="button"
@@ -151,35 +163,41 @@ function SearchableSelect({
                   e.stopPropagation();
                   onClear();
                 }}
-                className="p-0.5 hover:bg-gray-100 rounded-full"
-              >
-                <X className="h-3.5 w-3.5 text-gray-400" />
+                className="rounded-full p-0.5 transition-colors hover:bg-orange-50 dark:hover:bg-zinc-800">
+                <X className="h-3.5 w-3.5 text-orange-400" />
               </button>
             )}
-            <ChevronDown className={cn("h-4 w-4 text-gray-400 transition-transform", isOpen && "rotate-180")} />
+            <ChevronDown
+              className={cn(
+                "h-4 w-4 text-orange-300 transition-transform",
+                isOpen && "rotate-180 text-orange-500"
+              )}
+            />
           </div>
         </div>
 
+        {/* Dropdown Menu */}
         {isOpen && !disabled && (
-          <div className="absolute z-50 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-auto">
-            <div className="sticky top-0 bg-white p-2 border-b">
+          <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-orange-100 bg-white shadow-xl shadow-orange-100/20 dark:border-zinc-800 dark:bg-zinc-900 dark:shadow-none">
+            {/* Search Section - Green Icon Accent */}
+            <div className="sticky top-0 border-b border-orange-50 bg-white p-2 dark:border-zinc-800 dark:bg-zinc-900">
               <div className="relative">
-                <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                <Search className="absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-green-500" />
                 <Input
                   ref={inputRef}
                   type="text"
                   placeholder="Filter..."
                   value={localFilter}
                   onChange={(e) => setLocalFilter(e.target.value)}
-                  className="pl-8 h-8 text-sm border-gray-200"
+                  className="h-8 border-orange-100 pl-8 text-sm focus-visible:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950"
                   autoFocus
                 />
               </div>
             </div>
-            
+
             {loading ? (
               <div className="flex items-center justify-center py-6">
-                <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+                <Loader2 className="h-5 w-5 animate-spin text-orange-500" />
               </div>
             ) : filteredOptions.length > 0 ? (
               <div className="py-1">
@@ -187,23 +205,29 @@ function SearchableSelect({
                   <button
                     key={option.id}
                     type="button"
-                    className="w-full flex items-center gap-2 px-3 py-2 text-left hover:bg-gray-50 transition-colors text-sm"
+                    className="group flex w-full items-center gap-2 px-3 py-2 text-left text-sm transition-colors hover:bg-green-50/50 dark:hover:bg-zinc-800"
                     onClick={() => {
                       onSelect(option as any);
                       setIsOpen(false);
                       setLocalFilter("");
-                    }}
-                  >
+                    }}>
                     {option.emoji && <span className="text-base">{option.emoji}</span>}
                     {option.iso2 && !option.emoji && (
-                      <span className={`fi fi-${option.iso2.toLowerCase()}`} style={{ fontSize: "1em" }} />
+                      <span
+                        className={`fi fi-${option.iso2.toLowerCase()}`}
+                        style={{ fontSize: "1em" }}
+                      />
                     )}
-                    <span className="text-gray-900">{option.name}</span>
+                    <span className="text-orange-950 transition-colors group-hover:text-green-700 dark:text-zinc-300 dark:group-hover:text-green-400">
+                      {option.name}
+                    </span>
+                    {/* Yellow accent for indicators if needed */}
+                    <div className="ml-auto h-1 w-1 rounded-full bg-yellow-400 opacity-0 transition-opacity group-hover:opacity-100" />
                   </button>
                 ))}
               </div>
             ) : (
-              <div className="text-center py-6 text-gray-500 text-sm">
+              <div className="py-6 text-center text-sm text-orange-300 italic dark:text-zinc-600">
                 Tidak ditemukan
               </div>
             )}
@@ -214,16 +238,24 @@ function SearchableSelect({
   );
 }
 
-export function LocationSelector({ value, onChange, className, disabled, layout = "vertical", showDetectButton = true, showClearButton = true }: LocationSelectorProps) {
+export function LocationSelector({
+  value,
+  onChange,
+  className,
+  disabled,
+  layout = "vertical",
+  showDetectButton = true,
+  showClearButton = true
+}: LocationSelectorProps) {
   const [countries, setCountries] = useState<Country[]>([]);
   const [states, setStates] = useState<State[]>([]);
   const [cities, setCities] = useState<City[]>([]);
-  
+
   const [loadingCountries, setLoadingCountries] = useState(false);
   const [loadingStates, setLoadingStates] = useState(false);
   const [loadingCities, setLoadingCities] = useState(false);
   const [detectingLocation, setDetectingLocation] = useState(false);
-  
+
   const [countriesFetched, setCountriesFetched] = useState(false);
   const [statesFetched, setStatesFetched] = useState(false);
   const [citiesFetched, setCitiesFetched] = useState(false);
@@ -263,12 +295,19 @@ export function LocationSelector({ value, onChange, className, disabled, layout 
               countryName: data.country?.name || "",
               stateName: data.state?.name || "",
               cityName: data.city?.name || "",
-              latitude: data.city?.latitude || data.state?.latitude || data.country?.latitude || latitude,
-              longitude: data.city?.longitude || data.state?.longitude || data.country?.longitude || longitude,
+              latitude:
+                data.city?.latitude || data.state?.latitude || data.country?.latitude || latitude,
+              longitude:
+                data.city?.longitude ||
+                data.state?.longitude ||
+                data.country?.longitude ||
+                longitude
             });
 
             // Show success message with detected location
-            const locationParts = [data.city?.name, data.state?.name, data.country?.name].filter(Boolean);
+            const locationParts = [data.city?.name, data.state?.name, data.country?.name].filter(
+              Boolean
+            );
             toast.success(`Lokasi terdeteksi: ${locationParts.join(", ")}`);
           } else {
             throw new Error("Gagal mendeteksi lokasi");
@@ -300,7 +339,7 @@ export function LocationSelector({ value, onChange, className, disabled, layout 
       {
         enableHighAccuracy: true,
         timeout: 15000,
-        maximumAge: 0,
+        maximumAge: 0
       }
     );
   }, [onChange]);
@@ -308,15 +347,15 @@ export function LocationSelector({ value, onChange, className, disabled, layout 
   // Fetch countries when dropdown opens
   const fetchCountries = useCallback(async () => {
     if (countriesFetched || loadingCountries) return;
-    
+
     setLoadingCountries(true);
     try {
       const params = new URLSearchParams();
       params.set("limit", "250");
-      
+
       const res = await fetch(`/api/locations/countries?${params}`);
       const data = await res.json();
-      const sortedCountries = (data.countries || []).sort((a: Country, b: Country) => 
+      const sortedCountries = (data.countries || []).sort((a: Country, b: Country) =>
         a.name.localeCompare(b.name)
       );
       setCountries(sortedCountries);
@@ -331,16 +370,16 @@ export function LocationSelector({ value, onChange, className, disabled, layout 
   // Fetch states when dropdown opens
   const fetchStates = useCallback(async () => {
     if (!value.countryId || loadingStates) return;
-    
+
     setLoadingStates(true);
     try {
       const params = new URLSearchParams();
       params.set("countryId", value.countryId.toString());
       params.set("limit", "500");
-      
+
       const res = await fetch(`/api/locations/states?${params}`);
       const data = await res.json();
-      const sortedStates = (data.states || []).sort((a: State, b: State) => 
+      const sortedStates = (data.states || []).sort((a: State, b: State) =>
         a.name.localeCompare(b.name)
       );
       setStates(sortedStates);
@@ -355,16 +394,16 @@ export function LocationSelector({ value, onChange, className, disabled, layout 
   // Fetch cities when dropdown opens
   const fetchCities = useCallback(async () => {
     if (!value.stateId || loadingCities) return;
-    
+
     setLoadingCities(true);
     try {
       const params = new URLSearchParams();
       params.set("stateId", value.stateId.toString());
       params.set("limit", "500");
-      
+
       const res = await fetch(`/api/locations/cities?${params}`);
       const data = await res.json();
-      const sortedCities = (data.cities || []).sort((a: City, b: City) => 
+      const sortedCities = (data.cities || []).sort((a: City, b: City) =>
         a.name.localeCompare(b.name)
       );
       setCities(sortedCities);
@@ -399,7 +438,7 @@ export function LocationSelector({ value, onChange, className, disabled, layout 
       stateName: "",
       cityName: "",
       latitude: country.latitude,
-      longitude: country.longitude,
+      longitude: country.longitude
     });
   };
 
@@ -411,7 +450,7 @@ export function LocationSelector({ value, onChange, className, disabled, layout 
       stateName: state.name,
       cityName: "",
       latitude: state.latitude || value.latitude,
-      longitude: state.longitude || value.longitude,
+      longitude: state.longitude || value.longitude
     });
   };
 
@@ -421,7 +460,7 @@ export function LocationSelector({ value, onChange, className, disabled, layout 
       cityId: city.id,
       cityName: city.name,
       latitude: city.latitude || value.latitude,
-      longitude: city.longitude || value.longitude,
+      longitude: city.longitude || value.longitude
     });
   };
 
@@ -434,7 +473,7 @@ export function LocationSelector({ value, onChange, className, disabled, layout 
       stateName: "",
       cityName: "",
       latitude: null,
-      longitude: null,
+      longitude: null
     });
   };
 
@@ -445,8 +484,8 @@ export function LocationSelector({ value, onChange, className, disabled, layout 
       cityId: null,
       stateName: "",
       cityName: "",
-      latitude: countries.find(c => c.id === value.countryId)?.latitude || null,
-      longitude: countries.find(c => c.id === value.countryId)?.longitude || null,
+      latitude: countries.find((c) => c.id === value.countryId)?.latitude || null,
+      longitude: countries.find((c) => c.id === value.countryId)?.longitude || null
     });
   };
 
@@ -455,8 +494,8 @@ export function LocationSelector({ value, onChange, className, disabled, layout 
       ...value,
       cityId: null,
       cityName: "",
-      latitude: states.find(s => s.id === value.stateId)?.latitude || value.latitude,
-      longitude: states.find(s => s.id === value.stateId)?.longitude || value.longitude,
+      latitude: states.find((s) => s.id === value.stateId)?.latitude || value.latitude,
+      longitude: states.find((s) => s.id === value.stateId)?.longitude || value.longitude
     });
   };
 
@@ -470,8 +509,7 @@ export function LocationSelector({ value, onChange, className, disabled, layout 
             variant="outline"
             onClick={detectLocation}
             disabled={detectingLocation}
-            className="w-full h-9 border-2 border-blue-200 hover:border-blue-400 hover:bg-blue-50 text-blue-700 rounded-xl transition-colors flex items-center justify-center gap-2 text-sm"
-          >
+            className="flex h-9 w-full items-center justify-center gap-2 rounded-xl border-2 border-blue-200 text-sm text-blue-700 transition-colors hover:border-blue-400 hover:bg-blue-50">
             {detectingLocation ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin" />
@@ -491,9 +529,9 @@ export function LocationSelector({ value, onChange, className, disabled, layout 
         label="Negara"
         placeholder="Pilih negara..."
         value={{ id: value.countryId, name: value.countryName }}
-        options={countries.map(c => ({ id: c.id, name: c.name, emoji: c.emoji, iso2: c.iso2 }))}
+        options={countries.map((c) => ({ id: c.id, name: c.name, emoji: c.emoji, iso2: c.iso2 }))}
         onSearch={() => {}}
-        onSelect={(opt) => handleCountrySelect(countries.find(c => c.id === opt.id)!)}
+        onSelect={(opt) => handleCountrySelect(countries.find((c) => c.id === opt.id)!)}
         onClear={handleCountryClear}
         onOpen={fetchCountries}
         loading={loadingCountries}
@@ -506,9 +544,9 @@ export function LocationSelector({ value, onChange, className, disabled, layout 
         label="Provinsi"
         placeholder={value.countryId ? "Pilih provinsi..." : "Pilih negara dulu"}
         value={{ id: value.stateId, name: value.stateName }}
-        options={states.map(s => ({ id: s.id, name: s.name }))}
+        options={states.map((s) => ({ id: s.id, name: s.name }))}
         onSearch={() => {}}
-        onSelect={(opt) => handleStateSelect(states.find(s => s.id === opt.id)!)}
+        onSelect={(opt) => handleStateSelect(states.find((s) => s.id === opt.id)!)}
         onClear={handleStateClear}
         onOpen={fetchStates}
         loading={loadingStates}
@@ -521,9 +559,9 @@ export function LocationSelector({ value, onChange, className, disabled, layout 
         label="Kota"
         placeholder={value.stateId ? "Pilih kota..." : "Pilih provinsi dulu"}
         value={{ id: value.cityId, name: value.cityName }}
-        options={cities.map(c => ({ id: c.id, name: c.name }))}
+        options={cities.map((c) => ({ id: c.id, name: c.name }))}
         onSearch={() => {}}
-        onSelect={(opt) => handleCitySelect(cities.find(c => c.id === opt.id)!)}
+        onSelect={(opt) => handleCitySelect(cities.find((c) => c.id === opt.id)!)}
         onClear={handleCityClear}
         onOpen={fetchCities}
         loading={loadingCities}

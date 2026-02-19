@@ -69,31 +69,52 @@ interface HeaderNavProps {
 
 function HeaderNav({ isHost, onDashboard, onRestart, onExport, onStatistics }: HeaderNavProps) {
   return (
-    <header className="bg-card/50 sticky top-0 z-50 border-b backdrop-blur-sm">
+    <header className="sticky top-0 z-50 border-b border-orange-100 bg-orange-50/50 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/50">
       <div className="container mx-auto flex h-16 items-center justify-between px-4">
         {/* Logo area */}
         <div className="flex items-center gap-2">
-          <img src="/gameforsmartlogo.png" alt="Gameforsmart" className="h-8 w-auto" />
+          <img
+            src="/gameforsmartlogo.png"
+            alt="Gameforsmart"
+            className="h-8 w-auto opacity-90 dark:opacity-100"
+          />
         </div>
 
-        {/* Actions - Different for Host vs Player */}
         {/* Actions - Different for Host vs Player */}
         <div className="flex items-center gap-2">
           {isHost ? (
             <>
-              <Button variant="ghost" size="sm" className="gap-2" onClick={onDashboard}>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2 text-orange-700 hover:bg-orange-100 hover:text-orange-800 dark:text-orange-400 dark:hover:bg-zinc-800"
+                onClick={onDashboard}>
                 <LayoutDashboard className="h-4 w-4" />
                 <span className="hidden sm:inline">Dashboard</span>
               </Button>
-              <Button variant="ghost" size="sm" className="gap-2" onClick={onStatistics}>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                className="gap-2 text-green-700 hover:bg-green-50 hover:text-green-800 dark:text-green-400 dark:hover:bg-zinc-800"
+                onClick={onStatistics}>
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline">Statistics</span>
               </Button>
-              <Button variant="outline" size="sm" className="gap-2" onClick={onRestart}>
+
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-2 border-yellow-400 text-orange-700 hover:bg-yellow-50 hover:text-orange-800 dark:border-yellow-600 dark:text-yellow-500 dark:hover:bg-zinc-800"
+                onClick={onRestart}>
                 <RotateCcw className="h-4 w-4" />
                 <span className="hidden sm:inline">Restart</span>
               </Button>
-              <Button size="sm" className="gap-2" onClick={onExport}>
+
+              <Button
+                size="sm"
+                className="gap-2 border-none bg-orange-500 text-white shadow-sm hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700"
+                onClick={onExport}>
                 <Download className="h-4 w-4" />
                 <span className="hidden sm:inline">Export</span>
               </Button>
@@ -102,9 +123,9 @@ function HeaderNav({ isHost, onDashboard, onRestart, onExport, onStatistics }: H
             <Button
               variant="secondary"
               size="sm"
-              className="gap-2 border bg-white shadow-sm hover:bg-slate-50"
+              className="gap-2 border border-green-200 bg-green-50 text-green-700 shadow-sm hover:bg-green-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-green-400 dark:hover:bg-zinc-700"
               onClick={onStatistics}>
-              <BarChart3 className="text-primary h-4 w-4" />
+              <BarChart3 className="h-4 w-4 text-orange-500" />
               <span className="font-medium">Statistics</span>
             </Button>
           )}
@@ -133,135 +154,185 @@ function HostLeaderboard({ players }: HostLeaderboardProps) {
 
   // Component for the list of other players
   const OtherPlayersList = () => (
-    <div className="bg-card text-card-foreground overflow-hidden rounded-xl border shadow-sm">
-      <div className="flex flex-col">
-        {others.map((p, index) => (
-          <div
-            key={p.id}
-            className="hover:bg-muted/50 flex items-center gap-3 border-b p-3 transition-colors last:border-0 md:px-6 md:py-2">
-            {/* Rank Number */}
-            <div className="bg-muted text-muted-foreground flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold md:text-sm">
-              {index + 1}
-            </div>
+    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-md backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/50">
+      <table className="w-full border-collapse text-left">
+        {/* Table Header */}
+        <thead>
+          <tr className="border-b border-zinc-200 bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-800/30">
+            <th className="px-4 py-3 text-[10px] font-bold tracking-widest text-zinc-500 uppercase md:px-6 dark:text-zinc-400">
+              Rank
+            </th>
+            <th className="px-4 py-3 text-[10px] font-bold tracking-widest text-zinc-500 uppercase md:px-6 dark:text-zinc-400">
+              Player
+            </th>
+            <th className="px-4 py-3 text-center text-[10px] font-bold tracking-widest text-zinc-500 uppercase md:px-6 dark:text-zinc-400">
+              Score
+            </th>
+            <th className="px-4 py-3 text-right text-[10px] font-bold tracking-widest text-zinc-500 uppercase md:px-6 dark:text-zinc-400">
+              Duration
+            </th>
+          </tr>
+        </thead>
 
-            {/* Avatar */}
-            <Avatar className="h-8 w-8 border shadow-sm md:h-10 md:w-10">
-              <AvatarImage src={p.image || ""} />
-              <AvatarFallback className="bg-muted text-muted-foreground text-xs font-medium">
-                {p.name[0]}
-              </AvatarFallback>
-            </Avatar>
+        {/* Table Body */}
+        <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800">
+          {others.map((p, index) => {
+            const rank = index + 1;
+            return (
+              <tr
+                key={p.id}
+                className="group transition-colors hover:bg-orange-50/50 dark:hover:bg-orange-500/5">
+                {/* Rank Number */}
+                <td className="px-4 py-3 md:px-6">
+                  <div
+                    className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-black shadow-sm ${
+                      rank === 1
+                        ? "bg-yellow-400 text-yellow-950"
+                        : rank === 2
+                          ? "bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"
+                          : rank === 3
+                            ? "bg-orange-200 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300"
+                            : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500"
+                    } `}>
+                    {rank}
+                  </div>
+                </td>
 
-            {/* Name & Stats */}
-            <div className="flex min-w-0 flex-1 flex-col justify-center">
-              <p className="truncate text-sm font-semibold">{p.name}</p>
-            </div>
+                {/* Player Info */}
+                <td className="px-4 py-3 md:px-6">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-8 w-8 border border-zinc-200 shadow-sm md:h-9 md:w-9 dark:border-zinc-700">
+                      <AvatarImage src={p.image || ""} />
+                      <AvatarFallback className="bg-zinc-100 text-xs font-bold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
+                        {p.name[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="truncate text-sm font-bold text-zinc-800 transition-colors group-hover:text-orange-600 dark:text-zinc-200 dark:group-hover:text-orange-400">
+                      {p.name}
+                    </span>
+                  </div>
+                </td>
 
-            {/* Duration */}
-            <div className="pl-4 text-right">
-              <span className="text-base font-bold md:text-lg">
-                {formatDuration(p.duration || 0)}
-              </span>
-            </div>
+                {/* Score */}
+                <td className="px-4 py-3 text-right md:px-6">
+                  <span className="text-base font-black tracking-tight text-orange-600 md:text-lg dark:text-orange-500">
+                    {p.normalizedScore}
+                  </span>
+                </td>
 
-            {/* Score */}
-            <div className="pl-4 text-right">
-              <span className="text-base font-bold md:text-lg">{p.normalizedScore}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+                {/* Duration */}
+                <td className="px-4 py-3 text-center md:px-6">
+                  <div className="flex items-center justify-center gap-1.5">
+                    <Timer className="h-3.5 w-3.5 text-green-500 opacity-70" />
+                    <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                      {formatDuration(p.duration || 0)}
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
     </div>
   );
 
   return (
-    <div className="flex-1 overflow-auto p-4 md:p-8">
+    <div className="flex-1 overflow-auto p-4 md:p-8 dark:bg-zinc-950">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-2">
         {/* Top Section: Podium */}
         <div className="flex flex-col justify-center">
           {/* Header */}
           <div className="mb-4 space-y-1 text-center">
-            <h1 className="text-3xl font-bold tracking-tight md:text-5xl">Leaderboard</h1>
+            <h1 className="text-3xl font-bold tracking-tight text-orange-600 md:text-5xl dark:text-orange-400">
+              Leaderboard
+            </h1>
           </div>
 
           {/* Podium Section */}
           <div className="flex items-end justify-center pb-2">
             <div className="flex w-full max-w-4xl items-end justify-center gap-4 px-4 md:gap-8">
-              {/* Rank 2 (Silver) - Left */}
+              {/* Rank 2 (Hijau/Green) - Left */}
               {top2 && (
                 <div className="flex w-1/3 flex-col items-center gap-3">
                   <div className="relative">
-                    <Avatar className="h-16 w-16 border-4 border-slate-300 shadow-xl md:h-24 md:w-24">
+                    <Avatar className="h-16 w-16 border-4 border-green-400 shadow-xl md:h-24 md:w-24 dark:border-green-600">
                       <AvatarImage src={top2.image || ""} alt={top2.name} />
-                      <AvatarFallback className="bg-slate-100 text-sm md:text-lg">
+                      <AvatarFallback className="bg-green-100 text-sm text-green-700 md:text-lg dark:bg-zinc-800 dark:text-green-400">
                         {top2.name[0]}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full border border-slate-300 bg-slate-200 px-3 py-0.5 text-xs font-bold text-slate-700 shadow-sm">
+                    <div className="absolute -bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full border border-green-300 bg-green-200 px-3 py-0.5 text-xs font-bold text-green-800 shadow-sm dark:border-green-700 dark:bg-green-900 dark:text-green-100">
                       <span>2</span>
                     </div>
                   </div>
                   <div className="mt-1 text-center">
-                    <h3 className="line-clamp-1 text-sm font-semibold md:text-lg">{top2.name}</h3>
+                    <h3 className="line-clamp-1 text-sm font-semibold text-zinc-800 md:text-lg dark:text-zinc-200">
+                      {top2.name}
+                    </h3>
                   </div>
-                  <div className="flex h-24 w-full flex-col items-center justify-between rounded-t-2xl border-x border-t border-slate-300 bg-gradient-to-t from-slate-300 to-slate-100 py-4 shadow-lg shadow-slate-300/20 md:h-40">
-                    <div className="mt-2 text-xl font-extrabold text-slate-600 md:text-3xl">
+                  <div className="flex h-24 w-full flex-col items-center justify-between rounded-t-2xl border-x border-t border-green-300 bg-gradient-to-t from-green-300/80 to-green-50 py-4 shadow-lg shadow-green-200/20 md:h-40 dark:border-green-800 dark:from-green-900/40 dark:to-zinc-900">
+                    <div className="mt-2 text-xl font-extrabold text-green-700 md:text-3xl dark:text-green-400">
                       {top2.normalizedScore}
                     </div>
-                    <Medal className="h-8 w-8 text-slate-400 opacity-80 md:h-12 md:w-12" />
+                    <Medal className="h-8 w-8 text-green-500 opacity-80 md:h-12 md:w-12" />
                   </div>
                 </div>
               )}
 
-              {/* Rank 1 (Gold) - Center */}
+              {/* Rank 1 (Gold/Yellow/Orange) - Center */}
               {top1 && (
                 <div className="z-10 flex w-1/3 flex-col items-center gap-3">
                   <div className="mb-1 flex flex-col items-center">
                     <Crown className="mb-2 h-8 w-8 animate-bounce text-yellow-500 md:h-12 md:w-12" />
                     <div className="relative">
-                      <Avatar className="h-20 w-20 border-4 border-yellow-400 shadow-2xl ring-4 ring-yellow-400/20 md:h-32 md:w-32">
+                      <Avatar className="h-20 w-20 border-4 border-orange-500 shadow-2xl ring-4 ring-yellow-400/20 md:h-32 md:w-32 dark:border-orange-600">
                         <AvatarImage src={top1.image || ""} alt={top1.name} />
-                        <AvatarFallback className="bg-yellow-50 text-lg md:text-2xl">
+                        <AvatarFallback className="bg-yellow-50 text-lg text-orange-600 md:text-2xl dark:bg-zinc-800">
                           {top1.name[0]}
                         </AvatarFallback>
                       </Avatar>
-                      <div className="absolute -bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full border border-yellow-500 bg-yellow-400 px-3 py-0.5 text-xs font-bold text-yellow-900 shadow-sm md:text-sm">
+                      <div className="absolute -bottom-3 left-1/2 z-20 flex -translate-x-1/2 items-center gap-1 rounded-full border border-yellow-500 bg-yellow-400 px-3 py-0.5 text-xs font-bold text-yellow-900 shadow-sm md:text-sm dark:bg-yellow-500 dark:text-black">
                         <Trophy className="h-3 w-3" />
                         <span>1</span>
                       </div>
                     </div>
                   </div>
                   <div className="mt-1 text-center">
-                    <h3 className="line-clamp-1 text-base font-bold md:text-2xl">{top1.name}</h3>
+                    <h3 className="line-clamp-1 text-base font-bold text-orange-950 md:text-2xl dark:text-orange-400">
+                      {top1.name}
+                    </h3>
                   </div>
-                  <div className="flex h-32 w-full flex-col items-center justify-between rounded-t-2xl border-x border-t border-yellow-400 bg-gradient-to-t from-yellow-300 to-yellow-100 py-6 shadow-xl shadow-yellow-500/20 md:h-56">
-                    <div className="mt-2 text-3xl font-extrabold text-yellow-900 md:text-6xl">
+                  <div className="flex h-32 w-full flex-col items-center justify-between rounded-t-2xl border-x border-t border-orange-400 bg-gradient-to-t from-yellow-300 to-yellow-50 py-6 shadow-xl shadow-orange-200/40 md:h-56 dark:border-orange-800 dark:from-orange-900/60 dark:to-zinc-900">
+                    <div className="mt-2 text-3xl font-extrabold text-orange-900 md:text-6xl dark:text-yellow-400">
                       {top1.normalizedScore}
                     </div>
-                    <Trophy className="h-10 w-10 text-yellow-600 opacity-80 md:h-16 md:w-16" />
+                    <Trophy className="h-10 w-10 text-orange-600 opacity-80 md:h-16 md:w-16 dark:text-yellow-600" />
                   </div>
                 </div>
               )}
 
-              {/* Rank 3 (Bronze) - Right */}
+              {/* Rank 3 (Orange) - Right */}
               {top3 && (
                 <div className="flex w-1/3 flex-col items-center gap-3">
                   <div className="relative">
-                    <Avatar className="h-16 w-16 border-4 border-orange-300 shadow-xl md:h-24 md:w-24">
+                    <Avatar className="h-16 w-16 border-4 border-orange-300 shadow-xl md:h-24 md:w-24 dark:border-orange-700">
                       <AvatarImage src={top3.image || ""} alt={top3.name} />
-                      <AvatarFallback className="bg-orange-50 text-sm md:text-lg">
+                      <AvatarFallback className="bg-orange-50 text-sm text-orange-600 md:text-lg dark:bg-zinc-800">
                         {top3.name[0]}
                       </AvatarFallback>
                     </Avatar>
-                    <div className="absolute -bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full border border-orange-300 bg-orange-200 px-3 py-0.5 text-xs font-bold text-orange-800 shadow-sm">
+                    <div className="absolute -bottom-3 left-1/2 z-20 -translate-x-1/2 rounded-full border border-orange-200 bg-orange-100 px-3 py-0.5 text-xs font-bold text-orange-800 shadow-sm dark:border-orange-800 dark:bg-orange-900 dark:text-orange-200">
                       <span>3</span>
                     </div>
                   </div>
                   <div className="mt-1 text-center">
-                    <h3 className="line-clamp-1 text-sm font-semibold md:text-lg">{top3.name}</h3>
+                    <h3 className="line-clamp-1 text-sm font-semibold text-zinc-800 md:text-lg dark:text-zinc-200">
+                      {top3.name}
+                    </h3>
                   </div>
-                  <div className="flex h-20 w-full flex-col items-center justify-between rounded-t-2xl border-x border-t border-orange-300 bg-gradient-to-t from-orange-300 to-orange-100 py-3 shadow-lg shadow-orange-300/20 md:h-32">
-                    <div className="mt-1 text-xl font-extrabold text-orange-900 md:text-3xl">
+                  <div className="flex h-20 w-full flex-col items-center justify-between rounded-t-2xl border-x border-t border-orange-200 bg-gradient-to-t from-orange-200 to-orange-50 py-3 shadow-lg shadow-orange-100/20 md:h-32 dark:border-orange-900 dark:from-orange-950/40 dark:to-zinc-900">
+                    <div className="mt-1 text-xl font-extrabold text-orange-900 md:text-3xl dark:text-orange-500">
                       {top3.normalizedScore}
                     </div>
                     <Medal className="h-6 w-6 text-orange-500 opacity-80 md:h-10 md:w-10" />
@@ -302,42 +373,49 @@ function PlayerResult({ player }: PlayerResultProps) {
       : 0;
 
   return (
-    <div className="flex min-h-[calc(100vh-4rem)] flex-1 items-center justify-center p-4">
+    <div className="flex min-h-[calc(100vh-4rem)] flex-1 items-center justify-center p-4 dark:bg-zinc-950">
       <div className="w-full max-w-sm space-y-4">
         {/* Congratulations Header */}
         <div className="space-y-2 text-center">
-          <div className="bg-muted mx-auto inline-flex h-14 w-14 items-center justify-center rounded-full">
-            <Trophy className="h-6 w-6" />
+          <div className="mx-auto inline-flex h-14 w-14 items-center justify-center rounded-full bg-orange-100 dark:bg-orange-900/30">
+            <Trophy className="h-6 w-6 text-orange-600 dark:text-orange-400" />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight">Quiz Complete!</h1>
+            <h1 className="text-xl font-bold tracking-tight text-orange-950 dark:text-zinc-100">
+              Quiz Complete!
+            </h1>
           </div>
         </div>
 
         {/* Player Card */}
-        <Card className="border-none shadow-sm drop-shadow-sm">
+        <Card className="border-none bg-white shadow-sm drop-shadow-sm dark:bg-zinc-900">
           <CardContent className="space-y-4 p-4">
             {/* Avatar & Name - Clean Layout */}
             <div className="flex items-center gap-3">
-              <Avatar className="border-primary/10 h-12 w-12 border-2">
+              <Avatar className="h-12 w-12 border-2 border-orange-100 dark:border-zinc-700">
                 <AvatarImage src={player.image || ""} alt={player.name} />
-                <AvatarFallback className="text-sm">{player.name[0]}</AvatarFallback>
+                <AvatarFallback className="bg-orange-50 text-sm text-orange-600 dark:bg-zinc-800 dark:text-orange-400">
+                  {player.name[0]}
+                </AvatarFallback>
               </Avatar>
               <div className="flex flex-col text-left">
-                <h2 className="text-base leading-tight font-bold">{player.name}</h2>
-                <div className="text-muted-foreground mt-1 flex items-center gap-2 text-xs font-medium">
+                <h2 className="text-base leading-tight font-bold text-orange-950 dark:text-zinc-100">
+                  {player.name}
+                </h2>
+                <div className="mt-1 flex items-center gap-2 text-xs font-medium text-orange-800/50 dark:text-zinc-500">
                   <div className="flex items-center gap-1">
-                    <Trophy className="h-3 w-3 text-orange-500" />
+                    <Trophy className="h-3 w-3 text-yellow-500" />
                     <span>
-                      Rank <span className="text-foreground text-sm font-bold">#{player.rank}</span>{" "}
+                      Rank{" "}
+                      <span className="font-bold text-orange-600 dark:text-orange-400">
+                        #{player.rank}
+                      </span>{" "}
                       of {player.totalPlayers}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Timer className="h-3 w-3 text-orange-500"/>
-                    <span>
-                      {formatDuration(player.duration || 0)}
-                    </span>
+                    <Timer className="h-3 w-3 text-yellow-500" />
+                    <span>{formatDuration(player.duration || 0)}</span>
                   </div>
                 </div>
               </div>
@@ -346,21 +424,23 @@ function PlayerResult({ player }: PlayerResultProps) {
             {/* Stats Grid */}
             <div className="grid grid-cols-2 gap-3">
               {/* Score - Normalized to max 100 */}
-              <div className="bg-muted/50 rounded-lg p-3 text-center">
-                <span className="text-muted-foreground mb-0.5 block text-[10px] font-bold tracking-wider uppercase">
+              <div className="rounded-lg bg-orange-50 p-3 text-center dark:bg-zinc-800">
+                <span className="mb-0.5 block text-[10px] font-bold tracking-wider text-orange-800/40 uppercase dark:text-zinc-500">
                   Score
                 </span>
-                <p className="text-foreground text-2xl font-black">{player.normalizedScore}</p>
+                <p className="text-2xl font-black text-orange-600 dark:text-orange-400">
+                  {player.normalizedScore}
+                </p>
               </div>
 
               {/* Correct */}
-              <div className="rounded-lg bg-green-500/5 p-3 text-center">
-                <span className="mb-0.5 block text-[10px] font-bold tracking-wider text-green-600/70 uppercase">
+              <div className="rounded-lg bg-green-500/5 p-3 text-center dark:bg-green-500/10">
+                <span className="mb-0.5 block text-[10px] font-bold tracking-wider text-green-600/70 uppercase dark:text-green-400/70">
                   Correct
                 </span>
-                <p className="text-2xl font-black text-green-600">
+                <p className="text-2xl font-black text-green-600 dark:text-green-400">
                   {player.correctAnswers}
-                  <span className="text-muted-foreground/60 text-sm font-medium">
+                  <span className="text-sm font-medium text-orange-800/30 dark:text-zinc-600">
                     /{player.totalQuestions}
                   </span>
                 </p>
@@ -371,12 +451,16 @@ function PlayerResult({ player }: PlayerResultProps) {
             <div className="space-y-2 pt-1">
               <div className="flex items-center justify-between text-xs">
                 <div className="flex items-center gap-1.5">
-                  <Target className="text-muted-foreground h-3.5 w-3.5" />
-                  <span className="text-muted-foreground font-medium">Accuracy</span>
+                  <Target className="h-3.5 w-3.5 text-orange-400" />
+                  <span className="font-medium text-orange-800/60 dark:text-zinc-500">
+                    Accuracy
+                  </span>
                 </div>
-                <span className="font-bold">{accuracyPercent}%</span>
+                <span className="font-bold text-orange-900 dark:text-zinc-100">
+                  {accuracyPercent}%
+                </span>
               </div>
-              <div className="bg-muted h-2 w-full overflow-hidden rounded-full">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-orange-100 dark:bg-zinc-800">
                 <div
                   className="h-full rounded-full bg-green-500 transition-all duration-500 ease-out"
                   style={{ width: `${accuracyPercent}%` }}
@@ -390,13 +474,13 @@ function PlayerResult({ player }: PlayerResultProps) {
         <div className="grid grid-cols-2 gap-3">
           <Button
             variant="outline"
-            className="h-10 text-sm font-semibold"
+            className="h-10 border-orange-200 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900"
             onClick={() => router.push("/dashboard")}>
             <Home className="mr-2 h-3.5 w-3.5" />
             Home
           </Button>
           <Button
-            className="bg-foreground hover:bg-foreground/90 text-background h-10 text-sm font-semibold"
+            className="h-10 bg-orange-500 text-sm font-semibold text-white shadow-md shadow-orange-100 hover:bg-orange-600 dark:shadow-none"
             onClick={() => router.push("/join")}>
             <RotateCcw className="mr-2 h-3.5 w-3.5" />
             Play Again
