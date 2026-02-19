@@ -508,10 +508,8 @@ export function DashboardContent({
             const isFavorite = quiz._raw?.isFavorite;
 
             return (
-              <Card
-                key={quiz.id}
-                className="hover:border-via-yellow-200 relative flex flex-row gap-0 overflow-hidden border-slate-200 py-0 shadow-sm transition-all hover:border-t-orange-300 hover:border-r-yellow-300 hover:border-b-lime-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="h-full w-1.5 shrink-0 bg-gradient-to-b from-[#fd7f0e] via-[#fbd612] to-[#b7d21f] dark:from-orange-600 dark:via-yellow-600 dark:to-lime-600" />
+              <Card key={quiz.id} className="border-card">
+                <div className="vertical-line" />
                 <CardContent className="flex flex-1 flex-col gap-2 px-5 py-4">
                   <div className="flex items-center justify-between">
                     <div className="text-muted-foreground flex gap-1">
@@ -549,13 +547,13 @@ export function DashboardContent({
                           )}
                         </DropdownMenuItem>
                         {tabKey === "myQuiz" ? (
-                          <DropdownMenuItem className="text-red-600">
-                            <Trash className="mr-2 h-4 w-4" />
+                          <DropdownMenuItem className="text-red-600 dark:text-red-500">
+                            <Trash className="mr-2 h-4 w-4 text-red-600 dark:text-red-500" />
                             Delete
                           </DropdownMenuItem>
                         ) : (
-                          <DropdownMenuItem>
-                            <CircleOff className="mr-2 h-4 w-4" />
+                          <DropdownMenuItem className="text-red-600 dark:text-red-500">
+                            <CircleOff className="mr-2 h-4 w-4 text-red-600 dark:text-red-500" />
                             Report
                           </DropdownMenuItem>
                         )}
@@ -591,20 +589,20 @@ export function DashboardContent({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-900/50"
+                            className="button-orange-outline"
                             onClick={() => handleEditClick(quiz.id)}>
                             Edit
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-green-200 text-green-600 hover:bg-green-50 dark:border-green-900/50"
+                            className="button-green-outline"
                             onClick={() => handleAnalyticClick(quiz.id)}>
                             Analytic
                           </Button>
                           <Button
                             size="sm"
-                            className="bg-orange-500 text-white hover:bg-orange-600"
+                            className="button-orange"
                             onClick={() => handleHostClick(quiz.id)}>
                             Host
                           </Button>
@@ -613,14 +611,11 @@ export function DashboardContent({
                         <>
                           <Button
                             size="sm"
-                            className="bg-orange-500 text-white hover:bg-orange-600"
+                            className="button-orange"
                             onClick={() => handleHostClick(quiz.id)}>
                             <Play className="mr-1 h-3 w-3 fill-current" /> Host
                           </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="border-yellow-400 text-yellow-700 hover:bg-yellow-50 dark:border-yellow-900/50">
+                          <Button variant="outline" size="sm" className="button-yellow-outline">
                             Tryout
                           </Button>
                         </>
@@ -695,7 +690,7 @@ export function DashboardContent({
             />
             <Button
               variant="default"
-              className="absolute top-1 right-1 h-7 w-7 bg-orange-400 p-2 hover:bg-orange-500"
+              className="button-orange absolute top-1 right-1 h-7 w-7 p-2"
               onClick={handleSearchSubmit}>
               <Search size={20} />
             </Button>
@@ -712,10 +707,7 @@ export function DashboardContent({
                 { value: "myQuiz", label: "My Quiz" },
                 { value: "favorite", label: "Favorite" }
               ].map((tab) => (
-                <TabsTrigger
-                  key={tab.value}
-                  value={tab.value}
-                  className="text-muted-foreground data-[state=active]:text-foreground relative h-10 rounded-none border-0 border-b-2 border-b-transparent bg-transparent px-4 pt-2 pb-3 font-semibold shadow-none transition-none data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:absolute data-[state=active]:after:bottom-[-2px] data-[state=active]:after:left-0 data-[state=active]:after:h-[3px] data-[state=active]:after:w-full data-[state=active]:after:bg-orange-500 data-[state=active]:after:content-[''] dark:bg-transparent dark:data-[state=active]:bg-transparent">
+                <TabsTrigger key={tab.value} value={tab.value} className="tabs-trigger">
                   {tab.label}
                 </TabsTrigger>
               ))}
@@ -724,7 +716,7 @@ export function DashboardContent({
             <div className="hidden flex-row items-center justify-end gap-2 sm:flex sm:w-auto">
               <Button
                 variant="outline"
-                className="flex bg-lime-500 text-white hover:bg-lime-600 hover:text-white dark:bg-lime-400 dark:text-zinc-900 dark:hover:bg-lime-500"
+                className="button-green flex"
                 onClick={() => router.push("/create")}>
                 <PlusIcon className="mr-1 h-4 w-4" />
                 <span>Create Quiz</span>
@@ -732,7 +724,7 @@ export function DashboardContent({
               <Button
                 onClick={() => router.push("/join")}
                 variant="outline"
-                className="flex bg-yellow-300 text-white hover:bg-yellow-400 dark:bg-yellow-400 dark:text-zinc-900 dark:hover:bg-yellow-500">
+                className="button-yellow flex">
                 <Play className="mr-1 h-4 w-4" />
                 <span>Join Quiz</span>
               </Button>
@@ -743,13 +735,13 @@ export function DashboardContent({
           <div className="mt-4 flex w-full gap-2 sm:hidden">
             <Button
               variant="outline"
-              className="flex-1 bg-lime-500 text-white"
+              className="button-green flex-1"
               onClick={() => router.push("/create")}>
               Create
             </Button>
             <Button
               variant="outline"
-              className="flex-1 bg-yellow-300"
+              className="button-yellow flex-1"
               onClick={() => router.push("/join")}>
               Join
             </Button>
