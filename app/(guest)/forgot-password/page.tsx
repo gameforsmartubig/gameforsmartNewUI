@@ -48,8 +48,8 @@ export default function Page() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 via-white to-yellow-50/30 py-4 lg:h-screen dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900">
-      <Card className="mx-auto w-96 border-t-4 border-t-orange-500 shadow-xl dark:border-t-orange-600 dark:bg-zinc-900 dark:shadow-2xl dark:shadow-black/50">
+    <div className="base-background flex min-h-screen items-center justify-center">
+      <Card className="card mx-auto w-96">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-orange-900 dark:text-zinc-100">
             Forgot Password
