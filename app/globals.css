@@ -20,6 +20,63 @@
   --base-950: oklch(0.141 0.004 285.83);
   --base-1000: oklch(0.096 0.0027 285.79);
 
+  --orange-5: oklch(0.995 0.01 50);
+  --orange-10: oklch(0.992 0.015 50);
+  --orange-20: oklch(0.988 0.02 50);
+  --orange-25: oklch(0.984 0.022 50);
+  --orange-30: oklch(0.98 0.025 50);
+  --orange-40: oklch(0.975 0.028 50);
+  --orange-50: oklch(0.97 0.02 50);
+  --orange-100: oklch(0.93 0.05 50);
+  --orange-200: oklch(0.88 0.09 50);
+  --orange-300: oklch(0.82 0.13 50);
+  --orange-400: oklch(0.75 0.17 50);
+  --orange-500: oklch(0.68 0.2 50);
+  --orange-600: oklch(0.62 0.21 50);
+  --orange-700: oklch(0.55 0.2 50);
+  --orange-800: oklch(0.48 0.18 50);
+  --orange-900: oklch(0.4 0.15 50);
+  --orange-950: oklch(0.32 0.12 50);
+  --orange-1000: oklch(0.25 0.09 50);
+
+  --yellow-5: oklch(0.997 0.008 95);
+  --yellow-10: oklch(0.994 0.012 95);
+  --yellow-20: oklch(0.99 0.018 95);
+  --yellow-25: oklch(0.986 0.02 95);
+  --yellow-30: oklch(0.982 0.022 95);
+  --yellow-40: oklch(0.978 0.025 95);
+  --yellow-50: oklch(0.98 0.03 95);
+  --yellow-100: oklch(0.96 0.06 95);
+  --yellow-200: oklch(0.93 0.1 95);
+  --yellow-300: oklch(0.9 0.14 95);
+  --yellow-400: oklch(0.87 0.17 95);
+  --yellow-500: oklch(0.85 0.19 95);
+  --yellow-600: oklch(0.78 0.2 95);
+  --yellow-700: oklch(0.7 0.18 95);
+  --yellow-800: oklch(0.6 0.15 95);
+  --yellow-900: oklch(0.5 0.12 95);
+  --yellow-950: oklch(0.42 0.09 95);
+  --yellow-1000: oklch(0.35 0.07 95);
+
+  --green-5: oklch(0.997 0.008 120);
+  --green-10: oklch(0.994 0.012 120);
+  --green-20: oklch(0.99 0.018 120);
+  --green-25: oklch(0.986 0.02 120);
+  --green-30: oklch(0.982 0.022 120);
+  --green-40: oklch(0.978 0.025 120);
+  --green-50: oklch(0.98 0.03 120);
+  --green-100: oklch(0.95 0.06 120);
+  --green-200: oklch(0.92 0.1 120);
+  --green-300: oklch(0.88 0.14 120);
+  --green-400: oklch(0.84 0.17 120);
+  --green-500: oklch(0.8 0.18 120);
+  --green-600: oklch(0.72 0.19 120);
+  --green-700: oklch(0.63 0.17 120);
+  --green-800: oklch(0.54 0.14 120);
+  --green-900: oklch(0.45 0.11 120);
+  --green-950: oklch(0.38 0.09 120);
+  --green-1000: oklch(0.3 0.07 120);
+
   --background: var(--color-white);
   --foreground: var(--base-800);
   --card: var(--color-white);
@@ -44,7 +101,7 @@
   --chart-4: var(--base-400);
   --chart-5: var(--base-300);
   --radius: 0.5rem;
-  --sidebar: var(--base-100);
+  --sidebar: var(--orange-10);
   --sidebar-foreground: var(--base-800);
   --sidebar-primary: var(--base-950);
   --sidebar-primary-foreground: var(--color-white);
@@ -66,6 +123,222 @@
   --fc-border-color: var(--border);
   --fc-page-bg-color: var(--muted);
   --fc-today-bg-color: var(--muted);
+}
+
+.vertical-line {
+  height: 100%;
+  width: 6px;
+  flex-shrink: 0;
+  background: linear-gradient(to bottom, var(--orange-500), var(--yellow-500), var(--green-500));
+}
+
+.dark .vertical-line {
+  background: linear-gradient(to bottom, var(--orange-700), var(--yellow-700), var(--green-700));
+}
+
+.button-orange {
+  color: white;
+  background-color: var(--orange-500);
+}
+
+/* Hover light */
+.button-orange:hover {
+  background-color: var(--orange-600);
+}
+
+/* Dark base */
+.dark .button-orange {
+  color: black;
+  background-color: var(--orange-600);
+}
+
+/* Dark hover */
+.dark .button-orange:hover {
+  background-color: var(--orange-500);
+}
+
+.button-yellow {
+  color: white;
+  background-color: var(--yellow-500);
+}
+
+/* Hover light */
+.button-yellow:hover {
+  background-color: var(--yellow-600);
+}
+
+/* Dark base */
+.dark .button-yellow {
+  color: black;
+  background-color: var(--yellow-600);
+}
+
+/* Dark hover */
+.dark .button-yellow:hover {
+  background-color: var(--yellow-500);
+}
+
+.button-green {
+  color: white;
+  background-color: var(--green-500);
+}
+
+/* Hover light */
+.button-green:hover {
+  background-color: var(--green-600);
+}
+
+/* Dark base */
+.dark .button-green {
+  color: black;
+  background-color: var(--green-600);
+}
+
+/* Dark hover */
+.dark .button-green:hover {
+  background-color: var(--green-500);
+}
+
+.button-orange-outline {
+  color: var(--orange-700);
+  background-color: transparent;
+  border: 1px solid var(--orange-400);
+  transition: all 0.2s ease;
+}
+
+/* Hover light */
+.button-orange-outline:hover {
+  background-color: var(--orange-50);
+}
+
+/* Dark base */
+.dark .button-orange-outline {
+  color: var(--orange-800);
+  border-color: var(--orange-800);
+}
+
+/* Dark hover */
+.dark .button-orange-outline:hover {
+  color: white;
+  background-color: var(--orange-500);
+}
+
+.button-yellow-outline {
+  color: var(--yellow-700);
+  background-color: transparent;
+  border: 1px solid var(--yellow-400);
+  transition: all 0.2s ease;
+}
+
+/* Hover light */
+.button-yellow-outline:hover {
+  background-color: var(--yellow-50);
+}
+
+/* Dark base */
+.dark .button-yellow-outline {
+  color: var(--yellow-800);
+  border-color: var(--yellow-800);
+}
+
+/* Dark hover */
+.dark .button-yellow-outline:hover {
+  color: white;
+  background-color: var(--yellow-500);
+}
+
+.button-green-outline {
+  color: var(--green-700);
+  background-color: transparent;
+  border: 1px solid var(--green-400);
+  transition: all 0.2s ease;
+}
+
+/* Hover light */
+.button-green-outline:hover {
+  background-color: var(--green-50);
+}
+
+/* Dark base */
+.dark .button-green-outline {
+  color: var(--green-800);
+  border-color: var(--green-800);
+}
+
+/* Dark hover */
+.dark .button-green-outline:hover {
+  color: white;
+  background-color: var(--green-500);
+}
+
+.tabs-trigger {
+  position: relative;
+  height: 40px; /* h-10 */
+  border: 0;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  padding: 0.5rem 1rem 0.75rem 1rem; /* pt-2 px-4 pb-3 */
+  font-weight: 600;
+  box-shadow: none;
+  transition: none;
+  color: var(--muted-foreground);
+  border-radius: 0;
+}
+
+/* Active state */
+.tabs-trigger[data-state="active"] {
+  color: var(--foreground);
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Bottom indicator */
+.tabs-trigger[data-state="active"]::after {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  height: 3px;
+  width: 100%;
+  background: var(--orange-500); /* atau ganti langsung warna */
+}
+
+/* Dark mode */
+.dark .tabs-trigger {
+  background: transparent;
+}
+
+.dark .tabs-trigger[data-state="active"] {
+  background: transparent;
+}
+
+.border-card {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  gap: 0;
+  overflow: hidden;
+
+  border: 1px solid #e2e8f0; /* slate-200 */
+  padding-top: 0;
+  padding-bottom: 0;
+
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05); /* shadow-sm */
+  transition: all 0.2s ease;
+}
+
+/* Hover effect */
+.border-card:hover {
+  border-top-color: var(--orange-300); /* orange-300 */
+  border-right-color: var(--yellow-300); /* yellow-300 */
+  border-bottom-color: var(--green-300); /* lime-300 */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* shadow-md */
+}
+
+/* Dark mode */
+.dark .border-card {
+  border-color: #27272a; /* zinc-800 */
+  background-color: #18181b; /* zinc-900 */
 }
 
 .dark {
@@ -103,7 +376,8 @@
 }
 
 @theme inline {
-  --animate-scroll: scroll var(--animation-duration, 40s) var(--animation-direction, forwards) linear infinite;
+  --animate-scroll: scroll var(--animation-duration, 40s) var(--animation-direction, forwards)
+    linear infinite;
 
   @keyframes scroll {
     to {
@@ -176,7 +450,7 @@
   body {
     @apply bg-background text-foreground;
   }
-  
+
   html {
     scroll-behavior: smooth;
   }
@@ -194,11 +468,13 @@
   [data-slot="popover-trigger"],
   [data-slot="tooltip-trigger"],
   [data-slot="sheet-trigger"],
-  [data-slot="collapsible-trigger"]{
-    @apply cursor-pointer!
+  [data-slot="collapsible-trigger"] {
+    @apply cursor-pointer!;
   }
 
-  [data-slot="dialog-overlay"], [data-slot="sheet-overlay"], [data-slot="drawer-overlay"] {
+  [data-slot="dialog-overlay"],
+  [data-slot="sheet-overlay"],
+  [data-slot="drawer-overlay"] {
     @apply bg-black/20! backdrop-blur-sm;
   }
 }
