@@ -10,6 +10,7 @@ import { Calendar, EyeOff, Lock, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
+import { PaginationControlGroup } from "./pagination-group-control";
 
 export type GroupData = {
   id: string;
@@ -42,6 +43,9 @@ export default function GroupCard({
 
   // Optimistic UI state: keys are group IDs, values are 'pending' or 'none'
   const [optimisticStatus, setOptimisticStatus] = useState<Record<string, "pending" | "none">>({});
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 12;
 
   const handleJoin = async (groupId: string, currentMembers: any[]) => {
     if (!profileId) {
@@ -169,135 +173,159 @@ export default function GroupCard({
     return <div className="py-10 text-center text-gray-500">No groups found</div>;
   }
 
+  const totalItems = groups.length;
+  const currentGroups = groups.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-      {groups.map((group) => {
-        const memberCount = Array.isArray(group.members) ? group.members.length : 0;
-        const status = group.settings?.status || "public";
-        const adminsApproval = group.settings?.admins_approval || false;
+    <div className="space-y-6">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {currentGroups.map((group) => {
+          const memberCount = Array.isArray(group.members) ? group.members.length : 0;
+          const status = group.settings?.status || "public";
+          const adminsApproval = group.settings?.admins_approval || false;
 
-        // Check if user already requested (with optimistic override)
-        let isPending = false;
-        if (optimisticStatus[group.id]) {
-          isPending = optimisticStatus[group.id] === "pending";
-        } else {
-          isPending =
-            Array.isArray(group.join_requests) &&
-            group.join_requests.some((r: any) => r.user_id === profileId && r.status === "pending");
-        }
+          // Check if user already requested (with optimistic override)
+          let isPending = false;
+          if (optimisticStatus[group.id]) {
+            isPending = optimisticStatus[group.id] === "pending";
+          } else {
+            isPending =
+              Array.isArray(group.join_requests) &&
+              group.join_requests.some(
+                (r: any) => r.user_id === profileId && r.status === "pending"
+              );
+          }
 
-        const createdDate = group.created_at
-          ? new Date(group.created_at).toLocaleDateString("en-GB", {
-              day: "numeric",
-              month: "short",
-              year: "numeric"
-            })
-          : "-";
+          const createdDate = group.created_at
+            ? new Date(group.created_at).toLocaleDateString("en-GB", {
+                day: "numeric",
+                month: "short",
+                year: "numeric"
+              })
+            : "-";
 
-        return (
-          <Card key={group.id} className="rounded-2xl border shadow-sm">
-            <CardContent className="space-y-5 px-6">
-              <div className="flex items-center justify-between">
-                {/* Category */}
-                <Badge className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-200">
-                  {group.category || "General"}
-                </Badge>
+          return (
+            <Card key={group.id} className="rounded-2xl border shadow-sm">
+              <CardContent className="space-y-5 px-6">
+                <div className="flex items-center justify-between">
+                  {/* Category */}
+                  <Badge className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-200">
+                    {group.category || "General"}
+                  </Badge>
 
-                <div className="flex items-center gap-2 text-gray-500">
-                  {status === "private" ? (
-                    <Lock size={16} />
-                  ) : status === "secret" ? (
-                    <EyeOff size={16} />
-                  ) : null}
+                  <div className="flex items-center gap-2 text-gray-500">
+                    {status === "private" ? (
+                      <Lock size={16} />
+                    ) : status === "secret" ? (
+                      <EyeOff size={16} />
+                    ) : null}
+                  </div>
                 </div>
-              </div>
 
-              {/* Title */}
-              <div>
-                <h3 className="line-clamp-1 text-lg font-semibold" title={group.name}>
-                  {group.name}
-                </h3>
-              </div>
-
-              {/* Stats */}
-              <div className="text-muted-foreground flex items-center gap-6 text-sm">
-                <div className="flex items-center gap-2">
-                  <Users size={16} />
-                  {memberCount.toLocaleString()} members
+                {/* Title */}
+                <div>
+                  <h3 className="line-clamp-1 text-lg font-semibold" title={group.name}>
+                    {group.name}
+                  </h3>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Calendar size={16} />
-                  {createdDate}
-                </div>
-              </div>
 
-              {/* Owner */}
-              <div className="flex items-center gap-3">
-                <Avatar className="h-10 w-10 border-2 border-lime-400">
-                  <AvatarImage src={group.creator?.avatar_url || ""} />
-                  <AvatarFallback className="bg-lime-400 text-white">
-                    {(
-                      group.creator?.nickname?.[0] ||
-                      group.creator?.fullname?.[0] ||
-                      group.creator?.username?.[0] ||
-                      "?"
-                    ).toUpperCase()}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="overflow-hidden">
-                  <p className="truncate text-sm font-medium">
-                    {[group.creator?.nickname, group.creator?.fullname]
-                      .filter(Boolean)
-                      .join(" - ") || ""}
-                  </p>
-                  <p className="text-muted-foreground truncate text-xs">
-                    {[
-                      group.creator?.username ? `@${group.creator.username}` : null,
-                      [group.creator?.state?.name, group.creator?.city?.name]
+                {/* Stats */}
+                <div className="text-muted-foreground flex items-center gap-6 text-sm">
+                  <div className="flex items-center gap-2">
+                    <Users size={16} />
+                    {memberCount.toLocaleString()} members
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Calendar size={16} />
+                    {createdDate}
+                  </div>
+                </div>
+
+                {/* Owner */}
+                <div className="flex items-center gap-3">
+                  <Avatar className="h-10 w-10 border-2 border-lime-400">
+                    <AvatarImage src={group.creator?.avatar_url || ""} />
+                    <AvatarFallback className="bg-lime-400 text-white">
+                      {(
+                        group.creator?.nickname?.[0] ||
+                        group.creator?.fullname?.[0] ||
+                        group.creator?.username?.[0] ||
+                        "?"
+                      ).toUpperCase()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="overflow-hidden">
+                    <p className="truncate text-sm font-medium">
+                      {[group.creator?.nickname, group.creator?.fullname]
                         .filter(Boolean)
-                        .join(", ")
-                    ]
-                      .filter(Boolean)
-                      .join(" - ") || ""}
-                  </p>
+                        .join(" - ") || ""}
+                    </p>
+                    <p className="text-muted-foreground truncate text-xs">
+                      {[
+                        group.creator?.username ? `@${group.creator.username}` : null,
+                        [group.creator?.state?.name, group.creator?.city?.name]
+                          .filter(Boolean)
+                          .join(", ")
+                      ]
+                        .filter(Boolean)
+                        .join(" - ") || ""}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Button */}
-              {isMyGroup ? (
-                <Button onClick={() => router.push(`/group/${group.id}`)} variant="secondary" className="w-full rounded-xl">
-                  Detail
-                </Button>
-              ) : adminsApproval ? (
-                isPending ? (
+                {/* Button */}
+                {isMyGroup ? (
                   <Button
-                    variant="outline"
-                    className="w-full rounded-xl border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600"
-                    onClick={() => handleCancelRequest(group.id, group.join_requests)}
-                    disabled={loadingId === group.id}>
-                    {loadingId === group.id ? "Cancelling..." : "Cancel Request"}
+                    onClick={() => router.push(`/group/${group.id}`)}
+                    variant="secondary"
+                    className="w-full rounded-xl">
+                    Detail
                   </Button>
+                ) : adminsApproval ? (
+                  isPending ? (
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-xl border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600"
+                      onClick={() => handleCancelRequest(group.id, group.join_requests)}
+                      disabled={loadingId === group.id}>
+                      {loadingId === group.id ? "Cancelling..." : "Cancel Request"}
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      className="w-full rounded-xl"
+                      onClick={() => handleRequestJoin(group.id, group.join_requests)}
+                      disabled={loadingId === group.id}>
+                      {loadingId === group.id ? "Requesting..." : "Request to Join"}
+                    </Button>
+                  )
                 ) : (
                   <Button
-                    variant="outline"
-                    className="w-full rounded-xl"
-                    onClick={() => handleRequestJoin(group.id, group.join_requests)}
+                    className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700"
+                    onClick={() => handleJoin(group.id, group.members)}
                     disabled={loadingId === group.id}>
-                    {loadingId === group.id ? "Requesting..." : "Request to Join"}
+                    {loadingId === group.id ? "Joining..." : "Join"}
                   </Button>
-                )
-              ) : (
-                <Button
-                  className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700"
-                  onClick={() => handleJoin(group.id, group.members)}
-                  disabled={loadingId === group.id}>
-                  {loadingId === group.id ? "Joining..." : "Join"}
-                </Button>
-              )}
-            </CardContent>
-          </Card>
-        );
-      })}
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {totalItems > ITEMS_PER_PAGE && (
+        <div className="flex justify-center pt-4">
+          <PaginationControlGroup
+            totalItems={totalItems}
+            currentPage={currentPage}
+            onPageChange={setCurrentPage}
+            itemsPerPage={ITEMS_PER_PAGE}
+          />
+        </div>
+      )}
     </div>
   );
 }

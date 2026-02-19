@@ -17,6 +17,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
+import DialogSettings from "./dialogsettings";
 
 interface GroupDetailProps {
   group: any;
@@ -114,10 +115,7 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
                   </div>
 
                   <div className="flex gap-3 pt-4">
-                    <Button variant="outline" className="flex-1 rounded-xl">
-                      <Settings size={16} className="mr-2" />
-                      Settings
-                    </Button>
+                    <DialogSettings />
 
                     <Button variant="outline" className="relative flex-1 rounded-xl">
                       <LogOut size={16} className="mr-2" />

@@ -1,5 +1,4 @@
 "use client";
-
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,6 +7,7 @@ import {
   DialogTitle,
   DialogTrigger
 } from "@/components/ui/dialog";
+import { Field, FieldContent, FieldDescription, FieldLabel } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -17,143 +17,91 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { useAuth } from "@/contexts/auth-context";
-import { supabase } from "@/lib/supabase";
-import { EyeOff, Globe, Lock, PlusIcon, Users } from "lucide-react";
+import { EyeOff, Globe, Lock, Settings } from "lucide-react";
 import { useState } from "react";
-import { toast } from "sonner";
 
 const groupCategoryOptions = [
   {
     value: "Campus",
     labelId: "Kampus",
-    labelEn: "Campus",
+    labelEn: "Campus"
   },
   {
     value: "Office",
     labelId: "Kantor",
-    labelEn: "Office",
+    labelEn: "Office"
   },
   {
     value: "Family",
     labelId: "Keluarga",
-    labelEn: "Family",
+    labelEn: "Family"
   },
   {
     value: "Community",
     labelId: "Komunitas",
-    labelEn: "Community",
+    labelEn: "Community"
   },
   {
     value: "Mosque",
     labelId: "Masjid/Musholla",
-    labelEn: "Mosque",
+    labelEn: "Mosque"
   },
   {
     value: "Islamic Boarding School",
     labelId: "Pesantren",
-    labelEn: "Islamic Boarding School",
+    labelEn: "Islamic Boarding School"
   },
   {
     value: "School",
     labelId: "Sekolah",
-    labelEn: "School",
+    labelEn: "School"
   },
   {
     value: "Quran Learning Center",
     labelId: "TPA/TPQ",
-    labelEn: "Quran Learning Center",
+    labelEn: "Quran Learning Center"
   },
   {
     value: "General",
     labelId: "Umum",
-    labelEn: "General",
+    labelEn: "General"
   },
   {
     value: "Others",
     labelId: "Lainnya",
-    labelEn: "Others",
+    labelEn: "Others"
   }
 ];
 
-export default function DialogCreate() {
+export default function DialogSettings() {
   const [open, setOpen] = useState(false);
-  const { profileId } = useAuth();
-
   const [groupName, setGroupName] = useState("");
   const [groupCategory, setGroupCategory] = useState("");
-  const [groupStatus, setGroupStatus] = useState("public"); // public, private, secret
+  const [groupStatus, setGroupStatus] = useState("");
   const [groupDescription, setGroupDescription] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleCreate = async () => {
-    if (!profileId) {
-      toast.error("You must be logged in to create a group");
-      return;
-    }
-
-    if (!groupName.trim()) {
-      toast.error("Group name is required");
-      return;
-    }
-    if (!groupCategory) {
-      toast.error("Category is required");
-      return;
-    }
-
+  const handleSave = () => {
     setLoading(true);
-
-    try {
-      const payload = {
-        name: groupName,
-        category: groupCategory,
-        description: groupDescription.trim() || null,
-        creator_id: profileId,
-        members: [{ role: "owner", user_id: profileId }],
-        settings: {
-          status: groupStatus,
-          admins_approval: groupStatus !== "public" // false if public, true otherwise
-        }
-      };
-
-      const { error } = await supabase.from("groups").insert(payload);
-
-      if (error) throw error;
-
-      toast.success("Group created successfully!");
-      setOpen(false);
-
-      // Reset form
-      setGroupName("");
-      setGroupCategory("");
-      setGroupStatus("public");
-      setGroupDescription("");
-
-      // Refresh page to show new group?
-      // Typically router.refresh() or manual state update.
-      // For now just close dialog.
-      window.location.reload();
-    } catch (error: any) {
-      console.error("Error creating group:", error);
-      toast.error(error.message || "Failed to create group");
-    } finally {
+    console.log(groupName, groupCategory, groupStatus, groupDescription);
+    setTimeout(() => {
       setLoading(false);
-    }
+      setOpen(false);
+    }, 1000);
   };
-
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="">
-          <PlusIcon className="hidden sm:block" />
-          <span className="hidden sm:inline">Create Group</span>
-          <span className="inline sm:hidden">Create</span>
+        <Button variant="outline" className="flex-1 rounded-xl">
+          <Settings size={16} className="mr-2" />
+          Settings
         </Button>
       </DialogTrigger>
       <DialogContent className="w-full max-w-md min-w-0 gap-0 overflow-hidden rounded-2xl border border-lime-400 bg-white p-0">
         <DialogHeader className="border-b border-lime-200 p-6">
-          <DialogTitle className="text-lg font-semibold text-lime-600">Create Group</DialogTitle>
+          <DialogTitle className="text-lg font-semibold text-lime-600">Settings</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 p-6">
@@ -184,7 +132,7 @@ export default function DialogCreate() {
               <SelectContent>
                 {groupCategoryOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
-                      {option.labelEn}
+                    {option.labelEn}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -248,6 +196,15 @@ export default function DialogCreate() {
               onChange={(e) => setGroupDescription(e.target.value)}
             />
           </div>
+          <Field orientation="horizontal" className="">
+            <FieldContent>
+              <FieldLabel htmlFor="switch-focus-mode">Approval</FieldLabel>
+              <FieldDescription>
+                If you activate this, you will need to approve anyone who wants to join this group.
+              </FieldDescription>
+            </FieldContent>
+            <Switch id="switch-focus-mode" />
+          </Field>
         </div>
 
         <div className="flex items-center justify-between border-t border-lime-200 p-6">
@@ -257,9 +214,9 @@ export default function DialogCreate() {
 
           <Button
             className="bg-orange-500 px-6 font-semibold text-white hover:bg-orange-600"
-            onClick={handleCreate}
+            onClick={handleSave}
             disabled={loading}>
-            {loading ? "Creating..." : "Create"}
+            {loading ? "Saving..." : "Save"}
           </Button>
         </div>
       </DialogContent>
