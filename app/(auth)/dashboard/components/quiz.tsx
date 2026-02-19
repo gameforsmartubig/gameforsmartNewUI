@@ -508,9 +508,7 @@ export function DashboardContent({
             const isFavorite = quiz._raw?.isFavorite;
 
             return (
-              <Card
-                key={quiz.id}
-                className="border-card">
+              <Card key={quiz.id} className="border-card">
                 <div className="vertical-line" />
                 <CardContent className="flex flex-1 flex-col gap-2 px-5 py-4">
                   <div className="flex items-center justify-between">
@@ -549,13 +547,13 @@ export function DashboardContent({
                           )}
                         </DropdownMenuItem>
                         {tabKey === "myQuiz" ? (
-                          <DropdownMenuItem className="text-red-600">
-                            <Trash className="mr-2 h-4 w-4" />
+                          <DropdownMenuItem className="text-red-600 dark:text-red-500">
+                            <Trash className="mr-2 h-4 w-4 text-red-600 dark:text-red-500" />
                             Delete
                           </DropdownMenuItem>
                         ) : (
-                          <DropdownMenuItem>
-                            <CircleOff className="mr-2 h-4 w-4" />
+                          <DropdownMenuItem className="text-red-600 dark:text-red-500">
+                            <CircleOff className="mr-2 h-4 w-4 text-red-600 dark:text-red-500" />
                             Report
                           </DropdownMenuItem>
                         )}
@@ -591,20 +589,20 @@ export function DashboardContent({
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-orange-900/50"
+                            className="button-orange-outline"
                             onClick={() => handleEditClick(quiz.id)}>
                             Edit
                           </Button>
                           <Button
                             variant="outline"
                             size="sm"
-                            className="border-green-200 text-green-600 hover:bg-green-50 dark:border-green-900/50"
+                            className="button-green-outline"
                             onClick={() => handleAnalyticClick(quiz.id)}>
                             Analytic
                           </Button>
                           <Button
                             size="sm"
-                            className="bg-orange-500 text-white hover:bg-orange-600"
+                            className="button-orange"
                             onClick={() => handleHostClick(quiz.id)}>
                             Host
                           </Button>
