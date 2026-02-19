@@ -125,6 +125,12 @@
   --fc-today-bg-color: var(--muted);
 }
 
+.base-background {
+  background: var(--orange-5);
+}
+.dark .base-background {
+  background: var(--base-950);
+}
 .vertical-line {
   height: 100%;
   width: 6px;
@@ -134,6 +140,97 @@
 
 .dark .vertical-line {
   background: linear-gradient(to bottom, var(--orange-700), var(--yellow-700), var(--green-700));
+}
+
+.card {
+  border-top: 4px solid var(--orange-500);
+  box-shadow:
+    0 15px 20px -10px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.dark .card {
+  border-top-color: var(--orange-600);
+  background-color: #18181b;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+/* =======================
+   BASE INPUT
+======================= */
+.input {
+  border: 1px solid var(--orange-100);
+  background-color: rgba(255, 255, 255, 0.5);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+/* Focus visible */
+.input:focus-visible {
+  box-shadow: 0 0 0 3px var(--orange-200);
+}
+
+/* =======================
+   SUCCESS STATE
+======================= */
+.input-success {
+  border-color: var(--green-500);
+  background-color: var(--green-50);
+}
+
+.input-success:focus-visible {
+  box-shadow: 0 0 0 3px var(--green-500);
+}
+
+/* =======================
+   ERROR STATE
+======================= */
+.input-error {
+  border-color: oklch(0.62 0.23 25); /* red-500 style */
+  background-color: oklch(0.95 0.02 25); /* red-50 style */
+}
+
+.input-error:focus-visible {
+  box-shadow: 0 0 0 3px oklch(0.62 0.23 25);
+}
+
+/* =======================
+   DARK MODE
+======================= */
+
+.dark .input {
+  border-color: #27272a; /* zinc-800 */
+  background-color: #09090b; /* zinc-950 */
+  color: #f4f4f5;
+}
+
+.dark .input::placeholder {
+  color: #52525b;
+}
+
+/* success dark */
+.dark .input-success {
+  border-color: oklch(0.38 0.09 120 / 0.5);
+  background-color: oklch(0.3 0.07 120 / 0.2);
+}
+
+/* error dark */
+.dark .input-error {
+  border-color: oklch(0.35 0.13 25 / 0.5);
+  background-color: oklch(0.25 0.08 25 / 0.2);
+}
+
+/* dark focus overrides */
+.dark .input:focus-visible {
+  box-shadow: 0 0 0 3px var(--orange-600);
+}
+
+.dark .input-success:focus-visible {
+  box-shadow: 0 0 0 3px var(--green-600);
+}
+
+.dark .input-error:focus-visible {
+  box-shadow: 0 0 0 3px oklch(0.55 0.2 25);
 }
 
 .button-orange {
