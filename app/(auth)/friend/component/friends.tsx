@@ -248,9 +248,8 @@ export function Friends({ currentUserId }: { currentUserId: string }) {
       // if (data.length === 0) {
       //   setUsers(DUMMY_USERS);
       // } else {
-        setUsers(data);
+      setUsers(data);
       // }
-
     } catch (err) {
       console.error("Error fetching data:", err);
       // Fallback to dummy data on error too
@@ -270,13 +269,22 @@ export function Friends({ currentUserId }: { currentUserId: string }) {
   ]);
 
   return (
-    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full space-y-4">
-      <div className="flex w-full flex-col items-center justify-between gap-4 sm:flex-row">
-        <TabsList className="flex w-full justify-start overflow-x-auto sm:w-auto">
-          <TabsTrigger value="friends">Friends</TabsTrigger>
-          <TabsTrigger value="following">Following</TabsTrigger>
-          <TabsTrigger value="follower">Follower</TabsTrigger>
-          <TabsTrigger value="find">Find People</TabsTrigger>
+    <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <div className="flex items-center justify-between border-gray-100 dark:border-gray-800">
+        <TabsList className="h-auto w-fit justify-start rounded-none bg-transparent p-0">
+          {[
+            { value: "friends", label: "Friends" },
+            { value: "following", label: "Following" },
+            { value: "follower", label: "Follower" },
+            { value: "find", label: "Find People" }
+          ].map((tab) => (
+            <TabsTrigger
+              key={tab.value}
+              value={tab.value}
+              className="text-muted-foreground data-[state=active]:text-foreground relative h-10 rounded-none border-0 border-b-2 border-b-transparent bg-transparent px-4 pt-2 pb-3 font-semibold shadow-none transition-none data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:absolute data-[state=active]:after:bottom-[-2px] data-[state=active]:after:left-0 data-[state=active]:after:h-[3px] data-[state=active]:after:w-full data-[state=active]:after:bg-orange-500 data-[state=active]:after:content-[''] dark:bg-transparent dark:data-[state=active]:bg-transparent">
+              {tab.label}
+            </TabsTrigger>
+          ))}
         </TabsList>
         <div className="flex w-full items-center justify-end sm:w-auto">
           <SearchFriends
@@ -285,14 +293,13 @@ export function Friends({ currentUserId }: { currentUserId: string }) {
             onSearch={handleSearch}
             locationFilter={currentLocationFilter}
             setLocationFilter={updateLocationFilter}
-            onApplyFilter={() => { }}
+            onApplyFilter={() => {}}
           />
         </div>
       </div>
 
       {["friends", "following", "follower", "find"].map((tab) => (
         <TabsContent key={tab} value={tab} className="space-y-4">
-
           {loading ? (
             <div className="flex justify-center p-8">
               <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
@@ -388,7 +395,7 @@ function UserCard({
 
   return (
     <Card className="relative overflow-hidden">
-      <div className="absolute top-0 bottom-0 left-0 w-1.5 bg-orange-500"></div>
+      <div className="absolute top-0 bottom-0 left-0 h-full w-1.5 shrink-0 bg-gradient-to-b from-orange-500 via-yellow-500 to-lime-500 dark:from-orange-600 dark:via-yellow-600 dark:to-lime-600" />
       <CardContent className="flex flex-row items-center justify-between gap-4">
         <div>
           <img
@@ -529,29 +536,11 @@ export const SearchFriends = forwardRef<HTMLInputElement, SearchProps>(
 
     return (
       <div className="flex w-full items-center space-x-2">
-        <div className="relative w-full flex-1 sm:w-auto sm:flex-none">
-          <Input
-            ref={ref}
-            id="friends-search-input"
-            placeholder={`Search ${activeTab}...`}
-            className="pr-20 sm:w-[250px]"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearchTrigger()}
-          />
-          <div className="text-muted-foreground pointer-events-none absolute top-2 right-10 hidden items-center gap-1 rounded border bg-neutral-100 px-1.5 py-1 font-mono text-[10px] font-medium opacity-100 sm:flex dark:bg-zinc-800">
-            <span className="text-xs">⌘</span>K
-          </div>
-          <button
-            onClick={handleSearchTrigger}
-            className="bg-primary text-primary-foreground hover:bg-primary/90 absolute top-1 right-1 ml-auto flex h-7 w-7 items-center justify-center rounded-md transition-colors hover:cursor-pointer">
-            <Search className="h-4 w-4" />
-          </button>
-        </div>
-
         <Dialog>
           <DialogTrigger asChild>
-            <Button variant="outline">
+            <Button
+              variant="outline"
+              className="bg-yellow-500 text-white hover:bg-yellow-600 dark:bg-yellow-400 dark:text-zinc-900 dark:hover:bg-yellow-300">
               <Funnel className="h-4 w-4" />
             </Button>
           </DialogTrigger>
@@ -587,6 +576,22 @@ export const SearchFriends = forwardRef<HTMLInputElement, SearchProps>(
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        <div className="relative w-full flex-1 sm:w-auto sm:flex-none">
+          <Input
+            ref={ref}
+            id="friends-search-input"
+            placeholder={`Press K or Click to Search...`}
+            className="pr-10 sm:w-[250px]"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && handleSearchTrigger()}
+          />
+          <Button
+            onClick={handleSearchTrigger}
+            className="absolute top-1 right-1 h-7 w-7 bg-orange-400 p-2 hover:bg-orange-500">
+            <Search className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
     );
   }
