@@ -414,7 +414,8 @@ export default function RegisterForm() {
             <img
               src="/gameforsmartlogo.png"
               alt="Logo"
-              className="h-full w-11/12 px-8 dark:brightness-90"
+              className="h-full w-11/12 px-8 dark:brightness-90 cursor-pointer"
+               onClick={() => router.push("https://gameforsmart.com")}
             />
           </div>
         </CardHeader>
@@ -577,7 +578,7 @@ export default function RegisterForm() {
                   id="email"
                   name="email"
                   type="email"
-                  placeholder="johndoe@example.com"
+                  placeholder="user1@abc.com"
                   value={formData.email}
                   onChange={handleInputChange}
                   className="border-orange-100 focus-visible:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:focus-visible:ring-orange-600"

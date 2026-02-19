@@ -176,11 +176,12 @@ export default function LoginForm() {
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 via-white to-yellow-50/30 py-4 lg:h-screen dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900">
       <Card className="mx-auto w-96 border-t-4 border-t-orange-500 shadow-xl dark:border-t-orange-600 dark:bg-zinc-900 dark:shadow-2xl dark:shadow-black/50">
         <CardHeader>
-          <div className="flex items-center justify-center">
+          <div className="flex items-center justify-center" >
             <img
               src="/gameforsmartlogo.png"
               alt="Logo"
-              className="h-full w-11/12 px-8 dark:brightness-90"
+              className="h-full w-11/12 px-8 dark:brightness-90  cursor-pointer"
+              onClick={() => router.push("https://gameforsmart.com")}
             />
           </div>
         </CardHeader>
@@ -234,7 +235,7 @@ export default function LoginForm() {
                   id="signin-emailOrUsername"
                   name="emailOrUsername"
                   type="text"
-                  placeholder="john_doe@bundui.com/johndoe"
+                  placeholder="user1@abc.com or user1"
                   value={formData.emailOrUsername}
                   onChange={handleInputChange}
                   className="border-orange-100 bg-white/50 focus-visible:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus-visible:ring-orange-600"
