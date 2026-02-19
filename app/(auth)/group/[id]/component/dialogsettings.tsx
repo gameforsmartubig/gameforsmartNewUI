@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -19,8 +20,11 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
+import { supabase } from "@/lib/supabase";
 import { EyeOff, Globe, Lock, Settings } from "lucide-react";
-import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 
 const groupCategoryOptions = [
   {
@@ -75,22 +79,65 @@ const groupCategoryOptions = [
   }
 ];
 
-export default function DialogSettings() {
+interface DialogSettingsProps {
+  group: any;
+}
+
+export default function DialogSettings({ group }: DialogSettingsProps) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [groupName, setGroupName] = useState("");
   const [groupCategory, setGroupCategory] = useState("");
-  const [groupStatus, setGroupStatus] = useState("");
+  const [groupStatus, setGroupStatus] = useState("public");
   const [groupDescription, setGroupDescription] = useState("");
+  const [adminsApproval, setAdminsApproval] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const handleSave = () => {
+  useEffect(() => {
+    if (group) {
+      setGroupName(group.name || "");
+      setGroupCategory(group.category || "");
+      setGroupDescription(group.description || "");
+      setGroupStatus(group.settings?.status || "public");
+      setAdminsApproval(group.settings?.admins_approval || false);
+    }
+  }, [group]);
+
+  const handleSave = async () => {
+    if (!groupName || !groupCategory) {
+      toast.error("Group Name and Category are required");
+      return;
+    }
+
     setLoading(true);
-    console.log(groupName, groupCategory, groupStatus, groupDescription);
-    setTimeout(() => {
-      setLoading(false);
+
+    try {
+      const updates = {
+        name: groupName,
+        category: groupCategory,
+        description: groupDescription,
+        settings: {
+          ...group.settings,
+          status: groupStatus,
+          admins_approval: adminsApproval
+        }
+      };
+
+      const { error } = await supabase.from("groups").update(updates).eq("id", group.id);
+
+      if (error) throw error;
+
+      toast.success("Group settings updated successfully");
       setOpen(false);
-    }, 1000);
+      router.refresh();
+    } catch (error: any) {
+      console.error("Update error:", error);
+      toast.error(error.message || "Failed to update group settings");
+    } finally {
+      setLoading(false);
+    }
   };
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -203,11 +250,15 @@ export default function DialogSettings() {
                 If you activate this, you will need to approve anyone who wants to join this group.
               </FieldDescription>
             </FieldContent>
-            <Switch id="switch-focus-mode" />
+            <Switch
+              id="switch-focus-mode"
+              checked={adminsApproval}
+              onCheckedChange={setAdminsApproval}
+            />
           </Field>
         </div>
 
-        <div className="flex items-center justify-between border-t border-lime-200 p-6">
+        <div className="flex items-center justify-end gap-3 border-t border-lime-200 p-6">
           <Button variant="ghost" onClick={() => setOpen(false)} className="text-gray-500">
             Cancel
           </Button>

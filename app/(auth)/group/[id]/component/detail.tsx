@@ -18,6 +18,7 @@ import {
   BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
 import DialogSettings from "./dialogsettings";
+import DialogLeave from "./dialogleave";
 
 interface GroupDetailProps {
   group: any;
@@ -79,22 +80,21 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
               <div className="text-muted-foreground space-y-3 text-sm">
                 <div className="flex items-center gap-2">
                   <div title="Members">
-                  <Users size={16} />
+                    <Users size={16} />
                   </div>
                   {members.length} members
                 </div>
 
                 <div className="flex items-center gap-2">
                   <div title="Created">
-                  <Calendar size={16} />
-
+                    <Calendar size={16} />
                   </div>
                   {createdAt}
                 </div>
 
                 <div className="flex items-center gap-2">
                   <div title="Visibility">
-                  <Globe size={16} />
+                    <Globe size={16} />
                   </div>
                   {status}
                 </div>
@@ -104,9 +104,7 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
               {(userRole === "owner" || userRole === "admin") && (
                 <div>
                   <div className="space-y-3 pt-2">
-                    <Button className="w-full rounded-xl bg-yellow-500 text-black hover:bg-yellow-600">
-                      Add Member
-                    </Button>
+                    <Button className="button-orange w-full rounded-xl">Add Member</Button>
 
                     <Button variant="outline" className="w-full rounded-xl">
                       <Copy size={16} className="mr-2" />
@@ -115,12 +113,9 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
                   </div>
 
                   <div className="flex gap-3 pt-4">
-                    <DialogSettings />
+                    <DialogSettings group={group} />
 
-                    <Button variant="outline" className="relative flex-1 rounded-xl">
-                      <LogOut size={16} className="mr-2" />
-                      Leave
-                    </Button>
+                    <DialogLeave groupId={group.id} currentMembers={group.members} />
                   </div>
                 </div>
               )}
@@ -133,10 +128,7 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
                     Copy Link
                   </Button>
 
-                  <Button variant="outline" className="relative flex-1 rounded-xl">
-                    <LogOut size={16} className="mr-2" />
-                    Leave
-                  </Button>
+                  <DialogLeave groupId={group.id} currentMembers={group.members} />
                 </div>
               )}
 
@@ -215,11 +207,7 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
               </div>
 
               {/* Pagination */}
-              <div className="text-muted-foreground mt-4 flex flex-col items-center justify-between gap-4 text-sm sm:flex-row">
-                <p>
-                  Showing {Math.min(ITEMS_PER_PAGE * (currentPage - 1) + 1, totalItems)} -{" "}
-                  {Math.min(ITEMS_PER_PAGE * currentPage, totalItems)} of {totalItems} members
-                </p>
+              <div className="text-muted-foreground mt-4 flex items-center justify-center gap-4 text-sm">
                 <PaginationControl
                   totalItems={totalItems}
                   currentPage={currentPage}
