@@ -511,7 +511,7 @@ export function DashboardContent({
               <Card
                 key={quiz.id}
                 className="hover:border-via-yellow-200 relative flex flex-row gap-0 overflow-hidden border-slate-200 py-0 shadow-sm transition-all hover:border-t-orange-300 hover:border-r-yellow-300 hover:border-b-lime-300 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900">
-                <div className="h-full w-1.5 shrink-0 bg-gradient-to-b from-orange-500 via-yellow-500 to-lime-500 dark:from-orange-600 dark:via-yellow-600 dark:to-lime-600" />
+                <div className="h-full w-1.5 shrink-0 bg-gradient-to-b from-[#fd7f0e] via-[#fbd612] to-[#b7d21f] dark:from-orange-600 dark:via-yellow-600 dark:to-lime-600" />
                 <CardContent className="flex flex-1 flex-col gap-2 px-5 py-4">
                   <div className="flex items-center justify-between">
                     <div className="text-muted-foreground flex gap-1">
