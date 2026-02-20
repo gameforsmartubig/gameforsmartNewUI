@@ -278,10 +278,7 @@ export function Friends({ currentUserId }: { currentUserId: string }) {
             { value: "follower", label: "Follower" },
             { value: "find", label: "Find People" }
           ].map((tab) => (
-            <TabsTrigger
-              key={tab.value}
-              value={tab.value}
-              className="text-muted-foreground data-[state=active]:text-foreground relative h-10 rounded-none border-0 border-b-2 border-b-transparent bg-transparent px-4 pt-2 pb-3 font-semibold shadow-none transition-none data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:after:absolute data-[state=active]:after:bottom-[-2px] data-[state=active]:after:left-0 data-[state=active]:after:h-[3px] data-[state=active]:after:w-full data-[state=active]:after:bg-orange-500 data-[state=active]:after:content-[''] dark:bg-transparent dark:data-[state=active]:bg-transparent">
+            <TabsTrigger key={tab.value} value={tab.value} className="tabs-trigger">
               {tab.label}
             </TabsTrigger>
           ))}
@@ -394,8 +391,8 @@ function UserCard({
   const locationString = locationParts.length > 0 ? locationParts.join(", ") : null;
 
   return (
-    <Card className="relative overflow-hidden">
-      <div className="absolute top-0 bottom-0 left-0 h-full w-1.5 shrink-0 bg-gradient-to-b from-orange-500 via-yellow-500 to-lime-500 dark:from-orange-600 dark:via-yellow-600 dark:to-lime-600" />
+    <Card className="border-card py-2">
+      <div className="vertical-line" />
       <CardContent className="flex flex-row items-center justify-between gap-4">
         <div>
           <img
