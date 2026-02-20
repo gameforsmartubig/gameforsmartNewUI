@@ -142,8 +142,19 @@
   background: linear-gradient(to bottom, var(--orange-500), var(--yellow-500), var(--green-500));
 }
 
+.horizontal-line {
+  height: 6px;
+  width: 100%;
+  top: 0;
+  background: linear-gradient(to right, var(--orange-500), var(--yellow-500), var(--green-500));
+}
+
 .dark .vertical-line {
   background: linear-gradient(to bottom, var(--orange-700), var(--yellow-700), var(--green-700));
+}
+
+.dark .horizontal-line {
+  background: linear-gradient(to right, var(--orange-700), var(--yellow-700), var(--green-700));
 }
 
 .card {

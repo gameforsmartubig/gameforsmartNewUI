@@ -37,7 +37,11 @@ export function PaginationControlGroup({
       key={page}
       variant={currentPage === page ? "default" : "outline"}
       size="icon"
-      className="h-8 w-8"
+      className={`h-8 w-8 transition-colors ${
+        currentPage === page
+          ? "border-orange-400 bg-orange-400 text-white hover:bg-orange-500" // Saat aktif (Halaman sekarang)
+          : "border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-400 dark:hover:bg-orange-950/50 dark:hover:text-orange-400" // Saat tidak aktif
+      }`}
       onClick={() => onPageChange(page)}>
       {page}
     </Button>
@@ -70,7 +74,7 @@ export function PaginationControlGroup({
         key={position}
         variant="ghost"
         size="icon"
-        className="h-8 w-8"
+        className="h-8 w-8 border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-400 dark:hover:bg-orange-950/50 dark:hover:text-orange-400"
         onClick={() => {
           setActiveInput(position);
           setJumpPage("");
@@ -87,7 +91,7 @@ export function PaginationControlGroup({
       key="prev"
       variant="outline"
       size="icon"
-      className="h-8 w-8"
+      className="h-8 w-8 border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-400 dark:hover:bg-orange-950/50 dark:hover:text-orange-400"
       onClick={() => onPageChange(Math.max(1, currentPage - 1))}
       disabled={currentPage === 1}>
       &lt;
@@ -139,7 +143,7 @@ export function PaginationControlGroup({
       key="next"
       variant="outline"
       size="icon"
-      className="h-8 w-8"
+      className="h-8 w-8 border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-400 dark:hover:bg-orange-950/50 dark:hover:text-orange-400"
       onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
       disabled={currentPage === totalPages}>
       &gt;

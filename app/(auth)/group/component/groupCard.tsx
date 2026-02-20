@@ -208,10 +208,12 @@ export default function GroupCard({
             : "-";
 
           return (
-            <Card key={group.id} className="rounded-2xl border shadow-sm">
+            <Card
+              key={group.id}
+              className="group overflow-hidden rounded-2xl border border-slate-200 pt-0 shadow-sm transition-all hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900">
+              <div className="horizontal-line" />
               <CardContent className="space-y-5 px-6">
                 <div className="flex items-center justify-between">
-                  {/* Category */}
                   <Badge className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-200">
                     {group.category || "General"}
                   </Badge>
@@ -281,14 +283,14 @@ export default function GroupCard({
                   <Button
                     onClick={() => router.push(`/group/${group.id}`)}
                     variant="secondary"
-                    className="w-full rounded-xl">
+                    className="button-orange-outline w-full rounded-xl">
                     Detail
                   </Button>
                 ) : adminsApproval ? (
                   isPending ? (
                     <Button
                       variant="outline"
-                      className="w-full rounded-xl border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600"
+                      className="w-full rounded-md border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 dark:bg-red-950 dark:text-red-600 dark:hover:bg-red-900/50 dark:hover:text-red-500"
                       onClick={() => handleCancelRequest(group.id, group.join_requests)}
                       disabled={loadingId === group.id}>
                       {loadingId === group.id ? "Cancelling..." : "Cancel Request"}
@@ -296,7 +298,7 @@ export default function GroupCard({
                   ) : (
                     <Button
                       variant="outline"
-                      className="w-full rounded-xl"
+                      className="w-full rounded-md"
                       onClick={() => handleRequestJoin(group.id, group.join_requests)}
                       disabled={loadingId === group.id}>
                       {loadingId === group.id ? "Requesting..." : "Request to Join"}
@@ -304,7 +306,7 @@ export default function GroupCard({
                   )
                 ) : (
                   <Button
-                    className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700"
+                    className="button-orange w-full"
                     onClick={() => handleJoin(group.id, group.members)}
                     disabled={loadingId === group.id}>
                     {loadingId === group.id ? "Joining..." : "Join"}
