@@ -173,14 +173,14 @@ export default function LoginForm() {
     }
   };
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 via-white to-yellow-50/30 py-4 lg:h-screen dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900">
-      <Card className="mx-auto w-96 border-t-4 border-t-orange-500 shadow-xl dark:border-t-orange-600 dark:bg-zinc-900 dark:shadow-2xl dark:shadow-black/50">
+    <div className="base-background flex min-h-screen items-center justify-center py-4 lg:h-screen">
+      <Card className="card mx-auto w-96">
         <CardHeader>
-          <div className="flex items-center justify-center" >
+          <div className="flex items-center justify-center">
             <img
               src="/gameforsmartlogo.png"
               alt="Logo"
-              className="h-full w-11/12 px-8 dark:brightness-90  cursor-pointer"
+              className="h-full w-11/12 cursor-pointer px-8 dark:brightness-90"
               onClick={() => router.push("https://gameforsmart.com")}
             />
           </div>
@@ -191,7 +191,7 @@ export default function LoginForm() {
               <Button
                 onClick={handleGoogleSignIn}
                 variant="outline"
-                className="w-full gap-2 border-orange-200 text-orange-700 transition-all hover:border-orange-400 hover:bg-orange-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100">
+                className="button-orange-outline w-full gap-2">
                 <svg className="h-4 w-4" viewBox="0 0 24 24">
                   <path
                     fill="currentColor"
@@ -228,7 +228,7 @@ export default function LoginForm() {
               <div className="grid gap-2">
                 <Label
                   htmlFor="signin-emailOrUsername"
-                  className="font-medium text-orange-700 dark:text-zinc-300">
+                  className="font-medium text-orange-900 dark:text-zinc-300">
                   Email or Username
                 </Label>
                 <Input
@@ -238,7 +238,7 @@ export default function LoginForm() {
                   placeholder="user1@abc.com or user1"
                   value={formData.emailOrUsername}
                   onChange={handleInputChange}
-                  className="border-orange-100 bg-white/50 focus-visible:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus-visible:ring-orange-600"
+                  className="input"
                   required
                 />
               </div>
@@ -246,7 +246,7 @@ export default function LoginForm() {
                 <div className="flex items-center">
                   <Label
                     htmlFor="signin-password"
-                    className="font-medium text-orange-700 dark:text-zinc-300">
+                    className="font-medium text-orange-900 dark:text-zinc-300">
                     Password
                   </Label>
                   <Link
@@ -262,15 +262,12 @@ export default function LoginForm() {
                   placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="border-orange-100 bg-white/50 focus-visible:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus-visible:ring-orange-600"
+                  className="input"
                   required
                 />
               </div>
 
-              <Button
-                type="submit"
-                className="mt-2 w-full bg-lime-500 font-bold text-white shadow-lg shadow-yellow-200 transition-all hover:bg-lime-600 active:scale-[0.98] dark:bg-lime-600 dark:shadow-none dark:hover:bg-lime-500"
-                disabled={loading}>
+              <Button type="submit" className="button-green mt-2 w-full" disabled={loading}>
                 {loading ? (
                   <div className="flex items-center gap-2">
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />

@@ -206,8 +206,6 @@ export default function RegisterForm() {
 
         if (error) {
           console.error("Username check error:", error);
-          // If table doesn't exist or there's a database error, assume username is available
-          // This handles the case when database is empty or table is not yet created
           setUsernameValidation({
             isValid: true,
             isChecking: false,
@@ -406,16 +404,15 @@ export default function RegisterForm() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 to-white py-8 dark:from-zinc-950 dark:to-zinc-900">
-      <Card className="mx-auto w-96 border-t-4 border-t-orange-500 shadow-xl dark:border-t-orange-600 dark:bg-zinc-900 dark:shadow-2xl dark:shadow-black/50">
+    <div className="base-background flex min-h-screen items-center justify-center">
+      <Card className="card mx-auto w-96">
         <CardHeader>
           <div className="flex items-center justify-center">
-            {/* Logo area dengan filter agar tidak terlalu terang di dark mode */}
             <img
               src="/gameforsmartlogo.png"
               alt="Logo"
-              className="h-full w-11/12 px-8 dark:brightness-90 cursor-pointer"
-               onClick={() => router.push("https://gameforsmart.com")}
+              className="h-full w-11/12 cursor-pointer px-8 dark:brightness-90"
+              onClick={() => router.push("https://gameforsmart.com")}
             />
           </div>
         </CardHeader>
@@ -424,7 +421,7 @@ export default function RegisterForm() {
             <div className="grid grid-cols-1 gap-3">
               <Button
                 variant="outline"
-                className="w-full border-orange-200 text-orange-700 transition-all hover:border-orange-400 hover:bg-orange-50 hover:text-orange-800 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-zinc-100"
+                className="button-orange-outline w-full"
                 onClick={handleGoogleSignIn}>
                 <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                   <path
@@ -460,7 +457,7 @@ export default function RegisterForm() {
 
             <form onSubmit={handleSubmit} className="space-y-3">
               <div className="grid gap-1.5">
-                <Label htmlFor="fullname" className="text-orange-700 dark:text-zinc-300">
+                <Label htmlFor="fullname" className="text-orange-900 dark:text-zinc-300">
                   Full Name
                 </Label>
                 <Input
@@ -470,13 +467,13 @@ export default function RegisterForm() {
                   placeholder="Full Name"
                   value={formData.fullname}
                   onChange={handleInputChange}
-                  className="w-full border-orange-100 focus-visible:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:focus-visible:ring-orange-600"
+                  className="input w-full"
                   required
                 />
               </div>
 
               <div className="grid gap-1.5">
-                <Label htmlFor="username" className="text-orange-700 dark:text-zinc-300">
+                <Label htmlFor="username" className="text-orange-900 dark:text-zinc-300">
                   Username
                 </Label>
                 <div className="relative">
@@ -485,12 +482,12 @@ export default function RegisterForm() {
                     name="username"
                     type="text"
                     required
-                    className={`w-full transition-all focus-visible:ring-orange-500 dark:focus-visible:ring-orange-600 ${
+                    className={`input w-full ${
                       formData.username
                         ? usernameValidation.isValid
-                          ? "border-green-500 bg-green-50 focus-visible:ring-green-500 dark:border-green-900/50 dark:bg-green-950/20"
-                          : "border-red-500 bg-red-50 focus-visible:ring-red-500 dark:border-red-900/50 dark:bg-red-950/20"
-                        : "border-orange-100 dark:border-zinc-800 dark:bg-zinc-950"
+                          ? "input-succes"
+                          : "input-error"
+                        : ""
                     }`}
                     placeholder="Username"
                     value={formData.username}
@@ -543,7 +540,6 @@ export default function RegisterForm() {
               </div>
 
               <div className="grid gap-2">
-                {/* Note: Pastikan komponen LocationSelector juga mendukung dark mode di dalamnya */}
                 <LocationSelector
                   value={location}
                   onChange={setLocation}
@@ -555,7 +551,7 @@ export default function RegisterForm() {
                   variant="outline"
                   onClick={detectLocation}
                   disabled={detectingLocation || loading}
-                  className="flex h-10 w-full items-center justify-center gap-2 rounded-xl border-2 border-yellow-200 bg-yellow-50/30 text-sm text-orange-700 transition-all hover:border-yellow-400 hover:bg-yellow-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-orange-400 dark:hover:bg-zinc-800">
+                  className="button-yellow-outline flex h-10 w-full items-center justify-center gap-2 rounded-xl border-2">
                   {detectingLocation ? (
                     <>
                       <Loader2 className="h-4 w-4 animate-spin text-orange-500" />
@@ -571,7 +567,7 @@ export default function RegisterForm() {
               </div>
 
               <div className="grid gap-1.5">
-                <Label htmlFor="email" className="text-orange-700 dark:text-zinc-300">
+                <Label htmlFor="email" className="text-orange-900 dark:text-zinc-300">
                   Email
                 </Label>
                 <Input
@@ -581,13 +577,13 @@ export default function RegisterForm() {
                   placeholder="user1@abc.com"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="border-orange-100 focus-visible:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:focus-visible:ring-orange-600"
+                  className="input"
                   required
                 />
               </div>
 
               <div className="grid gap-1.5">
-                <Label htmlFor="password" className="text-orange-700 dark:text-zinc-300">
+                <Label htmlFor="password" className="text-orange-900 dark:text-zinc-300">
                   Password
                 </Label>
                 <Input
@@ -597,15 +593,12 @@ export default function RegisterForm() {
                   required
                   value={formData.password}
                   onChange={handleInputChange}
-                  className="border-orange-100 focus-visible:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:focus-visible:ring-orange-600"
+                  className="input"
                   minLength={6}
                 />
               </div>
 
-              <Button
-                type="submit"
-                className="w-full bg-lime-500 font-bold text-white shadow-lg shadow-yellow-200 transition-transform hover:bg-lime-600 active:scale-[0.98] dark:bg-lime-600 dark:shadow-none dark:hover:bg-lime-500"
-                disabled={loading}>
+              <Button type="submit" className="button-green w-full" disabled={loading}>
                 {loading ? (
                   <div className="flex items-center gap-2">
                     <Loader2 className="h-4 w-4 animate-spin" />

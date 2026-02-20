@@ -508,7 +508,7 @@ export function DashboardContent({
             const isFavorite = quiz._raw?.isFavorite;
 
             return (
-              <Card key={quiz.id} className="border-card">
+              <Card key={quiz.id} className="border-card py-0">
                 <div className="vertical-line" />
                 <CardContent className="flex flex-1 flex-col gap-2 px-5 py-4">
                   <div className="flex items-center justify-between">
