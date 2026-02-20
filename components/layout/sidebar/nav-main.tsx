@@ -177,9 +177,7 @@ export function NavMain() {
                                   asChild
                                   className={cn(
                                     "cursor-pointer transition-all duration-200",
-                                    pathname === sub.href
-                                      ? "sidebar active"
-                                      : "hover:bg-gray-100 dark:hover:bg-gray-700"
+                                    pathname === sub.href ? "sidebar active" : ""
                                   )}>
                                   <a href={sub.href} className="relative z-10">
                                     {sub.title}
