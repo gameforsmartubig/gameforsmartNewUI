@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/auth-context";
-import { Bell, Calendar, Copy, Globe, LogOut, Settings, Users } from "lucide-react";
+import {
+  Calendar,
+  Copy,
+  EllipsisVertical,
+  Globe,
+  Users
+} from "lucide-react";
 import { useState } from "react";
 import { PaginationControl } from "./pagination-control";
 import {
@@ -19,6 +25,14 @@ import {
 } from "@/components/ui/breadcrumb";
 import DialogSettings from "./dialogsettings";
 import DialogLeave from "./dialogleave";
+import DialogApproval from "./dialogapproval";
+import DialogAdd from "./dialogadd";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu";
 
 interface GroupDetailProps {
   group: any;
@@ -28,7 +42,7 @@ interface GroupDetailProps {
 export default function GroupDetail({ group, members }: GroupDetailProps) {
   const { profileId } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
-  const ITEMS_PER_PAGE = 10;
+  const ITEMS_PER_PAGE = 14;
 
   if (!group) return <div>Loading...</div>;
 
@@ -104,7 +118,7 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
               {(userRole === "owner" || userRole === "admin") && (
                 <div>
                   <div className="space-y-3 pt-2">
-                    <Button className="button-orange w-full rounded-xl">Add Member</Button>
+                    <DialogAdd groupId={group.id} />
 
                     <Button variant="outline" className="w-full rounded-xl">
                       <Copy size={16} className="mr-2" />
@@ -153,10 +167,7 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
                 <TabsTrigger value="activities">Activities</TabsTrigger>
               </TabsList>
               {(userRole === "admin" || userRole === "owner") && approval === true && (
-                <Button variant="outline" className="relative rounded-xl">
-                  <Bell size={16} />
-                  <span className="absolute top-0 right-0 h-2 w-2 rounded-full bg-red-500"></span>
-                </Button>
+                <DialogApproval groupId={group.id} joinRequests={group.join_requests} />
               )}
             </div>
 
@@ -167,39 +178,58 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
                   const role = member.role?.toLowerCase();
                   return (
                     <Card key={i} className="rounded-xl border py-0 shadow-sm">
-                      <CardContent className="flex items-center gap-4 p-4">
-                        {/* Avatar */}
-                        <Avatar>
-                          <AvatarImage src={member.avatar} alt={member.name} />
-                          <AvatarFallback className="rounded-lg">
-                            {(member.name || "?").substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+                      <CardContent className="flex items-center justify-between p-4">
+                        <div className="flex items-center gap-4">
+                          {/* Avatar */}
+                          <Avatar>
+                            <AvatarImage src={member.avatar} alt={member.name} />
+                            <AvatarFallback className="rounded-lg">
+                              {(member.name || "?").substring(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
 
-                        {/* Info */}
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <p className="truncate font-medium">{member.name}</p>
+                          {/* Info */}
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2">
+                              <p className="truncate font-medium">{member.name}</p>
 
-                            {role === "owner" && (
-                              <Badge className="bg-yellow-100 text-xs text-yellow-700">Owner</Badge>
-                            )}
+                              {role === "owner" && (
+                                <Badge className="bg-yellow-100 text-xs text-yellow-700">
+                                  Owner
+                                </Badge>
+                              )}
 
-                            {role === "admin" && (
-                              <Badge className="bg-blue-100 text-xs text-blue-700">Admin</Badge>
-                            )}
+                              {role === "admin" && (
+                                <Badge className="bg-blue-100 text-xs text-blue-700">Admin</Badge>
+                              )}
 
-                            {role === "member" && (
-                              <Badge variant="secondary" className="text-xs">
-                                Member
-                              </Badge>
-                            )}
+                              {role === "member" && (
+                                <Badge variant="secondary" className="text-xs">
+                                  Member
+                                </Badge>
+                              )}
+                            </div>
+
+                            <p className="text-muted-foreground truncate text-xs">
+                              {member.username}
+                            </p>
                           </div>
-
-                          <p className="text-muted-foreground truncate text-xs">
-                            {member.username}
-                          </p>
                         </div>
+                        {((userRole === "owner" && (role === "admin" || role === "member")) ||
+                          (userRole === "admin" && role === "member")) && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <EllipsisVertical />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                              <DropdownMenuItem>Kick</DropdownMenuItem>
+                              <DropdownMenuItem>Promote to Admin</DropdownMenuItem>
+                              <DropdownMenuItem>Demote to Member</DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
                       </CardContent>
                     </Card>
                   );
