@@ -152,7 +152,7 @@ export default function Header({ discoverGroups, myGroups }: HeaderProps) {
           <div className="relative w-full sm:w-auto">
             <Input
               placeholder="Search"
-              className="w-full pr-20 pl-3 sm:w-[250px]"
+              className="input w-full pr-20 pl-3 sm:w-[250px]"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => {
@@ -163,7 +163,7 @@ export default function Header({ discoverGroups, myGroups }: HeaderProps) {
             />
             <Button
               variant="default"
-              className="absolute top-1 right-1 h-7 w-7 p-2"
+              className="button-orange absolute top-1 right-1 h-7 w-7 p-2"
               onClick={handleSearch}>
               <Search size={20} />
             </Button>
@@ -175,9 +175,15 @@ export default function Header({ discoverGroups, myGroups }: HeaderProps) {
       <div className="flex flex-row items-center justify-between sm:flex-row">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full gap-0">
           <div className="flex items-center justify-between">
-            <TabsList>
-              <TabsTrigger value="Discover">Discover</TabsTrigger>
-              <TabsTrigger value="MyGroup">My Group</TabsTrigger>
+            <TabsList className="h-auto w-fit justify-start rounded-none bg-transparent p-0">
+              {[
+                { value: "Discover", label: "Discover" },
+                { value: "MyGroup", label: "My Group" }
+              ].map((tab) => (
+                <TabsTrigger key={tab.value} value={tab.value} className="tabs-trigger">
+                  {tab.label}
+                </TabsTrigger>
+              ))}
             </TabsList>
 
             <div className="flex w-full flex-row items-center justify-end gap-2 sm:w-auto">
