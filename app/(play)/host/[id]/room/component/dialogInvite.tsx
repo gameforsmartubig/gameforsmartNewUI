@@ -42,7 +42,7 @@ export function InviteFriend({ sessionId = "" }: InviteProps) {
 
   const handleSearch = () => {
     setSearchTerm(inputValue);
-  }
+  };
 
   const fetchFriends = async () => {
     if (!profileId) return;
@@ -154,7 +154,7 @@ export function InviteFriend({ sessionId = "" }: InviteProps) {
           <Share2 className="mr-2 size-3" /> Invite Friends
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full max-w-md min-w-0 gap-0 overflow-hidden rounded-2xl border border-orange-500 bg-white p-0">
+      <DialogContent className="dialog w-full max-w-md min-w-0 gap-0 p-0">
         <DialogHeader className="border-b border-orange-100 p-6">
           <DialogTitle className="text-lg font-semibold text-orange-600">
             Invite Friends
@@ -163,18 +163,18 @@ export function InviteFriend({ sessionId = "" }: InviteProps) {
 
         <div className="max-w-full min-w-0 space-y-5 p-6">
           <div className="relative">
-          <Input
-            placeholder="Search by name or username..."
-            className="border-orange-200 focus-visible:ring-orange-500"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter"){
-                handleSearch();
-              }
-            }}
-          />
-          <Button
+            <Input
+              placeholder="Search by name or username..."
+              className="border-orange-200 focus-visible:ring-orange-500"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  handleSearch();
+                }
+              }}
+            />
+            <Button
               variant="default"
               className="absolute top-1 right-1 h-7 w-7 bg-orange-400 p-2 hover:bg-orange-500"
               onClick={handleSearch}>
@@ -293,7 +293,7 @@ export function InviteGroup({ sessionId = "" }: InviteProps) {
 
   const handleSearch = () => {
     setSearchTerm(inputValue);
-  }
+  };
 
   type Group = {
     id: string; // id is string/uuid

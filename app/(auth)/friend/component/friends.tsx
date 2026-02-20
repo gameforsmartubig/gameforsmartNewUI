@@ -457,9 +457,11 @@ function UserCard({
 
             {/* Dialog controlled by state */}
             <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-              <DialogContent>
+              <DialogContent className="dialog">
                 <DialogHeader>
-                  <DialogTitle>Remove Follower</DialogTitle>
+                  <DialogTitle className="text-orange-950 dark:text-orange-200">
+                    Remove Follower
+                  </DialogTitle>
                   <DialogDescription>
                     Are you sure you want to remove this follower?
                   </DialogDescription>
@@ -468,7 +470,9 @@ function UserCard({
                   <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
                     Cancel
                   </Button>
-                  <Button onClick={handleRemoveFollower}>Confirm</Button>
+                  <Button onClick={handleRemoveFollower} className="button-orange">
+                    Confirm
+                  </Button>
                 </DialogFooter>
               </DialogContent>
             </Dialog>
@@ -480,7 +484,7 @@ function UserCard({
               <Check size={16} className="mr-1" /> Followed
             </Button>
           ) : (
-            <Button variant="default" size="sm" onClick={handleFollow}>
+            <Button variant="default" size="sm" onClick={handleFollow} className="button-orange">
               <Plus size={16} className="mr-1" /> Follow
             </Button>
           ))}
@@ -535,15 +539,13 @@ export const SearchFriends = forwardRef<HTMLInputElement, SearchProps>(
       <div className="flex w-full items-center space-x-2">
         <Dialog>
           <DialogTrigger asChild>
-            <Button
-              variant="outline"
-              className="bg-yellow-500 text-white hover:bg-yellow-600 dark:bg-yellow-400 dark:text-zinc-900 dark:hover:bg-yellow-300">
+            <Button variant="outline" className="button-yellow">
               <Funnel className="h-4 w-4" />
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="dialog sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="flex items-center gap-2 text-orange-950 dark:text-orange-200">
                 Filter Location <MapPin size={16} />
               </DialogTitle>
             </DialogHeader>
@@ -556,7 +558,10 @@ export const SearchFriends = forwardRef<HTMLInputElement, SearchProps>(
               />
             </div>
             <DialogFooter className="flex w-full flex-row items-center justify-between sm:justify-between">
-              <Button variant="outline" onClick={handleResetLocation}>
+              <Button
+                variant="outline"
+                onClick={handleResetLocation}
+                className="button-yellow-outline">
                 <RotateCcw className="mr-2 h-4 w-4" />
                 Reset
               </Button>
@@ -565,7 +570,7 @@ export const SearchFriends = forwardRef<HTMLInputElement, SearchProps>(
                   <Button variant="outline">Cancel</Button>
                 </DialogClose>
                 <DialogClose asChild>
-                  <Button variant="default" onClick={handleApplyLocation}>
+                  <Button variant="default" onClick={handleApplyLocation} className="button-orange">
                     Apply
                   </Button>
                 </DialogClose>
@@ -585,7 +590,7 @@ export const SearchFriends = forwardRef<HTMLInputElement, SearchProps>(
           />
           <Button
             onClick={handleSearchTrigger}
-            className="absolute top-1 right-1 h-7 w-7 bg-orange-400 p-2 hover:bg-orange-500">
+            className="button-orange absolute top-1 right-1 h-7 w-7">
             <Search className="h-4 w-4" />
           </Button>
         </div>

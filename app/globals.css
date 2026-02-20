@@ -482,6 +482,18 @@
   color: white;
 }
 
+.dialog {
+  overflow: hidden;
+  border-radius: 1rem; /* rounded-2xl */
+  border: 1px solid var(--orange-500);
+  background-color: white;
+}
+
+.dark .dialog {
+  background-color: #09090b; /* zinc-950 */
+  border-color: var(--orange-600);
+}
+
 .dark {
   --background: var(--base-950);
   --foreground: var(--base-200);
