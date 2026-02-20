@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Select,
   SelectContent,
@@ -20,6 +21,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useAuth } from "@/contexts/auth-context";
 import { supabase } from "@/lib/supabase";
+import { cn } from "@/lib/utils";
 import { EyeOff, Globe, Lock, PlusIcon, Users } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -28,52 +30,52 @@ const groupCategoryOptions = [
   {
     value: "Campus",
     labelId: "Kampus",
-    labelEn: "Campus",
+    labelEn: "Campus"
   },
   {
     value: "Office",
     labelId: "Kantor",
-    labelEn: "Office",
+    labelEn: "Office"
   },
   {
     value: "Family",
     labelId: "Keluarga",
-    labelEn: "Family",
+    labelEn: "Family"
   },
   {
     value: "Community",
     labelId: "Komunitas",
-    labelEn: "Community",
+    labelEn: "Community"
   },
   {
     value: "Mosque",
     labelId: "Masjid/Musholla",
-    labelEn: "Mosque",
+    labelEn: "Mosque"
   },
   {
     value: "Islamic Boarding School",
     labelId: "Pesantren",
-    labelEn: "Islamic Boarding School",
+    labelEn: "Islamic Boarding School"
   },
   {
     value: "School",
     labelId: "Sekolah",
-    labelEn: "School",
+    labelEn: "School"
   },
   {
     value: "Quran Learning Center",
     labelId: "TPA/TPQ",
-    labelEn: "Quran Learning Center",
+    labelEn: "Quran Learning Center"
   },
   {
     value: "General",
     labelId: "Umum",
-    labelEn: "General",
+    labelEn: "General"
   },
   {
     value: "Others",
     labelId: "Lainnya",
-    labelEn: "Others",
+    labelEn: "Others"
   }
 ];
 
@@ -145,120 +147,156 @@ export default function DialogCreate() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="">
+        <Button variant="outline" className="button-green">
           <PlusIcon className="hidden sm:block" />
           <span className="hidden sm:inline">Create Group</span>
           <span className="inline sm:hidden">Create</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="w-full max-w-md min-w-0 gap-0 overflow-hidden rounded-2xl border border-lime-400 bg-white p-0">
-        <DialogHeader className="border-b border-lime-200 p-6">
-          <DialogTitle className="text-lg font-semibold text-lime-600">Create Group</DialogTitle>
+      <DialogContent className="dialog w-full max-w-md min-w-0 gap-0 p-0">
+        <DialogHeader className="p-6">
+          <DialogTitle className="text-lg font-semibold text-orange-950">Create Group</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-4 p-6">
           {/* Group Name */}
-          <div className="space-y-2">
-            <Label htmlFor="groupName">
-              Name
-              <span className="text-red-500">*</span>
-            </Label>
-            <Input
-              id="groupName"
-              placeholder="Enter group name"
-              value={groupName}
-              onChange={(e) => setGroupName(e.target.value)}
-            />
-          </div>
+          <div className="flex gap-3">
+            <div className="w-full space-y-2">
+              <Label htmlFor="groupName" className="text-orange-900">
+                Name
+                <span className="text-red-500">*</span>
+              </Label>
+              <Input
+                id="groupName"
+                placeholder="Enter group name"
+                value={groupName}
+                onChange={(e) => setGroupName(e.target.value)}
+                className="input"
+              />
+            </div>
 
-          {/* Category */}
-          <div className="space-y-2">
-            <Label htmlFor="groupCategory">
-              Category
-              <span className="text-red-500">*</span>
-            </Label>
-            <Select value={groupCategory} onValueChange={setGroupCategory}>
-              <SelectTrigger id="groupCategory">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                {groupCategoryOptions.map((option) => (
-                  <SelectItem key={option.value} value={option.value}>
+            {/* Category */}
+            <div className="space-y-2">
+              <Label htmlFor="groupCategory" className="text-orange-900">
+                Category
+                <span className="text-red-500">*</span>
+              </Label>
+              <Select value={groupCategory} onValueChange={setGroupCategory}>
+                <SelectTrigger id="groupCategory">
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {groupCategoryOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
                       {option.labelEn}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           {/* status */}
-          <div className="space-y-2">
-            <Label>
-              Type
-              <span className="text-red-500">*</span>
+          <div className="space-y-3">
+            <Label className="text-base font-semibold text-orange-950">
+              Group Type
+              <span className="ml-1 text-red-500">*</span>
             </Label>
-            <div className="mt-2 flex gap-4">
-              <label className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="radio"
-                  name="groupType"
-                  value="public"
-                  checked={groupStatus === "public"}
-                  onChange={() => setGroupStatus("public")}
-                  className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <Globe className="h-4 w-4 text-emerald-500" />
-                <span className="text-sm">Public</span>
-              </label>
-              <label className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="radio"
-                  name="groupType"
-                  value="private"
-                  checked={groupStatus === "private"}
-                  onChange={() => setGroupStatus("private")}
-                  className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <Lock className="h-4 w-4 text-amber-500" />
-                <span className="text-sm">Private</span>
-              </label>
-              <label className="flex cursor-pointer items-center gap-2">
-                <input
-                  type="radio"
-                  name="groupType"
-                  value="secret"
-                  checked={groupStatus === "secret"}
-                  onChange={() => setGroupStatus("secret")}
-                  className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
-                />
-                <EyeOff className="h-4 w-4 text-red-500" />
-                <span className="text-sm">Secret</span>
-              </label>
-            </div>
+
+            <RadioGroup
+              value={groupStatus}
+              onValueChange={setGroupStatus}
+              className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              {/* Option: Public */}
+              <div>
+                <RadioGroupItem value="public" id="public" className="peer sr-only" />
+                <Label
+                  htmlFor="public"
+                  className={cn(
+                    "border-muted bg-popover hover:text-accent-foreground flex cursor-pointer flex-col items-center justify-between rounded-xl border-2 p-4 transition-all duration-200 peer-data-[state=checked]:border-orange-500 hover:bg-orange-50 [&:has([data-state=checked])]:border-orange-500",
+                    groupStatus === "public" ? "border-orange-500 bg-orange-50/50" : ""
+                  )}>
+                  <Globe
+                    className={cn(
+                      "mb-3 h-6 w-6 transition-colors",
+                      groupStatus === "public" ? "text-emerald-500" : "text-muted-foreground"
+                    )}
+                  />
+                  <div className="space-y-1 text-center">
+                    <p className="text-sm leading-none font-medium">Public</p>
+                    <p className="text-muted-foreground text-xs">Anyone can join</p>
+                  </div>
+                </Label>
+              </div>
+
+              {/* Option: Private */}
+              <div>
+                <RadioGroupItem value="private" id="private" className="peer sr-only" />
+                <Label
+                  htmlFor="private"
+                  className={cn(
+                    "border-muted bg-popover hover:text-accent-foreground flex cursor-pointer flex-col items-center justify-between rounded-xl border-2 p-4 transition-all duration-200 peer-data-[state=checked]:border-orange-500 hover:bg-orange-50",
+                    groupStatus === "private" ? "border-orange-500 bg-orange-50/50" : ""
+                  )}>
+                  <Lock
+                    className={cn(
+                      "mb-3 h-6 w-6 transition-colors",
+                      groupStatus === "private" ? "text-amber-500" : "text-muted-foreground"
+                    )}
+                  />
+                  <div className="space-y-1 text-center">
+                    <p className="text-sm leading-none font-medium">Private</p>
+                    <p className="text-muted-foreground text-xs">Request to join</p>
+                  </div>
+                </Label>
+              </div>
+
+              {/* Option: Secret */}
+              <div>
+                <RadioGroupItem value="secret" id="secret" className="peer sr-only" />
+                <Label
+                  htmlFor="secret"
+                  className={cn(
+                    "border-muted bg-popover hover:text-accent-foreground flex cursor-pointer flex-col items-center justify-between rounded-xl border-2 p-4 transition-all duration-200 peer-data-[state=checked]:border-orange-500 hover:bg-orange-50",
+                    groupStatus === "secret" ? "border-orange-500 bg-orange-50/50" : ""
+                  )}>
+                  <EyeOff
+                    className={cn(
+                      "mb-3 h-6 w-6 transition-colors",
+                      groupStatus === "secret" ? "text-red-500" : "text-muted-foreground"
+                    )}
+                  />
+                  <div className="space-y-1 text-center">
+                    <p className="text-sm leading-none font-medium">Secret</p>
+                    <p className="text-muted-foreground text-xs">Invite only</p>
+                  </div>
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
 
           {/* Description (Optional) */}
           <div className="space-y-2">
-            <Label htmlFor="groupDescription">Description</Label>
+            <Label htmlFor="groupDescription" className="text-orange-900">
+              Description
+            </Label>
             <Textarea
               id="groupDescription"
               placeholder="Enter group description"
               rows={2}
               value={groupDescription}
               onChange={(e) => setGroupDescription(e.target.value)}
+              className="input"
             />
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-lime-200 p-6">
-          <Button variant="ghost" onClick={() => setOpen(false)} className="text-gray-500">
+        <div className="flex items-center justify-end gap-2 p-6">
+          <Button variant="outline" onClick={() => setOpen(false)} className="text-gray-500">
             Cancel
           </Button>
 
-          <Button
-            className="bg-orange-500 px-6 font-semibold text-white hover:bg-orange-600"
-            onClick={handleCreate}
-            disabled={loading}>
+          <Button className="button-orange" onClick={handleCreate} disabled={loading}>
             {loading ? "Creating..." : "Create"}
           </Button>
         </div>
