@@ -148,14 +148,6 @@ export function NavMain() {
                 const isSubItemActive = item.items?.some((sub) => sub.href === pathname);
                 const isParentActive = pathname === item.href;
 
-                // Variabel class gradasi AKTIF
-                const activeGradient =
-                  "relative overflow-hidden bg-gradient-to-r from-orange-400 from-60% via-yellow-400 via-95% to-lime-400 !text-white shadow-sm font-medium hover:!text-white !font-bold z-0";
-
-                // Variabel class HOVER ANIMASI (Slide dari kiri ke kanan)
-                const hoverGradient =
-                  "relative overflow-hidden z-0 before:content-[''] before:absolute before:inset-0 before:left-0 before:w-0 before:bg-gradient-to-r before:from-orange-400/15 before:from-60% before:via-yellow-400/15 before:via-95% before:to-lime-400/15 before:transition-all before:duration-500 before:ease-in-out before:z-[-1] hover:before:w-full hover:text-foreground";
-
                 return (
                   <SidebarMenuItem key={item.title}>
                     {Array.isArray(item.items) && item.items.length > 0 ? (
@@ -166,10 +158,7 @@ export function NavMain() {
                             <DropdownMenuTrigger asChild>
                               <SidebarMenuButton
                                 tooltip={item.title}
-                                className={cn(
-                                  "transition-all duration-300",
-                                  isSubItemActive ? activeGradient : hoverGradient
-                                )}>
+                                className={`sidebar ${isSubItemActive ? "active" : ""}`}>
                                 <div className="relative z-10 flex w-full items-center gap-2">
                                   {item.icon && <item.icon />}
                                   <span>{item.title}</span>
@@ -188,7 +177,9 @@ export function NavMain() {
                                   asChild
                                   className={cn(
                                     "cursor-pointer transition-all duration-200",
-                                    pathname === sub.href ? activeGradient : hoverGradient
+                                    pathname === sub.href
+                                      ? "sidebar active"
+                                      : "hover:bg-gray-100 dark:hover:bg-gray-700"
                                   )}>
                                   <a href={sub.href} className="relative z-10">
                                     {sub.title}
@@ -205,7 +196,7 @@ export function NavMain() {
                           defaultOpen={!!item.items.find((s) => s.href === pathname)}>
                           <CollapsibleTrigger asChild>
                             <SidebarMenuButton
-                              className={cn("transition-all duration-300", hoverGradient)}
+                              className="sidebar transition-all duration-300"
                               tooltip={item.title}>
                               <div className="relative z-10 flex w-full items-center gap-2">
                                 {item.icon && <item.icon />}
@@ -220,8 +211,8 @@ export function NavMain() {
                                 <SidebarMenuSubItem key={key}>
                                   <SidebarMenuSubButton
                                     className={cn(
-                                      "font-semibold transition-all duration-300",
-                                      pathname === subItem.href ? activeGradient : hoverGradient
+                                      "sidebar font-semibold transition-all duration-300",
+                                      pathname === subItem.href ? "sidebar active" : ""
                                     )}
                                     isActive={pathname === subItem.href}
                                     asChild>
@@ -242,8 +233,8 @@ export function NavMain() {
                       /* MENU TUNGGAL (TANPA SUB-MENU) */
                       <SidebarMenuButton
                         className={cn(
-                          "font-semibold transition-all duration-300",
-                          isParentActive ? activeGradient : hoverGradient
+                          "sidebar font-semibold transition-all duration-300",
+                          isParentActive ? "sidebar active" : ""
                         )}
                         isActive={isParentActive}
                         tooltip={item.title}

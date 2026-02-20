@@ -77,7 +77,7 @@ export default function Page() {
                           id="email"
                           type="email"
                           autoComplete="email"
-                          className="w-full border-orange-100 bg-white/50 pl-10 focus-visible:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100 dark:placeholder:text-zinc-600 dark:focus-visible:ring-orange-600"
+                          className="input w-full pl-10"
                           placeholder="Enter your email address"
                         />
                       </div>
@@ -86,10 +86,7 @@ export default function Page() {
                   </FormItem>
                 )}
               />
-              <Button
-                type="submit"
-                className="w-full bg-orange-500 font-bold text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-600 active:scale-[0.98] dark:bg-orange-600 dark:shadow-none dark:hover:bg-orange-500"
-                disabled={isSubmitting}>
+              <Button type="submit" className="button-orange w-full" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
