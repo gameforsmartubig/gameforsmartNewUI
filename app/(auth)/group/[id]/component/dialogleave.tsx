@@ -64,18 +64,18 @@ export default function DialogLeave({ groupId, currentMembers }: DialogLeaveProp
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="relative flex-1 rounded-xl">
+        <Button variant="outline" className="button-orange-outline relative flex-1">
           <LogOut size={16} className="mr-2" />
           Leave
         </Button>
       </DialogTrigger>
-      <DialogContent>
+      <DialogContent className="dialog">
         <DialogHeader>
-          <DialogTitle>Leave Group</DialogTitle>
+          <DialogTitle className="text-orange-900">Leave Group</DialogTitle>
         </DialogHeader>
         <DialogDescription>Are you sure you want to leave this group?</DialogDescription>
         <DialogFooter>
-          <Button variant="ghost" onClick={() => setOpen(false)} disabled={loading}>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
             Cancel
           </Button>
           <Button variant="destructive" onClick={handleLeave} disabled={loading}>
