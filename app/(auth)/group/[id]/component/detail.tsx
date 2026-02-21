@@ -183,11 +183,12 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
                   return (
                     <Card
                       key={i}
-                      className="rounded-xl border border-zinc-200 py-0 shadow-sm transition-colors hover:border-orange-200 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-orange-900/50">
+                      className="border-card rounded-xl py-0 shadow-sm transition-colors dark:border-zinc-800 dark:bg-zinc-900">
+                      <div className="vertical-line" />
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-4">
                           {/* Avatar */}
-                          <Avatar className="border border-zinc-100 dark:border-zinc-800">
+                          <Avatar className="h-10 w-10 border border-zinc-100 dark:border-zinc-800">
                             <AvatarImage src={member.avatar} alt={member.name} />
                             <AvatarFallback className="rounded-lg bg-zinc-100 text-zinc-500 dark:bg-zinc-800">
                               {(member.name || "?").substring(0, 2).toUpperCase()}
