@@ -540,6 +540,62 @@
 }
 
 @theme inline {
+  --color-green-5: var(--green-5);
+  --color-green-10: var(--green-10);
+  --color-green-20: var(--green-20);
+  --color-green-25: var(--green-25);
+  --color-green-30: var(--green-30);
+  --color-green-40: var(--green-40);
+  --color-green-50: var(--green-50);
+  --color-green-100: var(--green-100);
+  --color-green-200: var(--green-200);
+  --color-green-300: var(--green-300);
+  --color-green-400: var(--green-400);
+  --color-green-500: var(--green-500); /* Ini yang akan dipakai text-green-500 */
+  --color-green-600: var(--green-600);
+  --color-green-700: var(--green-700);
+  --color-green-800: var(--green-800);
+  --color-green-900: var(--green-900);
+  --color-green-950: var(--green-950);
+  --color-green-1000: var(--green-1000);
+
+  --color-yellow-5: var(--yellow-5);
+  --color-yellow-10: var(--yellow-10);
+  --color-yellow-20: var(--yellow-20);
+  --color-yellow-25: var(--yellow-25);
+  --color-yellow-30: var(--yellow-30);
+  --color-yellow-40: var(--yellow-40);
+  --color-yellow-50: var(--yellow-50);
+  --color-yellow-100: var(--yellow-100);
+  --color-yellow-200: var(--yellow-200);
+  --color-yellow-300: var(--yellow-300);
+  --color-yellow-400: var(--yellow-400);
+  --color-yellow-500: var(--yellow-500); /* Ini yang akan dipakai text-yellow-500 */
+  --color-yellow-600: var(--yellow-600);
+  --color-yellow-700: var(--yellow-700);
+  --color-yellow-800: var(--yellow-800);
+  --color-yellow-900: var(--yellow-900);
+  --color-yellow-950: var(--yellow-950);
+  --color-yellow-1000: var(--yellow-1000);
+
+  --color-orange-5: var(--orange-5);
+  --color-orange-10: var(--orange-10);
+  --color-orange-20: var(--orange-20);
+  --color-orange-25: var(--orange-25);
+  --color-orange-30: var(--orange-30);
+  --color-orange-40: var(--orange-40);
+  --color-orange-50: var(--orange-50);
+  --color-orange-100: var(--orange-100);
+  --color-orange-200: var(--orange-200);
+  --color-orange-300: var(--orange-300);
+  --color-orange-400: var(--orange-400);
+  --color-orange-500: var(--orange-500); /* Ini yang akan dipakai text-orange-500 */
+  --color-orange-600: var(--orange-600);
+  --color-orange-700: var(--orange-700);
+  --color-orange-800: var(--orange-800);
+  --color-orange-900: var(--orange-900);
+  --color-orange-950: var(--orange-950);
+  --color-orange-1000: var(--orange-1000);
   --animate-scroll: scroll var(--animation-duration, 40s) var(--animation-direction, forwards)
     linear infinite;
 

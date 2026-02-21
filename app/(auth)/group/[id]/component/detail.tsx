@@ -6,13 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/auth-context";
-import {
-  Calendar,
-  Copy,
-  EllipsisVertical,
-  Globe,
-  Users
-} from "lucide-react";
+import { Calendar, Copy, EllipsisVertical, Globe, Users } from "lucide-react";
 import { useState } from "react";
 import { PaginationControl } from "./pagination-control";
 import {
@@ -76,7 +70,11 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
           <Breadcrumb>
             <BreadcrumbList>
               <BreadcrumbItem>
-                <BreadcrumbLink href="/group">Group</BreadcrumbLink>
+                <BreadcrumbLink
+                  href="/group"
+                  className="hover:text-orange-600 dark:hover:text-orange-400">
+                  Group
+                </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
               <BreadcrumbItem>
@@ -84,30 +82,32 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <Card className="h-fit rounded-2xl border py-0 shadow-sm">
+          <Card className="card h-fit py-0">
             <CardContent className="space-y-4 p-6">
               <div>
-                <h2 className="text-xl font-semibold">{group.name}</h2>
+                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+                  {group.name}
+                </h2>
                 <p className="text-muted-foreground mt-2 text-sm">{group.description}</p>
               </div>
 
               <div className="text-muted-foreground space-y-3 text-sm">
                 <div className="flex items-center gap-2">
-                  <div title="Members">
+                  <div title="Members" className="text-orange-500 dark:text-orange-700">
                     <Users size={16} />
                   </div>
                   {members.length} members
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div title="Created">
+                  <div title="Created" className="text-yellow-500 dark:text-yellow-700">
                     <Calendar size={16} />
                   </div>
                   {createdAt}
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div title="Visibility">
+                  <div title="Visibility" className="text-green-500 dark:text-green-700">
                     <Globe size={16} />
                   </div>
                   {status}
@@ -120,7 +120,7 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
                   <div className="space-y-3 pt-2">
                     <DialogAdd groupId={group.id} />
 
-                    <Button variant="outline" className="w-full rounded-xl">
+                    <Button variant="outline" className="button-green-outline w-full">
                       <Copy size={16} className="mr-2" />
                       Copy Invite Link
                     </Button>
@@ -137,7 +137,7 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
               {/* Member Actions */}
               {userRole === "member" && (
                 <div className="flex gap-3 pt-4">
-                  <Button variant="outline" className="flex-1 rounded-xl">
+                  <Button variant="outline" className="button-green-outline flex-1">
                     <Copy size={16} className="mr-2" />
                     Copy Link
                   </Button>
@@ -149,9 +149,7 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
               {/* Non-Member Actions (Visitor) */}
               {!userRole && (
                 <div className="pt-4">
-                  <Button className="w-full rounded-xl bg-indigo-600 hover:bg-indigo-700">
-                    Join Group
-                  </Button>
+                  <Button className="button-green w-full">Join Group</Button>
                 </div>
               )}
             </CardContent>
@@ -162,9 +160,15 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
         <div className="lg:col-span-2">
           <Tabs defaultValue="members">
             <div className="mb-2 flex items-center justify-between">
-              <TabsList>
-                <TabsTrigger value="members">Members</TabsTrigger>
-                <TabsTrigger value="activities">Activities</TabsTrigger>
+              <TabsList className="bg-transparent">
+                {[
+                  { value: "members", label: "Members" },
+                  { value: "activities", label: "Activities" }
+                ].map((tab) => (
+                  <TabsTrigger key={tab.value} value={tab.value} className="tabs-trigger">
+                    {tab.label}
+                  </TabsTrigger>
+                ))}
               </TabsList>
               {(userRole === "admin" || userRole === "owner") && approval === true && (
                 <DialogApproval groupId={group.id} joinRequests={group.join_requests} />
@@ -177,13 +181,15 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
                 {currentMembers.map((member: any, i: number) => {
                   const role = member.role?.toLowerCase();
                   return (
-                    <Card key={i} className="rounded-xl border py-0 shadow-sm">
+                    <Card
+                      key={i}
+                      className="rounded-xl border border-zinc-200 py-0 shadow-sm transition-colors hover:border-orange-200 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:border-orange-900/50">
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-4">
                           {/* Avatar */}
-                          <Avatar>
+                          <Avatar className="border border-zinc-100 dark:border-zinc-800">
                             <AvatarImage src={member.avatar} alt={member.name} />
-                            <AvatarFallback className="rounded-lg">
+                            <AvatarFallback className="rounded-lg bg-zinc-100 text-zinc-500 dark:bg-zinc-800">
                               {(member.name || "?").substring(0, 2).toUpperCase()}
                             </AvatarFallback>
                           </Avatar>
@@ -191,20 +197,26 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
                           {/* Info */}
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
-                              <p className="truncate font-medium">{member.name}</p>
+                              <p className="truncate font-medium text-zinc-900 dark:text-zinc-100">
+                                {member.name}
+                              </p>
 
                               {role === "owner" && (
-                                <Badge className="bg-yellow-100 text-xs text-yellow-700">
+                                <Badge className="border-none bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-500">
                                   Owner
                                 </Badge>
                               )}
 
                               {role === "admin" && (
-                                <Badge className="bg-blue-100 text-xs text-blue-700">Admin</Badge>
+                                <Badge className="border-none bg-orange-100 text-orange-700 dark:bg-orange-500/20 dark:text-orange-400">
+                                  Admin
+                                </Badge>
                               )}
 
                               {role === "member" && (
-                                <Badge variant="secondary" className="text-xs">
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-zinc-100 text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
                                   Member
                                 </Badge>
                               )}
@@ -219,14 +231,23 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
                           (userRole === "admin" && role === "member")) && (
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="hover:bg-zinc-100 dark:hover:bg-zinc-800">
                                 <EllipsisVertical />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent>
-                              <DropdownMenuItem>Kick</DropdownMenuItem>
-                              <DropdownMenuItem>Promote to Admin</DropdownMenuItem>
-                              <DropdownMenuItem>Demote to Member</DropdownMenuItem>
+                            <DropdownMenuContent className="dark:border-zinc-800 dark:bg-zinc-900">
+                              <DropdownMenuItem className="focus:text-orange-600 dark:focus:text-orange-400">
+                                Kick
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="focus:text-orange-600 dark:focus:text-orange-400">
+                                Promote to Admin
+                              </DropdownMenuItem>
+                              <DropdownMenuItem className="focus:text-orange-600 dark:focus:text-orange-400">
+                                Demote to Member
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}
@@ -249,7 +270,7 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
 
             {/* ACTIVITIES TAB */}
             <TabsContent value="activities">
-              <Card className="rounded-xl border shadow-sm">
+              <Card className="rounded-xl border border-zinc-200 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                 <CardContent className="text-muted-foreground p-6 text-sm">
                   No recent activities yet.
                 </CardContent>
