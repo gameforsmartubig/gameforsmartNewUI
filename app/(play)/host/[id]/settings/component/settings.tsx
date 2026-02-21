@@ -243,10 +243,10 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
   const totalQuestions = quizData?.questions?.length || 0;
 
   return (
-    <div className="flex items-center justify-center bg-gradient-to-br from-orange-50 via-white to-yellow-50/30 lg:h-screen dark:from-zinc-950 dark:via-zinc-950 dark:to-zinc-900">
-      <Card className="mx-auto w-full max-w-4xl border-t-4 border-t-orange-500 bg-white shadow-xl backdrop-blur-sm dark:border-t-orange-600 dark:bg-zinc-900 dark:shadow-2xl dark:shadow-black/50">
+    <div className="base-background flex h-screen items-center justify-center">
+      <Card className="card mx-auto w-full max-w-4xl">
         <CardHeader>
-          <CardTitle className="text-xl font-bold tracking-tight text-orange-600 lg:text-2xl dark:text-zinc-100">
+          <CardTitle className="text-xl font-bold tracking-tight text-orange-900 lg:text-2xl dark:text-zinc-100">
             Settings
           </CardTitle>
           <CardDescription className="text-orange-800/60 dark:text-zinc-400">
@@ -262,7 +262,7 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
             <div className="w-full flex-1 space-y-2">
               <Label className="text-orange-900 dark:text-zinc-300">Quiz Duration (Minutes)</Label>
               <Select value={totalTimeMinutes} onValueChange={setTotalTimeMinutes}>
-                <SelectTrigger className="w-full border-orange-200 bg-white focus:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
+                <SelectTrigger className="input w-full">
                   <SelectValue placeholder="Select duration" />
                 </SelectTrigger>
                 <SelectContent className="dark:border-zinc-800 dark:bg-zinc-900">
@@ -279,7 +279,7 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
             <div className="flex-1 space-y-2">
               <Label className="text-orange-900 dark:text-zinc-300">Total Questions</Label>
               <Select value={questionLimit} onValueChange={setQuestionLimit}>
-                <SelectTrigger className="w-full border-orange-200 bg-white focus:ring-orange-500 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100">
+                <SelectTrigger className="input w-full">
                   <SelectValue placeholder="Select question limit" />
                 </SelectTrigger>
                 <SelectContent className="dark:border-zinc-800 dark:bg-zinc-900">
@@ -315,7 +315,7 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
                 className={`flex cursor-pointer items-center gap-4 rounded-xl border px-4 py-3 transition-all ${
                   gameEndMode === "first_finish"
                     ? "border-orange-500 bg-orange-50 ring-1 ring-orange-500 dark:border-orange-500/50 dark:bg-orange-950/20"
-                    : "border-orange-100 hover:bg-orange-50/50 dark:border-zinc-800 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+                    : "input"
                 }`}>
                 <RadioGroupItem
                   value="first_finish"
@@ -391,13 +391,10 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
             variant="outline"
             onClick={handleCancel}
             disabled={isSaving}
-            className="border-orange-200 text-orange-600 hover:bg-orange-50 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800 dark:hover:text-zinc-200">
+            className="button-orange-outline">
             Cancel
           </Button>
-          <Button
-            onClick={handleSave}
-            disabled={isSaving}
-            className="bg-orange-500 text-white shadow-md shadow-orange-100 hover:bg-orange-600 dark:bg-orange-600 dark:shadow-none dark:hover:bg-orange-500">
+          <Button onClick={handleSave} disabled={isSaving} className="button-orange">
             {isSaving ? "Saving..." : "Save"}
           </Button>
         </CardFooter>
