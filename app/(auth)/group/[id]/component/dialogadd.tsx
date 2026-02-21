@@ -120,18 +120,18 @@ export default function DialogAdd({ groupId }: DialogAddProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="button-orange w-full rounded-xl">Add Member</Button>
+        <Button className="button-orange w-full">Add Member</Button>
       </DialogTrigger>
-      <DialogContent className="w-full max-w-md min-w-0 gap-0 overflow-hidden rounded-2xl border border-orange-500 bg-white p-0">
+      <DialogContent className="dialog w-full max-w-md min-w-0 gap-0 p-0">
         <DialogHeader className="border-b border-orange-100 p-6">
-          <DialogTitle className="text-lg font-semibold text-orange-600">Add Member</DialogTitle>
+          <DialogTitle className="text-lg font-semibold text-orange-900">Add Member</DialogTitle>
         </DialogHeader>
 
         <div className="max-w-full min-w-0 space-y-5 p-6">
           <div className="relative">
             <Input
               placeholder="Search by nickname, fullname, or username..."
-              className="border-orange-200 focus-visible:ring-orange-500"
+              className="input"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => {
@@ -142,7 +142,7 @@ export default function DialogAdd({ groupId }: DialogAddProps) {
             />
             <Button
               variant="default"
-              className="absolute top-1 right-1 h-7 w-7 bg-orange-400 p-2 hover:bg-orange-500"
+              className="button-orange absolute top-1 right-1 h-7 w-7 p-2"
               onClick={handleSearch}
               disabled={loading}>
               {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search size={20} />}

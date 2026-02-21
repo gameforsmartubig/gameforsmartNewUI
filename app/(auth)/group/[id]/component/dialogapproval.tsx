@@ -97,7 +97,7 @@ export default function DialogApproval({ groupId, joinRequests }: DialogApproval
         if (rId === userId && r.status === "pending") {
           return {
             ...r,
-            status: decision,
+            status: decision
             // updated_at: new Date().toISOString()
           };
         }
@@ -118,8 +118,8 @@ export default function DialogApproval({ groupId, joinRequests }: DialogApproval
             ...currentMembers,
             {
               user_id: userId,
-              role: "member",
-            //   joined_at: new Date().toISOString()
+              role: "member"
+              //   joined_at: new Date().toISOString()
             }
           ];
         }
@@ -170,7 +170,7 @@ export default function DialogApproval({ groupId, joinRequests }: DialogApproval
           )}
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="dialog sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Approval</DialogTitle>
         </DialogHeader>
@@ -218,7 +218,7 @@ export default function DialogApproval({ groupId, joinRequests }: DialogApproval
                     <div className="flex items-center gap-2">
                       <Button
                         variant="outline"
-                        className="rounded-xl hover:bg-green-50 hover:text-green-600"
+                        className="button-green-outline"
                         size="icon"
                         onClick={() => handleDecision(req, "approved")}
                         disabled={!!actionLoading}>
