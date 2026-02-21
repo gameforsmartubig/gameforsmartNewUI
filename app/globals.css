@@ -331,7 +331,7 @@
 
 /* Dark hover */
 .dark .button-orange-outline:hover {
-  color: white;
+  color: var(--base-950);
   background-color: var(--orange-500);
 }
 
@@ -355,7 +355,7 @@
 
 /* Dark hover */
 .dark .button-yellow-outline:hover {
-  color: white;
+  color: var(--base-950);
   background-color: var(--yellow-500);
 }
 
@@ -379,7 +379,7 @@
 
 /* Dark hover */
 .dark .button-green-outline:hover {
-  color: white;
+  color: var(--base-950);
   background-color: var(--green-500);
 }
 

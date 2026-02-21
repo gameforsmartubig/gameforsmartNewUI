@@ -239,11 +239,13 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
                                 <EllipsisVertical />
                               </Button>
                             </DropdownMenuTrigger>
-                            <DropdownMenuContent className="dark:border-zinc-800 dark:bg-zinc-900">
-                              <DropdownMenuItem className="focus:text-orange-600 dark:focus:text-orange-400">
+                            <DropdownMenuContent
+                              align="end"
+                              className="dark:border-zinc-800 dark:bg-zinc-900">
+                              <DropdownMenuItem className="focus:text-red-600 dark:focus:text-red-400">
                                 Kick
                               </DropdownMenuItem>
-                              <DropdownMenuItem className="focus:text-orange-600 dark:focus:text-orange-400">
+                              <DropdownMenuItem className="focus:text-green-600 dark:focus:text-green-400">
                                 Promote to Admin
                               </DropdownMenuItem>
                               <DropdownMenuItem className="focus:text-orange-600 dark:focus:text-orange-400">
