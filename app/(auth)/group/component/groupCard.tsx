@@ -214,7 +214,7 @@ export default function GroupCard({
               <div className="horizontal-line" />
               <CardContent className="space-y-5 px-6">
                 <div className="flex items-center justify-between">
-                  <Badge className="rounded-full bg-blue-100 px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-200">
+                  <Badge className="rounded-full bg-orange-100 px-3 py-1 text-xs font-medium text-orange-600 hover:bg-orange-200 dark:bg-orange-900 dark:hover:bg-orange-800">
                     {group.category || "General"}
                   </Badge>
 
@@ -232,18 +232,6 @@ export default function GroupCard({
                   <h3 className="line-clamp-1 text-lg font-semibold" title={group.name}>
                     {group.name}
                   </h3>
-                </div>
-
-                {/* Stats */}
-                <div className="text-muted-foreground flex items-center gap-6 text-sm">
-                  <div className="flex items-center gap-2">
-                    <Users size={16} />
-                    {memberCount.toLocaleString()} members
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Calendar size={16} />
-                    {createdDate}
-                  </div>
                 </div>
 
                 {/* Owner */}
@@ -278,40 +266,57 @@ export default function GroupCard({
                   </div>
                 </div>
 
-                {/* Button */}
-                {isMyGroup ? (
-                  <Button
-                    onClick={() => router.push(`/group/${group.id}`)}
-                    variant="secondary"
-                    className="button-orange-outline w-full rounded-xl">
-                    Detail
-                  </Button>
-                ) : adminsApproval ? (
-                  isPending ? (
-                    <Button
-                      variant="outline"
-                      className="w-full rounded-md border-red-200 text-red-500 hover:bg-red-50 hover:text-red-600 dark:bg-red-950 dark:text-red-600 dark:hover:bg-red-900/50 dark:hover:text-red-500"
-                      onClick={() => handleCancelRequest(group.id, group.join_requests)}
-                      disabled={loadingId === group.id}>
-                      {loadingId === group.id ? "Cancelling..." : "Cancel Request"}
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      className="w-full rounded-md"
-                      onClick={() => handleRequestJoin(group.id, group.join_requests)}
-                      disabled={loadingId === group.id}>
-                      {loadingId === group.id ? "Requesting..." : "Request to Join"}
-                    </Button>
-                  )
-                ) : (
-                  <Button
-                    className="button-orange w-full"
-                    onClick={() => handleJoin(group.id, group.members)}
-                    disabled={loadingId === group.id}>
-                    {loadingId === group.id ? "Joining..." : "Join"}
-                  </Button>
-                )}
+                {/* Footer Section: Stats & Button sejajar */}
+                <div className="flex items-center justify-between gap-4 border-t border-slate-50 pt-2 dark:border-zinc-800">
+                  {/* Stats - Di pindah ke sini */}
+                  <div className="text-muted-foreground flex flex-col gap-1 text-[11px] sm:text-xs">
+                    <div className="flex items-center gap-1.5">
+                      <Users size={14} className="text-slate-400" />
+                      <span>{memberCount.toLocaleString()} members</span>
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <Calendar size={14} className="text-slate-400" />
+                      <span>{createdDate}</span>
+                    </div>
+                  </div>
+
+                  {/* Button Section */}
+                  <div className="flex-shrink-0">
+                    {isMyGroup ? (
+                      <Button
+                        onClick={() => router.push(`/group/${group.id}`)}
+                        variant="secondary"
+                        className="button-orange-outline h-9 rounded-xl px-4 text-sm">
+                        Detail
+                      </Button>
+                    ) : adminsApproval ? (
+                      isPending ? (
+                        <Button
+                          variant="outline"
+                          className="h-9 rounded-md border-red-200 px-4 text-xs text-red-500 hover:bg-red-50 hover:text-red-600 dark:bg-red-950 dark:text-red-600 dark:hover:bg-red-900/50 dark:hover:text-red-500"
+                          onClick={() => handleCancelRequest(group.id, group.join_requests)}
+                          disabled={loadingId === group.id}>
+                          {loadingId === group.id ? "..." : "Cancel"}
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          className="h-9 rounded-md px-4 text-xs"
+                          onClick={() => handleRequestJoin(group.id, group.join_requests)}
+                          disabled={loadingId === group.id}>
+                          {loadingId === group.id ? "..." : "Request"}
+                        </Button>
+                      )
+                    ) : (
+                      <Button
+                        className="button-orange h-9 px-4 text-sm"
+                        onClick={() => handleJoin(group.id, group.members)}
+                        disabled={loadingId === group.id}>
+                        {loadingId === group.id ? "..." : "Join"}
+                      </Button>
+                    )}
+                  </div>
+                </div>
               </CardContent>
             </Card>
           );
