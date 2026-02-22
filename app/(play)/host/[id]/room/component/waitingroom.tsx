@@ -432,12 +432,12 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   };
 
   return (
-    <div className="relative h-screen overflow-y-auto bg-orange-50/50 dark:bg-zinc-950">
+    <div className="base-background relative h-screen overflow-y-auto">
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1fr_480px]">
         {/* Left Column: Stats & Participants */}
         <div className="order-2 space-y-4 p-4 lg:order-1">
           <Card
-            className="card"
+            className="card pt-2"
             style={{ "--card-border-w": "1px", "--border-color": "var(--border)" }}>
             <CardContent>
               <div className="flex flex-col gap-4">
@@ -471,7 +471,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
                     <div className="flex gap-8">
                       <div className="flex flex-col items-center justify-center">
-                        <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-zinc-100">
+                        <div className="flex items-center gap-2 text-lg font-bold text-orange-900 dark:text-zinc-100">
                           <CircleQuestionMark className="size-5 text-yellow-500" />
                           <span>{quizData.question_count}</span>
                         </div>
@@ -480,7 +480,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                         </p>
                       </div>
                       <div className="flex flex-col items-center justify-center">
-                        <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-zinc-100">
+                        <div className="flex items-center gap-2 text-lg font-bold text-orange-900 dark:text-zinc-100">
                           <Timer className="size-5 text-orange-500" />
                           <span>{gameSession.total_time_minutes}m</span>
                         </div>
@@ -489,7 +489,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                         </p>
                       </div>
                       <div className="flex flex-col items-center justify-center">
-                        <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-zinc-100">
+                        <div className="flex items-center gap-2 text-lg font-bold text-orange-900 dark:text-zinc-100">
                           <User className="size-5 text-green-500" />
                           <span>{participants.length}</span>
                         </div>
@@ -504,7 +504,9 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
             </CardContent>
           </Card>
 
-          <Card className="min-h-[75vh] border-0 bg-white shadow-sm dark:bg-zinc-900">
+          <Card
+            className="card min-h-[75vh] border-0"
+            style={{ "--card-border-w": "1px", "--border-color": "var(--border)" }}>
             <CardContent>
               {participants.length === 0 ? (
                 <div className="flex h-40 flex-col items-center justify-center text-orange-200 dark:text-zinc-500">
@@ -551,7 +553,9 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
         {/* Right Column: Controls & QR */}
         <div className="order-1 p-4 pb-0 lg:order-2 lg:pb-4 lg:pl-0">
-          <Card className="sticky top-0 h-fit border-0 bg-white shadow-sm lg:top-4 lg:order-2 dark:bg-zinc-900">
+          <Card
+            className="card sticky top-0 h-fit border-0 shadow-sm lg:top-4 lg:order-2"
+            style={{ "--card-border-w": "1px", "--border-color": "var(--border)" }}>
             <CardContent className="flex h-full flex-col gap-6">
               {/* Settings */}
               <div className="relative flex items-center justify-center">
@@ -624,14 +628,14 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                 <div className="flex flex-col gap-3">
                   <Button
                     size="lg"
-                    className="h-14 w-full border-none bg-orange-500 text-lg font-bold shadow-md shadow-orange-200 hover:bg-orange-600 dark:text-white"
+                    className="button-orange h-14 w-full text-lg font-bold"
                     onClick={handleStartGame}>
                     <Play className="mr-2 fill-current" /> Start Game
                   </Button>
                   <Button
                     variant={isHostJoined ? "secondary" : "outline"}
                     size="lg"
-                    className={`w-full font-semibold ${!isHostJoined ? "border-orange-200 text-orange-600 hover:bg-orange-50 hover:text-orange-700" : ""}`}
+                    className={`w-full font-semibold ${!isHostJoined ? "button-orange-outline" : ""}`}
                     onClick={handleJoinAsPlayer}
                     disabled={isHostJoined || isLoading}>
                     {isHostJoined ? (
@@ -663,7 +667,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                   <Button
                     onClick={shareToTelegram}
                     variant="ghost"
-                    className="border border-dashed border-orange-200 text-xs text-orange-700 hover:bg-orange-50">
+                    className="border border-dashed border-blue-200 text-xs text-blue-700 hover:bg-blue-50">
                     Telegram
                   </Button>
                 </div>
