@@ -583,7 +583,7 @@ export const SearchFriends = forwardRef<HTMLInputElement, SearchProps>(
             ref={ref}
             id="friends-search-input"
             placeholder={`Press K or Click to Search...`}
-            className="pr-10 sm:w-[250px]"
+            className="input pr-10 sm:w-[250px]"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleSearchTrigger()}

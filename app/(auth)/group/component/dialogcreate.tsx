@@ -182,7 +182,7 @@ export default function DialogCreate() {
                 <span className="text-red-500">*</span>
               </Label>
               <Select value={groupCategory} onValueChange={setGroupCategory}>
-                <SelectTrigger id="groupCategory">
+                <SelectTrigger id="groupCategory" className="input">
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>

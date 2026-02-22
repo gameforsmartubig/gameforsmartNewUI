@@ -121,7 +121,7 @@ export default function Header({ discoverGroups, myGroups }: HeaderProps) {
 
         <div className="flex w-full items-center space-x-2 sm:w-auto">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger asChild className="input">
               <Button variant="outline" className="ml-auto">
                 {groupCategory && groupCategory !== "All Categories"
                   ? groupCategoryOptions.find((option) => option.value === groupCategory)
