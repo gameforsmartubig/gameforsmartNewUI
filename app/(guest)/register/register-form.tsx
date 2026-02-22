@@ -405,7 +405,7 @@ export default function RegisterForm() {
 
   return (
     <div className="base-background flex min-h-screen items-center justify-center">
-      <Card className="card mx-auto w-96">
+      <Card className="card mx-auto w-96" style={{ "--card-border-w": "4px" }}>
         <CardHeader>
           <div className="flex items-center justify-center">
             <img

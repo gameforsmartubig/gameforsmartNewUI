@@ -49,7 +49,7 @@ export default function Page() {
 
   return (
     <div className="base-background flex min-h-screen items-center justify-center">
-      <Card className="card mx-auto w-96">
+      <Card className="card mx-auto w-96" style={{ "--card-border-w": "4px" }}>
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-orange-900 dark:text-zinc-100">
             Forgot Password

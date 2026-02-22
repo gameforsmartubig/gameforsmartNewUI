@@ -436,7 +436,9 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
       <div className="grid min-h-screen grid-cols-1 lg:grid-cols-[1fr_480px]">
         {/* Left Column: Stats & Participants */}
         <div className="order-2 space-y-4 p-4 lg:order-1">
-          <Card className="card" style={{ "--card-border-w": "0px" }}>
+          <Card
+            className="card"
+            style={{ "--card-border-w": "1px", "--border-color": "var(--border)" }}>
             <CardContent>
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1">
