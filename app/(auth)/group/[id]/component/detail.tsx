@@ -82,7 +82,7 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
               </BreadcrumbItem>
             </BreadcrumbList>
           </Breadcrumb>
-          <Card className="card h-fit py-0">
+          <Card className="card h-fit py-0" style={{ "--card-border-w": "4px" }}>
             <CardContent className="space-y-4 p-6">
               <div>
                 <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
