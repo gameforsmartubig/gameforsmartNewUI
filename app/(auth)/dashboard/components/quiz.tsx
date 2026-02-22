@@ -646,7 +646,7 @@ export function DashboardContent({
 
         <div className="flex w-full items-center space-x-2 sm:w-auto">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger asChild className="input">
               <Button variant="outline" className="ml-auto">
                 {selectedCategory && selectedCategory !== "all"
                   ? categoryMap[selectedCategory]?.title || "Category"
@@ -679,7 +679,7 @@ export function DashboardContent({
             <Input
               ref={searchInputRef}
               placeholder="Search...."
-              className="w-full pr-20 pl-3 sm:w-[250px]"
+              className="input w-full pr-20 pl-3 sm:w-[250px]"
               value={searchInputValue}
               onChange={(e) => setSearchInputValue(e.target.value)}
               onKeyDown={(e) => {
