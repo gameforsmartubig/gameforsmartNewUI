@@ -92,6 +92,7 @@ export default function DialogAdd({ groupId }: DialogAddProps) {
       // Check if already invited? (Optional, but good UX. Skipping for now to follow strict instructions)
       // Check if already member? (Optional)
 
+      
       const { error } = await supabase.from("notifications").insert({
         user_id: userId,
         actor_id: profileId,
