@@ -230,6 +230,7 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
                             </p>
                           </div>
                         </div>
+                        {/* Dropdown Menu */}
                         {((userRole === "owner" && (role === "admin" || role === "member")) ||
                           (userRole === "admin" && role === "member")) && (
                           <DropdownMenu>
