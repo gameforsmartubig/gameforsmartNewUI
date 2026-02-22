@@ -208,9 +208,7 @@ export default function GroupCard({
             : "-";
 
           return (
-            <Card
-              key={group.id}
-              className="group overflow-hidden rounded-2xl border border-slate-200 pt-0 shadow-sm transition-all hover:shadow-md dark:border-zinc-700 dark:bg-zinc-900">
+            <Card key={group.id} className="group border-card-vertical rounded-2xl pt-0">
               <div className="horizontal-line" />
               <CardContent className="space-y-5 px-6">
                 <div className="flex items-center justify-between">
