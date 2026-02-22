@@ -244,7 +244,9 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
 
   return (
     <div className="base-background flex h-screen items-center justify-center">
-      <Card className="card mx-auto w-full max-w-4xl" style={{ "--card-border-w": "4px" }}>
+      <Card
+        className="card mx-auto w-full max-w-4xl"
+        style={{ "--card-border-w": "4px" } as React.CSSProperties}>
         <CardHeader>
           <CardTitle className="text-xl font-bold tracking-tight text-orange-900 lg:text-2xl dark:text-zinc-100">
             Settings

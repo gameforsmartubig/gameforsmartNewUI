@@ -438,7 +438,9 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
         <div className="order-2 space-y-4 p-4 lg:order-1">
           <Card
             className="card pt-2"
-            style={{ "--card-border-w": "1px", "--border-color": "var(--border)" }}>
+            style={
+              { "--card-border-w": "1px", "--border-color": "var(--border)" } as React.CSSProperties
+            }>
             <CardContent>
               <div className="flex flex-col gap-4">
                 <div className="flex flex-col gap-1">
@@ -506,7 +508,9 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
           <Card
             className="card min-h-[75vh] border-0"
-            style={{ "--card-border-w": "1px", "--border-color": "var(--border)" }}>
+            style={
+              { "--card-border-w": "1px", "--border-color": "var(--border)" } as React.CSSProperties
+            }>
             <CardContent>
               {participants.length === 0 ? (
                 <div className="flex h-40 flex-col items-center justify-center text-orange-200 dark:text-zinc-500">
@@ -555,7 +559,9 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
         <div className="order-1 p-4 pb-0 lg:order-2 lg:pb-4 lg:pl-0">
           <Card
             className="card sticky top-0 h-fit border-0 shadow-sm lg:top-4 lg:order-2"
-            style={{ "--card-border-w": "1px", "--border-color": "var(--border)" }}>
+            style={
+              { "--card-border-w": "1px", "--border-color": "var(--border)" } as React.CSSProperties
+            }>
             <CardContent className="flex h-full flex-col gap-6">
               {/* Settings */}
               <div className="relative flex items-center justify-center">

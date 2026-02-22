@@ -84,7 +84,9 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
           </Breadcrumb>
           <Card
             className="card h-fit py-0"
-            style={{ "--card-border-w": "1px", "--border-color": "var(--border)" }}>
+            style={
+              { "--card-border-w": "1px", "--border-color": "var(--border)" } as React.CSSProperties
+            }>
             <CardContent className="space-y-4 p-6">
               <div>
                 <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
