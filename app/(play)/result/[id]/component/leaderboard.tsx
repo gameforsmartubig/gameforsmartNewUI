@@ -87,7 +87,7 @@ function HeaderNav({ isHost, onDashboard, onRestart, onExport, onStatistics }: H
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-2 text-orange-700 hover:bg-orange-100 hover:text-orange-800 dark:text-orange-400 dark:hover:bg-zinc-800"
+                className="button-orange gap-2"
                 onClick={onDashboard}>
                 <LayoutDashboard className="h-4 w-4" />
                 <span className="hidden sm:inline">Dashboard</span>
@@ -96,7 +96,7 @@ function HeaderNav({ isHost, onDashboard, onRestart, onExport, onStatistics }: H
               <Button
                 variant="ghost"
                 size="sm"
-                className="gap-2 text-green-700 hover:bg-green-50 hover:text-green-800 dark:text-green-400 dark:hover:bg-zinc-800"
+                className="button-green gap-2"
                 onClick={onStatistics}>
                 <BarChart3 className="h-4 w-4" />
                 <span className="hidden sm:inline">Statistics</span>
@@ -105,16 +105,13 @@ function HeaderNav({ isHost, onDashboard, onRestart, onExport, onStatistics }: H
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 border-yellow-400 text-orange-700 hover:bg-yellow-50 hover:text-orange-800 dark:border-yellow-600 dark:text-yellow-500 dark:hover:bg-zinc-800"
+                className="button-yellow-outline gap-2"
                 onClick={onRestart}>
                 <RotateCcw className="h-4 w-4" />
                 <span className="hidden sm:inline">Restart</span>
               </Button>
 
-              <Button
-                size="sm"
-                className="gap-2 border-none bg-orange-500 text-white shadow-sm hover:bg-orange-600 dark:bg-orange-600 dark:hover:bg-orange-700"
-                onClick={onExport}>
+              <Button size="sm" className="button-orange gap-2" onClick={onExport}>
                 <Download className="h-4 w-4" />
                 <span className="hidden sm:inline">Export</span>
               </Button>
@@ -123,9 +120,9 @@ function HeaderNav({ isHost, onDashboard, onRestart, onExport, onStatistics }: H
             <Button
               variant="secondary"
               size="sm"
-              className="gap-2 border border-green-200 bg-green-50 text-green-700 shadow-sm hover:bg-green-100 dark:border-zinc-700 dark:bg-zinc-800 dark:text-green-400 dark:hover:bg-zinc-700"
+              className="button-green gap-2"
               onClick={onStatistics}>
-              <BarChart3 className="h-4 w-4 text-orange-500" />
+              <BarChart3 className="h-4 w-4" />
               <span className="font-medium">Statistics</span>
             </Button>
           )}
@@ -154,21 +151,21 @@ function HostLeaderboard({ players }: HostLeaderboardProps) {
 
   // Component for the list of other players
   const OtherPlayersList = () => (
-    <div className="overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-md backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/50">
-      <table className="w-full border-collapse text-left">
+    <div className="overflow-hidden rounded-xl border border-orange-200 bg-white/50 shadow-md backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/50">
+      <table className="w-full border-collapse">
         {/* Table Header */}
         <thead>
-          <tr className="border-b border-zinc-200 bg-zinc-50/50 dark:border-zinc-800 dark:bg-zinc-800/30">
-            <th className="px-4 py-3 text-[10px] font-bold tracking-widest text-zinc-500 uppercase md:px-6 dark:text-zinc-400">
+          <tr className="border-b border-orange-100 bg-orange-50/50 dark:border-zinc-800 dark:bg-zinc-800/30">
+            <th className="w-16 px-4 py-4 text-center text-[10px] font-bold tracking-widest text-zinc-500 uppercase dark:text-zinc-400">
               Rank
             </th>
-            <th className="px-4 py-3 text-[10px] font-bold tracking-widest text-zinc-500 uppercase md:px-6 dark:text-zinc-400">
+            <th className="px-4 py-4 text-left text-[10px] font-bold tracking-widest text-zinc-500 uppercase dark:text-zinc-400">
               Player
             </th>
-            <th className="px-4 py-3 text-center text-[10px] font-bold tracking-widest text-zinc-500 uppercase md:px-6 dark:text-zinc-400">
+            <th className="px-4 py-4 text-center text-[10px] font-bold tracking-widest text-zinc-500 uppercase dark:text-zinc-400">
               Score
             </th>
-            <th className="px-4 py-3 text-right text-[10px] font-bold tracking-widest text-zinc-500 uppercase md:px-6 dark:text-zinc-400">
+            <th className="px-4 py-4 text-right text-[10px] font-bold tracking-widest text-zinc-500 uppercase dark:text-zinc-400">
               Duration
             </th>
           </tr>
@@ -181,50 +178,56 @@ function HostLeaderboard({ players }: HostLeaderboardProps) {
             return (
               <tr
                 key={p.id}
-                className="group transition-colors hover:bg-orange-50/50 dark:hover:bg-orange-500/5">
-                {/* Rank Number */}
-                <td className="px-4 py-3 md:px-6">
+                className="group transition-colors hover:bg-orange-50/30 dark:hover:bg-orange-500/5">
+                {/* Rank Number - Centered */}
+                <td className="px-4 py-3">
                   <div
-                    className={`flex h-7 w-7 items-center justify-center rounded-full text-xs font-black shadow-sm ${
+                    className={`mx-auto flex h-8 w-8 items-center justify-center rounded-full text-xs font-black shadow-sm ${
                       rank === 1
-                        ? "bg-yellow-400 text-yellow-950"
+                        ? "bg-yellow-400 text-yellow-950 ring-2 ring-yellow-200"
                         : rank === 2
                           ? "bg-zinc-200 text-zinc-600 dark:bg-zinc-700 dark:text-zinc-300"
                           : rank === 3
                             ? "bg-orange-200 text-orange-800 dark:bg-orange-900/50 dark:text-orange-300"
                             : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-500"
-                    } `}>
+                    }`}>
                     {rank}
                   </div>
                 </td>
 
-                {/* Player Info */}
-                <td className="px-4 py-3 md:px-6">
+                {/* Player Info - Left Aligned */}
+                <td className="px-4 py-3">
                   <div className="flex items-center gap-3">
-                    <Avatar className="h-8 w-8 border border-zinc-200 shadow-sm md:h-9 md:w-9 dark:border-zinc-700">
+                    <Avatar className="h-9 w-9 border border-zinc-200 shadow-sm dark:border-zinc-700">
                       <AvatarImage src={p.image || ""} />
                       <AvatarFallback className="bg-zinc-100 text-xs font-bold text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
                         {p.name[0]}
                       </AvatarFallback>
                     </Avatar>
-                    <span className="truncate text-sm font-bold text-zinc-800 transition-colors group-hover:text-orange-600 dark:text-zinc-200 dark:group-hover:text-orange-400">
-                      {p.name}
-                    </span>
+                    <div className="flex flex-col">
+                      <span className="max-w-[120px] truncate text-sm font-bold text-zinc-800 group-hover:text-orange-600 sm:max-w-full dark:text-zinc-200 dark:group-hover:text-orange-400">
+                        {p.name}
+                      </span>
+                      {/* Tambahan subtitel jika perlu (opsional) */}
+                      <span className="text-[10px] text-zinc-400 md:hidden">
+                        Score: {p.normalizedScore}
+                      </span>
+                    </div>
                   </div>
                 </td>
 
-                {/* Score */}
-                <td className="px-4 py-3 text-right md:px-6">
-                  <span className="text-base font-black tracking-tight text-orange-600 md:text-lg dark:text-orange-500">
+                {/* Score - Centered */}
+                <td className="px-4 py-3 text-center">
+                  <span className="inline-block rounded-lg bg-orange-50 px-3 py-1 text-base font-black tracking-tight text-orange-600 dark:bg-orange-500/10 dark:text-orange-400">
                     {p.normalizedScore}
                   </span>
                 </td>
 
-                {/* Duration */}
-                <td className="px-4 py-3 text-center md:px-6">
-                  <div className="flex items-center justify-center gap-1.5">
-                    <Timer className="h-3.5 w-3.5 text-green-500 opacity-70" />
-                    <span className="text-sm font-medium text-zinc-600 dark:text-zinc-400">
+                {/* Duration - Right Aligned */}
+                <td className="px-4 py-3 text-right">
+                  <div className="flex items-center justify-end gap-1.5">
+                    <Timer className="h-3.5 w-3.5 text-zinc-400" />
+                    <span className="font-mono text-sm font-medium text-zinc-600 dark:text-zinc-400">
                       {formatDuration(p.duration || 0)}
                     </span>
                   </div>
@@ -238,11 +241,9 @@ function HostLeaderboard({ players }: HostLeaderboardProps) {
   );
 
   return (
-    <div className="flex-1 overflow-auto p-4 md:p-8 dark:bg-zinc-950">
+    <div className="base-background flex-1 overflow-auto p-4 md:p-8">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-2">
-        {/* Top Section: Podium */}
         <div className="flex flex-col justify-center">
-          {/* Header */}
           <div className="mb-4 space-y-1 text-center">
             <h1 className="text-3xl font-bold tracking-tight text-orange-600 md:text-5xl dark:text-orange-400">
               Leaderboard
@@ -474,13 +475,13 @@ function PlayerResult({ player }: PlayerResultProps) {
         <div className="grid grid-cols-2 gap-3">
           <Button
             variant="outline"
-            className="h-10 border-orange-200 text-sm font-semibold text-orange-600 hover:bg-orange-50 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900"
+            className="button-orange-outline h-10 text-sm font-semibold"
             onClick={() => router.push("/dashboard")}>
             <Home className="mr-2 h-3.5 w-3.5" />
             Home
           </Button>
           <Button
-            className="h-10 bg-orange-500 text-sm font-semibold text-white shadow-md shadow-orange-100 hover:bg-orange-600 dark:shadow-none"
+            className="button-orange h-10 text-sm font-semibold"
             onClick={() => router.push("/join")}>
             <RotateCcw className="mr-2 h-3.5 w-3.5" />
             Play Again

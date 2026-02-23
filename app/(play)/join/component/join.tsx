@@ -337,12 +337,12 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
   // RENDER LOADING SCREEN IF AUTO JOINING
   if (shouldAutoJoin && !authLoading) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center bg-gradient-to-b from-blue-50 to-white p-4 dark:from-zinc-900 dark:to-zinc-950">
-        <div className="bg-primary/10 mb-6 flex h-16 w-16 animate-pulse items-center justify-center rounded-full">
-          <div className="border-primary h-8 w-8 animate-spin rounded-full border-4 border-t-transparent" />
+      <div className="base-background flex min-h-screen flex-col items-center justify-center">
+        <div className="mb-6 flex h-16 w-16 animate-pulse items-center justify-center rounded-full bg-orange-200">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" />
         </div>
-        <h2 className="mb-2 text-center text-2xl font-bold">Joining Game...</h2>
-        <p className="text-muted-foreground text-center">
+        <h2 className="mb-2 text-center text-2xl font-bold text-orange-900">Joining Game...</h2>
+        <p className="text-center text-orange-700">
           Please wait while we connect you to the session.
         </p>
       </div>
@@ -350,8 +350,8 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
   }
 
   return (
-    <div className="relative flex h-screen flex-col items-center justify-center bg-gray-50/50 dark:bg-zinc-950">
-      <Card className="mx-auto w-96 border-0 border-zinc-200 bg-white shadow-xl dark:border-zinc-800 dark:bg-zinc-900">
+    <div className="base-background relative flex h-screen flex-col items-center justify-center">
+      <Card className="card mx-auto w-96">
         <CardContent>
           <form onSubmit={joinGame} className="space-y-6">
             <div className="flex flex-col items-center justify-center gap-2">
@@ -374,13 +374,13 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
               placeholder="123456"
               maxLength={6}
               required
-              className="h-14 bg-gray-50 text-center text-sm font-black tracking-[0.2em] transition-colors sm:text-3xl dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-100"
+              className="input h-14 bg-gray-50 text-center text-sm font-bold tracking-[0.2em] text-orange-900 transition-colors sm:text-3xl"
             />
 
             <div className="flex w-full flex-col items-center gap-3">
               <Button
                 type="submit"
-                className="h-12 w-full bg-purple-600 text-lg font-bold shadow-lg shadow-purple-600/20 hover:bg-purple-700 dark:bg-purple-600 dark:text-white dark:hover:bg-purple-700"
+                className="button-orange h-12 w-full"
                 disabled={loading || !gamePin}>
                 {loading ? "Joining..." : "Join Game"}
               </Button>
@@ -397,7 +397,7 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
                 <Button
                   type="button"
                   variant="outline"
-                  className="h-12 w-full border-2 font-semibold hover:bg-gray-50 dark:border-zinc-800 dark:bg-transparent dark:text-white dark:hover:bg-zinc-800"
+                  className="button-orange-outline h-12 w-full"
                   onClick={startScanning}>
                   <Camera className="mr-2 size-5" /> Scan QR Code
                 </Button>
@@ -426,7 +426,7 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
           <Button
             onClick={() => router.push("/dashboard")}
             variant="ghost"
-            className="text-muted-foreground rounded-full hover:bg-white/50 dark:text-zinc-400 dark:hover:bg-zinc-800/50">
+            className="hover:bg-orange/50 rounded-full text-orange-800 hover:text-orange-900 dark:text-orange-400 dark:hover:bg-zinc-800/50">
             Back to Dashboard <ChevronRight className="ml-1 size-4" />
           </Button>
         </div>

@@ -258,10 +258,10 @@ export default function Play({ sessionId }: PlayProps) {
 
   return (
     <div
-      className={`min-h-screen w-full ${bgColor} transition-colors duration-300 dark:bg-zinc-950`}>
+      className={`base-background min-h-screen w-full transition-colors duration-300 dark:bg-zinc-950`}>
       {/* Countdown Overlay - Diperbarui ke Orange & Kuning */}
       <div
-        className={`fixed inset-0 z-[100] flex items-center justify-center bg-zinc-950/90 backdrop-blur-md transition-opacity duration-300 ${
+        className={`base-background fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-md transition-opacity duration-300 ${
           showCountdown ? "visible opacity-100" : "pointer-events-none invisible opacity-0"
         }`}>
         <div className="flex flex-col items-center gap-8">
@@ -276,7 +276,7 @@ export default function Play({ sessionId }: PlayProps) {
                 className="relative">
                 {/* Glow Efek Orange/Kuning */}
                 <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-orange-600 to-yellow-500 opacity-40 blur-xl"></div>
-                <div className="relative flex h-40 w-40 items-center justify-center rounded-full border-4 border-orange-500 bg-white shadow-2xl dark:bg-zinc-900">
+                <div className="relative flex h-40 w-40 items-center justify-center rounded-full border-4 border-orange-500 bg-orange-200 shadow-2xl dark:bg-zinc-900">
                   <span className="bg-gradient-to-br from-orange-600 to-yellow-500 bg-clip-text text-8xl font-black text-transparent">
                     {countdownLeft}
                   </span>
@@ -454,10 +454,7 @@ export default function Play({ sessionId }: PlayProps) {
                             </p>
                           </div>
                           {/* Progress bar menggunakan warna Hijau */}
-                          <Progress
-                            value={percent}
-                            className="h-2 bg-orange-100 dark:bg-zinc-800"
-                          />
+                          <Progress value={percent} className="h-2 bg-orange-500" />
                         </div>
                       </CardContent>
                     </Card>

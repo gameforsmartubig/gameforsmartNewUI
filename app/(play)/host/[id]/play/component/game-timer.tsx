@@ -13,7 +13,6 @@ interface GameTimerBaseProps {
   status: string;
 }
 
-// Custom hook to share timer logic
 export function useGameTimer({
   startedAt,
   totalTimeMinutes,
@@ -47,7 +46,7 @@ export function useGameTimer({
         setProgress(0);
         if (onTimeUp && onTimeUpCallable.current) {
           onTimeUpCallable.current = false;
-          if (onTimeUp) onTimeUp();
+          onTimeUp();
         }
       } else {
         const secondsLeft = Math.ceil(diff / 1000);
@@ -64,17 +63,26 @@ export function useGameTimer({
 }
 
 export function GameTimer({ startedAt, totalTimeMinutes, onTimeUp, status }: GameTimerBaseProps) {
-  const { timeLeft } = useGameTimer({ startedAt, totalTimeMinutes, onTimeUp, status });
+  const { timeLeft, progress } = useGameTimer({ startedAt, totalTimeMinutes, onTimeUp, status });
 
-  // Show loading state if game hasn't fully started yet
   const isWaitingForStart = !startedAt && status !== "finished";
+
+  // Fungsi helper untuk menentukan warna teks berdasarkan progres
+  const getColorClass = (prog: number) => {
+    if (prog > 50) return "text-green-600 dark:text-green-400"; // Hijau saat masih banyak waktu
+    if (prog > 20) return "text-yellow-500 dark:text-yellow-400"; // Kuning saat menengah
+    return "text-orange-600 dark:text-orange-400"; // Orange saat sudah dekat 0
+  };
+
+  const currentColorClass = getColorClass(progress);
 
   return (
     <div className="flex items-center justify-center gap-4">
       {/* Card Menit */}
-      <Card className="border-none bg-white/90 shadow-lg backdrop-blur dark:bg-zinc-900/90 dark:shadow-orange-950/20">
-        <CardContent className="w-32 rounded-t-xl border-t-4 border-orange-500 px-8 text-center sm:w-48 sm:px-16 sm:py-4 dark:border-orange-600">
-          <p className="text-3xl font-bold text-orange-600 sm:text-5xl dark:text-orange-400">
+      <Card className="card transition-colors duration-500">
+        <CardContent className="w-32">
+          <p
+            className={`text-3xl font-bold transition-colors duration-500 sm:text-5xl ${currentColorClass}`}>
             {isWaitingForStart
               ? "--"
               : Math.floor(timeLeft / 60)
@@ -84,15 +92,17 @@ export function GameTimer({ startedAt, totalTimeMinutes, onTimeUp, status }: Gam
         </CardContent>
       </Card>
 
-      {/* Pemisah (Titik Dua) - Warna Kuning */}
-      <span className="animate-pulse text-3xl font-bold text-yellow-500 sm:text-5xl dark:text-yellow-400">
+      {/* Pemisah (Titik Dua) */}
+      <span
+        className={`animate-pulse text-3xl font-bold transition-colors duration-500 sm:text-5xl ${currentColorClass}`}>
         :
       </span>
 
       {/* Card Detik */}
-      <Card className="border-none bg-white/90 shadow-lg backdrop-blur dark:bg-zinc-900/90 dark:shadow-orange-950/20">
-        <CardContent className="w-32 rounded-t-xl border-t-4 border-green-500 px-8 text-center sm:w-48 sm:px-16 sm:py-4 dark:border-green-600">
-          <p className="text-3xl font-bold text-orange-600 sm:text-5xl dark:text-orange-400">
+      <Card className="card transition-colors duration-500">
+        <CardContent className="w-32">
+          <p
+            className={`text-3xl font-bold transition-colors duration-500 sm:text-5xl ${currentColorClass}`}>
             {isWaitingForStart ? "--" : (timeLeft % 60).toString().padStart(2, "0")}
           </p>
         </CardContent>
@@ -108,7 +118,19 @@ export function GameTimerProgress({
   status
 }: GameTimerBaseProps) {
   const { progress } = useGameTimer({ startedAt, totalTimeMinutes, onTimeUp, status });
+
+  // Fungsi helper untuk menentukan warna progress bar
+  const getProgressColor = (prog: number) => {
+    if (prog > 50) return "bg-green-500";
+    if (prog > 20) return "bg-yellow-500";
+    return "bg-orange-500";
+  };
+
   return (
-    <Progress indicatorColor="bg-blue-500" value={progress} className="w-full bg-transparent" />
+    <Progress
+      indicatorColor={`${getProgressColor(progress)} transition-colors duration-500`}
+      value={progress}
+      className="w-full bg-transparent"
+    />
   );
 }

@@ -573,10 +573,10 @@ export default function Play({ sessionId }: PlayProps) {
   const bgColor = isLoading || showCountdown ? "bg-black" : "bg-rose-50";
 
   return (
-    <div className={`min-h-screen w-full ${bgColor} transition-colors duration-300`}>
+    <div className={`base-background min-h-screen w-full transition-colors duration-300`}>
       {/* Countdown Overlay */}
       <div
-        className={`fixed inset-0 z-[100] flex items-center justify-center bg-black transition-opacity duration-300 ${
+        className={`base-background fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-300 ${
           showCountdown ? "visible opacity-100" : "pointer-events-none invisible opacity-0"
         }`}>
         <div className="flex flex-col items-center gap-8">
@@ -589,9 +589,9 @@ export default function Play({ sessionId }: PlayProps) {
                 exit={{ scale: 1.5, opacity: 0 }}
                 transition={{ duration: 0.3 }}
                 className="relative">
-                <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-purple-600 to-blue-600 opacity-40 blur-lg"></div>
-                <div className="relative flex h-40 w-40 items-center justify-center rounded-full border-4 border-purple-500 bg-white shadow-2xl">
-                  <span className="bg-gradient-to-br from-purple-600 to-blue-600 bg-clip-text text-8xl font-black text-transparent">
+                <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-orange-600 to-yellow-600 opacity-40 blur-lg"></div>
+                <div className="relative flex h-40 w-40 items-center justify-center rounded-full border-4 border-orange-500 bg-orange-200 shadow-2xl">
+                  <span className="bg-gradient-to-br from-orange-600 to-yellow-600 bg-clip-text text-8xl font-black text-transparent">
                     {countdownLeft}
                   </span>
                 </div>
@@ -628,7 +628,7 @@ export default function Play({ sessionId }: PlayProps) {
               />
 
               {/* End Session (Mobile only) - REPURPOSED AS TIMER BADGE PER REQUEST */}
-              <div className="flex items-center gap-2 rounded-lg bg-blue-100 px-4 py-2 font-semibold text-blue-700 shadow-sm md:hidden">
+              <div className="flex items-center gap-2 rounded-lg bg-orange-100 px-4 py-2 font-semibold text-orange-700 shadow-sm md:hidden">
                 <Timer className="h-4 w-4" />
                 <span>
                   {!session?.started_at && session?.status !== "finished"
@@ -640,14 +640,14 @@ export default function Play({ sessionId }: PlayProps) {
 
             {/* ===== STATISTIK (Baris 2 Mobile / Tengah Desktop) ===== */}
             <div className="flex w-full flex-col items-center justify-center gap-2 px-6 py-2 md:flex-1 md:py-0">
-              <div className="flex w-full items-center justify-between text-sm font-medium text-slate-600">
+              <div className="flex w-full items-center justify-between text-sm font-medium text-orange-600">
                 <p>Progress</p>
                 <p>
                   {answeredCount}/{questions.length}
                 </p>
               </div>
               <Progress
-                indicatorColor="bg-blue-500"
+                indicatorColor="bg-orange-500"
                 value={progressPercent}
                 className="h-2 w-full"
               />
@@ -655,7 +655,7 @@ export default function Play({ sessionId }: PlayProps) {
 
             {/* ===== KANAN DESKTOP ===== */}
             <div className="hidden items-center justify-end px-2 md:flex md:flex-1">
-              <div className="flex items-center gap-2 rounded-lg bg-blue-100 px-4 py-2 font-semibold text-blue-700 shadow-sm">
+              <div className="flex items-center gap-2 rounded-lg bg-orange-100 px-4 py-2 font-semibold text-orange-700 shadow-sm">
                 <Timer className="h-4 w-4" />
                 <span>
                   {!session?.started_at && session?.status !== "finished"
@@ -676,7 +676,7 @@ export default function Play({ sessionId }: PlayProps) {
                   <Card className="border-none py-4 shadow-sm">
                     <CardContent className="bg-surface-light dark:bg-surface-dark rounded-lg px-4">
                       <div className="flex items-center justify-between">
-                        <h1 className="mb-2 text-xl font-semibold text-slate-800">
+                        <h1 className="mb-2 text-xl font-semibold text-orange-900">
                           Question {currentQuestionIndex + 1}
                         </h1>
                         <Button
@@ -745,16 +745,16 @@ export default function Play({ sessionId }: PlayProps) {
                           className={cn(
                             "cursor-pointer rounded-xl border-2 p-4 transition-all hover:shadow-md active:scale-[0.98]",
                             responses[currentQuestion.id] === item.id
-                              ? "border-blue-500 bg-blue-50/50 ring-2 ring-blue-200"
-                              : "border-slate-100 bg-white hover:border-blue-200 hover:bg-slate-50"
+                              ? "border-orange-500 bg-orange-50/50 ring-2 ring-orange-200"
+                              : "border-slate-100 bg-white hover:border-orange-200 hover:bg-orange-50"
                           )}>
                           <div className="flex items-start gap-3">
                             <div
                               className={cn(
                                 "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold",
                                 responses[currentQuestion.id] === item.id
-                                  ? "border-blue-500 bg-blue-500 text-white"
-                                  : "border-slate-200 bg-slate-50 text-slate-500"
+                                  ? "border-orange-500 bg-orange-500 text-white"
+                                  : "border-orange-200 bg-orange-50 text-orange-500"
                               )}>
                               {String.fromCharCode(65 + idx)}
                             </div>
@@ -771,26 +771,25 @@ export default function Play({ sessionId }: PlayProps) {
                 <Button
                   variant="outline"
                   onClick={handlePrevious}
+                  className="button-orange-outline"
                   disabled={currentQuestionIndex === 0}>
                   Previous
                 </Button>
 
                 {isLastQuestion && allAnswered ? (
-                  <Button
-                    className="bg-green-600 hover:bg-green-700"
-                    onClick={() => setSubmitDialogOpen(true)}>
+                  <Button className="button-green" onClick={() => setSubmitDialogOpen(true)}>
                     Submit Quiz
                   </Button>
                 ) : (
-                  <Button variant="outline" onClick={handleNext}>
+                  <Button variant="outline" onClick={handleNext} className="button-orange-outline">
                     {isLastQuestion ? "First Question" : "Next"}
                   </Button>
                 )}
 
                 <Dialog open={submitDialogOpen} onOpenChange={setSubmitDialogOpen}>
-                  <DialogContent>
+                  <DialogContent className="dialog">
                     <DialogHeader>
-                      <DialogTitle>Submit Quiz?</DialogTitle>
+                      <DialogTitle className="text-orange-900">Submit Quiz?</DialogTitle>
                       <DialogDescription>
                         You have answered all {questions.length} questions. Are you sure you want to
                         submit?
@@ -800,7 +799,9 @@ export default function Play({ sessionId }: PlayProps) {
                       <DialogClose asChild>
                         <Button variant="outline">Review</Button>
                       </DialogClose>
-                      <Button onClick={handleSubmit}>Yes, Submit</Button>
+                      <Button onClick={handleSubmit} className="button-green">
+                        Yes, Submit
+                      </Button>
                     </DialogFooter>
                   </DialogContent>
                 </Dialog>
@@ -811,7 +812,7 @@ export default function Play({ sessionId }: PlayProps) {
             <aside className="order-2 p-4 lg:order-2 lg:pl-0">
               <Card className="border-none py-4 shadow-sm">
                 <CardContent className="sticky bottom-0 px-4 lg:top-0">
-                  <p className="mb-3 font-semibold text-slate-700">Question Navigation</p>
+                  <p className="mb-3 font-semibold text-orange-700">Question Navigation</p>
 
                   <div className="grid grid-cols-[repeat(auto-fill,minmax(40px,1fr))] gap-2 sm:grid-cols-[repeat(auto-fill,minmax(44px,1fr))] md:grid-cols-[repeat(auto-fill,minmax(48px,1fr))] lg:grid-cols-5">
                     {questions.map((q, i) => {
@@ -823,7 +824,7 @@ export default function Play({ sessionId }: PlayProps) {
                       let bgClass = "bg-white hover:bg-slate-50 border-slate-200 text-slate-700";
                       if (isCurrent)
                         bgClass =
-                          "bg-blue-100 border-blue-500 text-blue-700 font-bold ring-2 ring-blue-200";
+                          "bg-orange-100 border-orange-500 text-orange-700 font-bold ring-2 ring-orange-200";
                       else if (isFlagged) bgClass = "bg-amber-100 border-amber-500 text-amber-700";
                       else if (isAnswered) bgClass = "bg-green-100 border-green-500 text-green-700";
 
@@ -845,7 +846,7 @@ export default function Play({ sessionId }: PlayProps) {
                   </div>
                   <div className="mt-6 space-y-3 border-t border-slate-100 pt-6 dark:border-slate-800">
                     <div className="flex items-center gap-3 text-sm">
-                      <div className="size-4 rounded-sm border border-blue-500 bg-blue-100"></div>
+                      <div className="size-4 rounded-sm border border-orange-500 bg-orange-100"></div>
                       <span className="text-slate-600 dark:text-slate-400">Current Question</span>
                     </div>
                     <div className="flex items-center gap-3 text-sm">

@@ -220,7 +220,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
             // if (updatedSession.status === "active") {
             //   router.push(`/player/${sessionId}/play`);
-            // } else 
+            // } else
             if (updatedSession.status === "finished") {
               router.push(`/result/${sessionId}`);
             }
@@ -281,7 +281,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
             if (newSession.status !== lastStatusRef.current) {
               lastStatusRef.current = newSession.status;
               setGameSession(newSession); // Sync fallback
-              
+
               // Note: Countdown redirect is now handled via broadcast
               // Only handle finished status here
               if (newSession.status === "finished") {
@@ -320,17 +320,17 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   // Subscribe to countdown broadcast
   useEffect(() => {
     if (!sessionId) return;
-    
+
     const channel = subscribeToCountdownBroadcast(sessionId, (payload) => {
       // Received countdown start from broadcast -> REDIRECT IMMEDIATELY
       // The Play Screen will show the countdown overlay based on 'ts'
       if (payload.startedAt) {
-         router.push(`/player/${sessionId}/play?ts=${payload.startedAt}`);
+        router.push(`/player/${sessionId}/play?ts=${payload.startedAt}`);
       } else {
-         router.push(`/player/${sessionId}/play`);
+        router.push(`/player/${sessionId}/play`);
       }
     });
-    
+
     return () => {
       unsubscribeFromCountdownBroadcast(channel);
     };
@@ -389,35 +389,31 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   if (!gameSession || !quizData) return null;
 
   const joinLink =
-    typeof window !== "undefined"
-      ? `${window.location.origin}/join/${gameSession.game_pin}`
-      : "";
+    typeof window !== "undefined" ? `${window.location.origin}/join/${gameSession.game_pin}` : "";
 
   return (
-    <div className="relative h-screen overflow-y-auto bg-gray-50/50 dark:bg-zinc-950">
-
-
+    <div className="base-background relative h-screen overflow-y-auto">
       <div className="grid min-h-full grid-cols-1 lg:grid-cols-[1fr_480px]">
         {/* Left Column: Stats & Participants */}
         <div className="order-2 p-4 lg:order-1">
           <Card className="min-h-[96vh] gap-0 border-0 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <CardContent>
               <div className="flex w-full items-center justify-between pb-6">
-                <div className="flex items-center gap-2 dark:text-zinc-100">
-                  <Users />
-                  <p className="text-2xl">Players</p>
+                <div className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
+                  <Users className="text-orange-500" />
+                  <p className="text-2xl font-bold">Players</p>
                 </div>
                 <Button
                   variant="outline"
                   onClick={() => setLeaveDialogOpen(true)}
-                  className="dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
+                  className="border-zinc-200 text-zinc-600 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-zinc-300 dark:hover:bg-zinc-800">
                   <LogOut className="mr-2 size-4" />
                   Leave
                 </Button>
               </div>
               {participants.length === 0 ? (
                 <div className="text-muted-foreground flex h-40 flex-col items-center justify-center dark:text-zinc-500">
-                  <Users className="mb-2 size-12 opacity-20" />
+                  <Users className="mb-2 size-12 opacity-10" />
                   <p>Waiting for players to join...</p>
                 </div>
               ) : (
@@ -425,21 +421,21 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                   {participants.map((player) => (
                     <Card
                       key={player.id}
-                      className="group relative overflow-hidden border-0 bg-gray-50 py-0 transition-colors hover:bg-gray-100 dark:bg-zinc-950 dark:hover:bg-zinc-800">
+                      className="group relative overflow-hidden border-0 bg-gradient-to-br from-orange-400 to-yellow-400 py-0 shadow-md shadow-orange-100 transition-colors">
                       <CardContent className="flex flex-col items-center p-3">
                         <Avatar className="mb-2 size-12 border-2 border-white shadow-sm dark:border-zinc-800">
                           <AvatarImage src={player.avatar_url || ""} />
-                          <AvatarFallback className="bg-purple-100 text-xs text-purple-600 dark:bg-purple-900/30 dark:text-purple-300">
+                          <AvatarFallback className="bg-orange-100 text-xs font-bold text-orange-600 dark:bg-orange-900/30 dark:text-orange-400">
                             {player.nickname.substring(0, 2).toUpperCase()}
                           </AvatarFallback>
                         </Avatar>
                         <p
-                          className="w-full truncate text-center text-sm leading-tight font-medium dark:text-zinc-200"
+                          className="w-full truncate text-center text-sm leading-tight font-medium text-zinc-700 dark:text-zinc-200"
                           title={player.nickname}>
                           {player.nickname}
                         </p>
                         {player.id === participantId && (
-                          <span className="text-[10px] font-bold text-purple-600 dark:text-purple-400">
+                          <span className="text-[10px] font-black tracking-wider text-orange-600 uppercase dark:text-orange-400">
                             (YOU)
                           </span>
                         )}
@@ -462,47 +458,47 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                   width={200}
                   height={40}
                   alt="gameforsmart"
-                  className="opacity-80 dark:opacity-100 dark:invert"
+                  className="opacity-90 dark:opacity-100 dark:invert"
                   unoptimized
                 />
               </div>
 
               <div className="flex flex-col gap-1">
-                <p className="text-3xl font-bold tracking-tight text-gray-900 dark:text-zinc-100">
+                <p className="text-3xl font-black tracking-tight text-orange-900 dark:text-orange-100">
                   {quizData.title}
                 </p>
-                <p className="text-muted-foreground text-sm dark:text-zinc-400">
+                <p className="text-sm text-orange-500 dark:text-zinc-400">
                   {quizData.description || "No description"}
                 </p>
               </div>
 
-              <Card className="dark:border-zinc-800 dark:bg-zinc-950">
+              <Card className="border-orange-100 bg-orange-50/50 dark:border-zinc-800 dark:bg-zinc-950">
                 <CardContent className="p-0">
                   <div className="flex items-center justify-evenly py-4">
                     <div className="flex flex-col items-center justify-center">
-                      <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-zinc-100">
-                        <CircleQuestionMark className="size-5 text-blue-500" />
+                      <div className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                        <CircleQuestionMark className="size-5 text-yellow-500" />
                         <span>{gameSession.question_limit || quizData.questions?.length || 0}</span>
                       </div>
-                      <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase dark:text-zinc-500">
+                      <p className="text-[10px] font-bold tracking-wider text-orange-900 uppercase">
                         QUESTIONS
                       </p>
                     </div>
                     <div className="flex flex-col items-center justify-center">
-                      <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-zinc-100">
+                      <div className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
                         <Timer className="size-5 text-orange-500" />
                         <span>{gameSession.total_time_minutes}m</span>
                       </div>
-                      <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase dark:text-zinc-500">
+                      <p className="text-[10px] font-bold tracking-wider text-orange-900 uppercase">
                         TIME
                       </p>
                     </div>
                     <div className="flex flex-col items-center justify-center">
-                      <div className="flex items-center gap-2 text-lg font-bold text-gray-900 dark:text-zinc-100">
+                      <div className="flex items-center gap-2 text-lg font-bold text-zinc-900 dark:text-zinc-100">
                         <User className="size-5 text-green-500" />
                         <span>{participants.length}</span>
                       </div>
-                      <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase dark:text-zinc-500">
+                      <p className="text-[10px] font-bold tracking-wider text-orange-900 uppercase">
                         PLAYERS
                       </p>
                     </div>
@@ -510,40 +506,42 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                 </CardContent>
               </Card>
 
-              <div className="flex flex-col items-center justify-center">
+              <div className="flex flex-col items-center justify-center py-4">
                 <div className="mb-2 flex justify-center md:mb-4">
                   <div className="relative">
-                    <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-purple-600 to-blue-600 opacity-30 blur-lg"></div>
-                    <div className="relative rounded-full border-2 border-white bg-gradient-to-br from-purple-100 to-blue-100 p-3 shadow-lg md:border-4 md:p-6 dark:border-zinc-800 dark:from-purple-900/30 dark:to-blue-900/30">
-                      <Play className="h-8 w-8 text-purple-600 md:h-12 md:w-12 dark:text-purple-400" />
+                    {/* Effect Pulse diubah ke Orange-Yellow */}
+                    <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-orange-600 to-yellow-500 opacity-20 blur-xl"></div>
+                    <div className="relative rounded-full border-2 border-white bg-gradient-to-br from-orange-50 to-yellow-50 p-4 shadow-xl md:border-4 md:p-6 dark:border-zinc-800 dark:from-orange-950/30 dark:to-yellow-950/30">
+                      <Play className="h-8 w-8 text-orange-600 md:h-12 md:w-12 dark:text-orange-500" />
                     </div>
                   </div>
                 </div>
                 <div className="space-y-2 md:space-y-3">
-                  <h2 className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-xl font-bold text-transparent md:text-2xl lg:text-3xl dark:from-purple-400 dark:to-blue-400">
+                  {/* Gradient Text diubah ke Orange-Yellow */}
+                  <h2 className="bg-orange-600 bg-clip-text text-xl font-black text-transparent md:text-2xl lg:text-3xl">
                     Wait For Host To Start
                   </h2>
                 </div>
               </div>
 
-              {/* Game PIN */}
+              {/* Game PIN - Diubah ke Orange */}
               <div className="space-y-2 text-center">
-                <p className="text-muted-foreground text-sm font-semibold tracking-wider uppercase dark:text-zinc-500">
+                <p className="text-xs font-bold tracking-widest text-zinc-500 uppercase">
                   Game PIN
                 </p>
                 <div
-                  className="flex cursor-pointer items-center justify-center gap-2 text-6xl font-black text-purple-600 transition-opacity hover:opacity-80 dark:text-purple-400"
+                  className="flex cursor-pointer items-center justify-center gap-2 text-6xl font-black text-orange-500 transition-opacity hover:opacity-80 dark:text-orange-400"
                   onClick={() => copyToClipboard(gameSession.game_pin)}>
                   {gameSession.game_pin}
                 </div>
               </div>
 
-              {/* Join Link */}
+              {/* Join Link - Zinc/Orange */}
               <div
-                className="relative flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm font-medium text-gray-600 transition-colors select-all hover:bg-gray-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800"
+                className="relative flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-orange-100 bg-orange-50/50 p-3 text-sm font-medium text-orange-800 transition-colors select-all hover:bg-orange-100 dark:border-zinc-800 dark:bg-zinc-950 dark:text-zinc-400 dark:hover:bg-zinc-800"
                 onClick={() => copyToClipboard(joinLink)}>
                 <span className="max-w-[240px] truncate">{joinLink}</span>
-                <Copy size={14} />
+                <Copy size={14} className="text-orange-500" />
               </div>
 
               {/* Action Buttons */}
@@ -551,12 +549,12 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                 <div className="grid grid-cols-2 gap-3">
                   <Button
                     variant="ghost"
-                    className="text-muted-foreground border border-dashed text-xs dark:border-zinc-700 dark:text-zinc-400">
+                    className="border border-dashed border-green-200 text-xs text-green-700 hover:bg-green-50">
                     WhatsApp
                   </Button>
                   <Button
                     variant="ghost"
-                    className="text-muted-foreground border border-dashed text-xs dark:border-zinc-700 dark:text-zinc-400">
+                    className="border border-dashed border-blue-200 text-xs text-blue-700 hover:bg-blue-50">
                     Telegram
                   </Button>
                 </div>
@@ -568,20 +566,25 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
       {/* leave Dialog */}
       <Dialog open={leaveDialogOpen} onOpenChange={setLeaveDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] dark:border-zinc-800 dark:bg-zinc-950">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
+            <DialogTitle className="flex items-center gap-2 text-orange-600">
               <UserX size={20} /> Leave Room
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="dark:text-zinc-400">
               Are you sure you want to leave this game room? You can rejoin later using the PIN.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setLeaveDialogOpen(false)}>
+            <Button
+              variant="outline"
+              onClick={() => setLeaveDialogOpen(false)}
+              className="dark:border-zinc-800">
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleLeaveGame}>
+            <Button
+              className="bg-orange-600 text-white hover:bg-orange-700 dark:bg-orange-600 dark:hover:bg-orange-500"
+              onClick={handleLeaveGame}>
               Leave Game
             </Button>
           </DialogFooter>
