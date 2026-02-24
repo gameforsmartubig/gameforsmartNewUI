@@ -1,6 +1,6 @@
 "use client";
 
-import { BellIcon, ClockIcon } from "lucide-react";
+import { BellIcon, ClockIcon, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useEffect, useState } from "react";
@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/auth-context";
+import { toast } from "sonner";
 
 const Datas = [
   {
@@ -66,6 +67,129 @@ const Notifications = () => {
   const [mounted, setMounted] = useState(false);
   const { profileId } = useAuth();
   const [dbNotifications, setDbNotifications] = useState<any[]>([]);
+  const [actionLoading, setActionLoading] = useState<string | null>(null);
+
+  const handleAction = async (dataItem: any, action: "accepted" | "declined") => {
+    if (!profileId) return;
+    setActionLoading(dataItem.id);
+
+    try {
+      // 1. Update notification status
+      const { error: updateError } = await supabase
+        .from("notifications")
+        .update({ status: action })
+        .eq("id", dataItem.id);
+
+      if (updateError) throw updateError;
+
+      // Update UI state
+      setDbNotifications((prev) =>
+        prev.map((notif) => (notif.id === dataItem.id ? { ...notif, status: action } : notif))
+      );
+
+      // 2. Execute logic if accepted
+      if (action === "accepted") {
+        if (dataItem.type === "group" && dataItem.raw_from_group_id) {
+          const groupId = dataItem.raw_from_group_id;
+          // Get user's profile to extract name
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("nickname, fullname")
+            .eq("id", profileId)
+            .single();
+
+          const userName = profile?.nickname || profile?.fullname || "User";
+
+          // Fetch current group members
+          const { data: group } = await supabase
+            .from("groups")
+            .select("members")
+            .eq("id", groupId)
+            .single();
+
+          if (group) {
+            const members = group.members || [];
+            const isAlreadyMember = members.some((m: any) => m.id === profileId);
+
+            if (!isAlreadyMember) {
+              const newMember = { id: profileId, name: userName, role: "member" };
+              const updatedMembers = [...members, newMember];
+
+              const { error: groupUpdateError } = await supabase
+                .from("groups")
+                .update({ members: updatedMembers })
+                .eq("id", groupId);
+
+              if (groupUpdateError) {
+                toast.error("Gagal bergabung grup");
+              } else {
+                toast.success("Berhasil bergabung dengan grup");
+              }
+            } else {
+              toast.info("Anda sudah menjadi anggota grup ini");
+            }
+          }
+        } else if (dataItem.type === "sessionGroup" || dataItem.type === "sessionFriend") {
+          const code = dataItem.entity_id?.code;
+          const application = (dataItem.entity_id?.application || "gameforsmartnewui")
+            .toLowerCase()
+            .trim();
+
+          if (!code) {
+            toast.error("Kode sesi tidak ditemukan");
+            return;
+          }
+
+          toast.success("Mengarahkan ke sesi...");
+
+          let targetUrl = "";
+          let openInNewTab = false;
+
+          switch (application) {
+            case "crazyrace":
+              targetUrl = `https://crazy-race-next.vercel.app/join/${code}`;
+              openInNewTab = true;
+              break;
+            case "memoryquiz":
+              targetUrl = `https://memorygame-quiz.vercel.app/join/${code}`;
+              openInNewTab = true;
+              break;
+            case "quizrush":
+              targetUrl = `https://quizrun.vercel.app/join/${code}`;
+              openInNewTab = true;
+              break;
+            case "space quiz":
+            case "spacequiz":
+              targetUrl = `https://spacequizv1.vercel.app/join/${code}`;
+              openInNewTab = true;
+              break;
+            case "axiom":
+              targetUrl = `https://axiomay.vercel.app/join/${code}`;
+              openInNewTab = true;
+              break;
+            case "gameforsmartnewui":
+            default:
+              targetUrl = `https://gameforsmartnewui.vercel.app/join/${code}`;
+              openInNewTab = false;
+              break;
+          }
+
+          if (openInNewTab) {
+            window.open(targetUrl, "_blank");
+          } else {
+            window.location.href = targetUrl;
+          }
+        }
+      } else {
+        toast.success("Notifikasi ditolak");
+      }
+    } catch (error: any) {
+      console.error("Action error:", error);
+      toast.error(error.message || "Terjadi kesalahan");
+    } finally {
+      setActionLoading(null);
+    }
+  };
 
   useEffect(() => {
     setMounted(true);
@@ -241,14 +365,37 @@ const Notifications = () => {
                           untuk mengikuti sesi {dataItem.entity_id?.name} code{" "}
                           {dataItem.entity_id?.code} pada aplikasi {dataItem.entity_id?.application}
                         </div>
-                        {dataItem.status === null && (
-                          <div className="flex items-center gap-2">
-                            <Button  size="sm" variant="outline">
-                              Accept
+                        {dataItem.status === null ? (
+                          <div className="mt-1 flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleAction(dataItem, "accepted")}
+                              disabled={actionLoading === dataItem.id}>
+                              {actionLoading === dataItem.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                "Accept"
+                              )}
                             </Button>
-                            <Button size="sm" variant="destructive">
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleAction(dataItem, "declined")}
+                              disabled={actionLoading === dataItem.id}>
                               Decline
                             </Button>
+                          </div>
+                        ) : (
+                          <div className="mt-1">
+                            <span
+                              className={`rounded-full px-2 py-1 text-[10px] font-semibold tracking-wider uppercase ${
+                                dataItem.status === "accepted"
+                                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                              }`}>
+                              {dataItem.status === "accepted" ? "Accepted" : "Declined"}
+                            </span>
                           </div>
                         )}
                         <div className="dark:group-hover:text-default-500 text-muted-foreground flex items-center gap-1 text-xs">
@@ -281,14 +428,37 @@ const Notifications = () => {
                           untuk mengikuti sesi {dataItem.entity_id?.name} code{" "}
                           {dataItem.entity_id?.code} pada aplikasi {dataItem.entity_id?.application}
                         </div>
-                        {dataItem.status === null && (
-                          <div className="flex items-center gap-2">
-                            <Button size="sm" variant="outline">
-                              Accept
+                        {dataItem.status === null ? (
+                          <div className="mt-1 flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleAction(dataItem, "accepted")}
+                              disabled={actionLoading === dataItem.id}>
+                              {actionLoading === dataItem.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                "Accept"
+                              )}
                             </Button>
-                            <Button size="sm" variant="destructive">
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleAction(dataItem, "declined")}
+                              disabled={actionLoading === dataItem.id}>
                               Decline
                             </Button>
+                          </div>
+                        ) : (
+                          <div className="mt-1">
+                            <span
+                              className={`rounded-full px-2 py-1 text-[10px] font-semibold tracking-wider uppercase ${
+                                dataItem.status === "accepted"
+                                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                              }`}>
+                              {dataItem.status === "accepted" ? "Accepted" : "Declined"}
+                            </span>
                           </div>
                         )}
                         <div className="dark:group-hover:text-default-500 text-muted-foreground flex items-center gap-1 text-xs">
@@ -320,14 +490,37 @@ const Notifications = () => {
                         <div className="dark:group-hover:text-default-700 text-muted-foreground text-xs">
                           untuk memasuki group {dataItem.from_group_id?.name}
                         </div>
-                        {dataItem.status === null && (
-                          <div className="flex items-center gap-2">
-                            <Button size="sm" variant="outline">
-                              Accept
+                        {dataItem.status === null ? (
+                          <div className="mt-1 flex items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleAction(dataItem, "accepted")}
+                              disabled={actionLoading === dataItem.id}>
+                              {actionLoading === dataItem.id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                "Accept"
+                              )}
                             </Button>
-                            <Button size="sm" variant="destructive">
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleAction(dataItem, "declined")}
+                              disabled={actionLoading === dataItem.id}>
                               Decline
                             </Button>
+                          </div>
+                        ) : (
+                          <div className="mt-1">
+                            <span
+                              className={`rounded-full px-2 py-1 text-[10px] font-semibold tracking-wider uppercase ${
+                                dataItem.status === "accepted"
+                                  ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                                  : "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                              }`}>
+                              {dataItem.status === "accepted" ? "Accepted" : "Declined"}
+                            </span>
                           </div>
                         )}
                         <div className="dark:group-hover:text-default-500 text-muted-foreground flex items-center gap-1 text-xs">
