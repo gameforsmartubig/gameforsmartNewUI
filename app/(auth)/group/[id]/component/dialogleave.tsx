@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { useAuth } from "@/contexts/auth-context";
 import { supabase } from "@/lib/supabase";
-import { LogOut } from "lucide-react";
+import { ArrowBigDown, ArrowBigUp, LogOut } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -22,7 +22,7 @@ interface DialogLeaveProps {
   currentMembers: any[];
 }
 
-export default function DialogLeave({ groupId, currentMembers }: DialogLeaveProps) {
+export function DialogLeave({ groupId, currentMembers }: DialogLeaveProps) {
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const { profileId } = useAuth();
@@ -80,6 +80,62 @@ export default function DialogLeave({ groupId, currentMembers }: DialogLeaveProp
           </Button>
           <Button variant="destructive" onClick={handleLeave} disabled={loading}>
             {loading ? "Leaving..." : "Leave"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+interface DialogActionProps {
+  action: "kick" | "promote" | "demote";
+  userName: string;
+  onConfirm: () => Promise<void>;
+  children: React.ReactNode;
+}
+
+export function DialogAction({ action, userName, onConfirm, children }: DialogActionProps) {
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    try {
+      await onConfirm();
+      setOpen(false);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const title =
+    action === "kick" ? "Kick User" : action === "promote" ? "Promote User" : "Demote User";
+  const actionText = action === "kick" ? "Kick" : action === "promote" ? "Promote" : "Demote";
+  const actionTextIng =
+    action === "kick" ? "Kicking..." : action === "promote" ? "Promoting..." : "Demoting...";
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>{children}</DialogTrigger>
+      <DialogContent className="dialog">
+        <DialogHeader>
+          <DialogTitle className={action === "kick" ? "text-red-600" : "text-orange-600"}>
+            {title}
+          </DialogTitle>
+        </DialogHeader>
+        <DialogDescription>
+          Are you sure you want to {action} "{userName}"?
+        </DialogDescription>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
+            Cancel
+          </Button>
+          <Button
+            variant={action === "kick" ? "destructive" : "default"}
+            onClick={handleConfirm}
+            disabled={loading}
+            className={action !== "kick" ? "button-orange" : ""}>
+            {loading ? actionTextIng : actionText}
           </Button>
         </DialogFooter>
       </DialogContent>

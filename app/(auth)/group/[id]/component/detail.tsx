@@ -9,6 +9,9 @@ import { useAuth } from "@/contexts/auth-context";
 import { Calendar, Copy, EllipsisVertical, Globe, Users } from "lucide-react";
 import { useState } from "react";
 import { PaginationControl } from "./pagination-control";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { supabase } from "@/lib/supabase";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -18,7 +21,7 @@ import {
   BreadcrumbSeparator
 } from "@/components/ui/breadcrumb";
 import DialogSettings from "./dialogsettings";
-import DialogLeave from "./dialogleave";
+import { DialogLeave, DialogAction } from "./dialogleave";
 import DialogApproval from "./dialogapproval";
 import DialogAdd from "./dialogadd";
 import {
@@ -36,7 +39,51 @@ interface GroupDetailProps {
 export default function GroupDetail({ group, members }: GroupDetailProps) {
   const { profileId } = useAuth();
   const [currentPage, setCurrentPage] = useState(1);
+  const [loadingActionId, setLoadingActionId] = useState<string | null>(null);
+  const router = useRouter();
   const ITEMS_PER_PAGE = 14;
+
+  const handleAction = async (memberUserId: string, action: "kick" | "promote" | "demote") => {
+    setLoadingActionId(memberUserId);
+    try {
+      const { data: groupData, error: fetchError } = await supabase
+        .from("groups")
+        .select("members")
+        .eq("id", group.id)
+        .single();
+      if (fetchError) throw fetchError;
+
+      let updatedMembers = groupData.members || [];
+      const isMatch = (m: any) => (m.user_id || m.id) === memberUserId;
+
+      if (action === "kick") {
+        updatedMembers = updatedMembers.filter((m: any) => !isMatch(m));
+      } else if (action === "promote") {
+        updatedMembers = updatedMembers.map((m: any) => (isMatch(m) ? { ...m, role: "admin" } : m));
+      } else if (action === "demote") {
+        updatedMembers = updatedMembers.map((m: any) =>
+          isMatch(m) ? { ...m, role: "member" } : m
+        );
+      }
+
+      const { error: updateError } = await supabase
+        .from("groups")
+        .update({ members: updatedMembers })
+        .eq("id", group.id);
+
+      if (updateError) throw updateError;
+
+      toast.success(
+        `User ${action === "kick" ? "kicked" : action === "promote" ? "promoted" : "demoted"} successfully`
+      );
+      router.refresh();
+    } catch (err: any) {
+      toast.error(`Failed to ${action} user`);
+      console.error(err);
+    } finally {
+      setLoadingActionId(null);
+    }
+  };
 
   if (!group) return <div>Loading...</div>;
 
@@ -55,9 +102,33 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
   const currentUser = members.find((m) => m.id === profileId);
   const userRole = currentUser?.role?.toLowerCase();
 
+  // Sorting Logic
+  const sortedMembers = [...members].sort((a: any, b: any) => {
+    // 1. Current user always first
+    if (profileId && a.id === profileId) return -1;
+    if (profileId && b.id === profileId) return 1;
+
+    // 2. Sort by role priority
+    const rolePriority: Record<string, number> = { owner: 1, admin: 2, member: 3 };
+    const roleA = a.role?.toLowerCase() || "member";
+    const roleB = b.role?.toLowerCase() || "member";
+
+    const priorityA = rolePriority[roleA] || 4;
+    const priorityB = rolePriority[roleB] || 4;
+
+    if (priorityA !== priorityB) {
+      return priorityA - priorityB;
+    }
+
+    // 3. Sort alphabetically by name
+    const nameA = a.name?.toLowerCase() || "";
+    const nameB = b.name?.toLowerCase() || "";
+    return nameA.localeCompare(nameB);
+  });
+
   // Pagination Logic
-  const totalItems = members.length;
-  const currentMembers = members.slice(
+  const totalItems = sortedMembers.length;
+  const currentMembers = sortedMembers.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE
   );
@@ -191,13 +262,21 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
                       <div className="vertical-line" />
                       <CardContent className="flex items-center justify-between p-4">
                         <div className="flex items-center gap-4">
-                          {/* Avatar */}
-                          <Avatar className="h-10 w-10 border border-zinc-100 dark:border-zinc-800">
-                            <AvatarImage src={member.avatar} alt={member.name} />
-                            <AvatarFallback className="rounded-lg bg-zinc-100 text-zinc-500 dark:bg-zinc-800">
-                              {(member.name || "?").substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
+                          <div className="relative">
+                            {/* Avatar */}
+                            <Avatar className="h-10 w-10 border border-zinc-100 dark:border-zinc-800">
+                              <AvatarImage src={member.avatar} alt={member.name} />
+                              <AvatarFallback className="rounded-lg bg-zinc-100 text-zinc-500 dark:bg-zinc-800">
+                                {(member.name || "?").substring(0, 2).toUpperCase()}
+                              </AvatarFallback>
+                            </Avatar>
+                            {profileId &&
+                              (member.id === profileId || member.user_id === profileId) && (
+                                <Badge className="absolute -top-2 -right-4 rounded-full border-none bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-500">
+                                  You
+                                </Badge>
+                              )}
+                          </div>
 
                           {/* Info */}
                           <div className="flex-1">
@@ -247,15 +326,40 @@ export default function GroupDetail({ group, members }: GroupDetailProps) {
                             <DropdownMenuContent
                               align="end"
                               className="dark:border-zinc-800 dark:bg-zinc-900">
-                              <DropdownMenuItem className="focus:text-red-600 dark:focus:text-red-400">
-                                Kick
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="focus:text-green-600 dark:focus:text-green-400">
-                                Promote to Admin
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="focus:text-orange-600 dark:focus:text-orange-400">
-                                Demote to Member
-                              </DropdownMenuItem>
+                              <DialogAction
+                                action="kick"
+                                userName={member.name}
+                                onConfirm={() => handleAction(member.id, "kick")}>
+                                <DropdownMenuItem
+                                  className="focus:text-red-600 dark:focus:text-red-400"
+                                  onSelect={(e) => e.preventDefault()}>
+                                  Kick
+                                </DropdownMenuItem>
+                              </DialogAction>
+                              {role === "member" && (
+                                <DialogAction
+                                  action="promote"
+                                  userName={member.name}
+                                  onConfirm={() => handleAction(member.id, "promote")}>
+                                  <DropdownMenuItem
+                                    className="focus:text-green-600 dark:focus:text-green-400"
+                                    onSelect={(e) => e.preventDefault()}>
+                                    Promote to Admin
+                                  </DropdownMenuItem>
+                                </DialogAction>
+                              )}
+                              {role === "admin" && (
+                                <DialogAction
+                                  action="demote"
+                                  userName={member.name}
+                                  onConfirm={() => handleAction(member.id, "demote")}>
+                                  <DropdownMenuItem
+                                    className="focus:text-orange-600 dark:focus:text-orange-400"
+                                    onSelect={(e) => e.preventDefault()}>
+                                    Demote to Member
+                                  </DropdownMenuItem>
+                                </DialogAction>
+                              )}
                             </DropdownMenuContent>
                           </DropdownMenu>
                         )}

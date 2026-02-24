@@ -98,7 +98,8 @@ export default function DialogAdd({ groupId }: DialogAddProps) {
         actor_id: profileId,
         type: "group",
         entity_type: "group",
-        entity_id: groupId,
+        entity_id: null,
+        from_group_id: groupId,
         is_read: false,
         status: null, // As requested
         content: null // As requested
