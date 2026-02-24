@@ -316,6 +316,25 @@ const Notifications = () => {
     fetchDatas();
   }, [profileId]);
 
+  const hasUnread = dbNotifications.some((n) => !n.is_read);
+
+  const handleOpenChange = async (open: boolean) => {
+    if (open) {
+      const top5Unread = dbNotifications.slice(0, 5).filter((n) => !n.is_read);
+      if (top5Unread.length > 0) {
+        const ids = top5Unread.map((n) => n.id);
+
+        // Optimistic UI update
+        setDbNotifications((prev) =>
+          prev.map((n) => (ids.includes(n.id) ? { ...n, is_read: true } : n))
+        );
+
+        // Background sync to db
+        await supabase.from("notifications").update({ is_read: true }).in("id", ids);
+      }
+    }
+  };
+
   if (!mounted) {
     return (
       <Button size="icon" variant="ghost" className="relative">
@@ -325,12 +344,14 @@ const Notifications = () => {
   }
 
   return (
-    <DropdownMenu>
+    <DropdownMenu onOpenChange={handleOpenChange}>
       <DropdownMenuTrigger asChild>
         <Button size="icon" variant="ghost" className="relative">
           <>
             <BellIcon className="animate-tada" />
-            <span className="bg-destructive absolute end-0 top-0 block size-2 shrink-0 rounded-full"></span>
+            {hasUnread && (
+              <span className="bg-destructive absolute end-0 top-0 block size-2 shrink-0 rounded-full"></span>
+            )}
           </>
         </Button>
       </DropdownMenuTrigger>
@@ -339,8 +360,13 @@ const Notifications = () => {
         <DropdownMenuLabel className="bg-background dark:bg-muted sticky top-0 z-10 p-0">
           <div className="flex justify-between border-b px-6 py-4">
             <div className="font-medium">Notifications</div>
-            <Button variant="link" className="h-auto p-0 text-xs" size="sm" asChild>
-              <Link href="#">View all</Link>
+            <Button variant="link" className="relative h-auto p-0 text-xs" size="sm" asChild>
+              <Link href="#">
+                View all
+                {hasUnread && (
+                  <span className="bg-destructive absolute -top-1 -right-2 block size-2 shrink-0 rounded-full"></span>
+                )}
+              </Link>
             </Button>
           </div>
         </DropdownMenuLabel>
@@ -349,7 +375,7 @@ const Notifications = () => {
           {dbNotifications.length === 0 ? (
             <div className="text-muted-foreground p-4 text-center text-sm">No notifications</div>
           ) : (
-            dbNotifications.map((dataItem, key) => {
+            dbNotifications.slice(0, 5).map((dataItem, key) => {
               if (dataItem.type === "sessionGroup") {
                 return (
                   <DropdownMenuItem
@@ -359,11 +385,11 @@ const Notifications = () => {
                     <div className="flex flex-1 items-start gap-2">
                       <div className="flex flex-1 flex-col gap-1">
                         <div className="dark:group-hover:text-default-800 text-sm font-medium">
-                          {dataItem.actor_id} mengundang anda dari group {dataItem.from_group_id}
+                          {dataItem.actor_id} invite you from group {dataItem.from_group_id}
                         </div>
                         <div className="dark:group-hover:text-default-700 text-muted-foreground text-xs">
-                          untuk mengikuti sesi {dataItem.entity_id?.name} code{" "}
-                          {dataItem.entity_id?.code} pada aplikasi {dataItem.entity_id?.application}
+                          to join session "{dataItem.entity_id?.name}" on application{" "}
+                          {dataItem.entity_id?.application}
                         </div>
                         {dataItem.status === null ? (
                           <div className="mt-1 flex items-center gap-2">
@@ -422,11 +448,11 @@ const Notifications = () => {
                     <div className="flex flex-1 items-start gap-2">
                       <div className="flex flex-1 flex-col gap-1">
                         <div className="dark:group-hover:text-default-800 text-sm font-medium">
-                          {dataItem.actor_id} mengundang anda
+                          {dataItem.actor_id} invite you
                         </div>
                         <div className="dark:group-hover:text-default-700 text-muted-foreground text-xs">
-                          untuk mengikuti sesi {dataItem.entity_id?.name} code{" "}
-                          {dataItem.entity_id?.code} pada aplikasi {dataItem.entity_id?.application}
+                          to join session "{dataItem.entity_id?.name}" on application{" "}
+                          {dataItem.entity_id?.application}
                         </div>
                         {dataItem.status === null ? (
                           <div className="mt-1 flex items-center gap-2">
@@ -485,10 +511,10 @@ const Notifications = () => {
                     <div className="flex flex-1 items-start gap-2">
                       <div className="flex flex-1 flex-col gap-1">
                         <div className="dark:group-hover:text-default-800 text-sm font-medium">
-                          {dataItem.actor_id} mengundang anda
+                          {dataItem.actor_id} invite you
                         </div>
                         <div className="dark:group-hover:text-default-700 text-muted-foreground text-xs">
-                          untuk memasuki group {dataItem.from_group_id?.name}
+                          to join group {dataItem.from_group_id?.name}
                         </div>
                         {dataItem.status === null ? (
                           <div className="mt-1 flex items-center gap-2">
