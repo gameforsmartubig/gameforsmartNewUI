@@ -16,15 +16,181 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 
-import { notifications, type Notification } from "./data";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/auth-context";
+
+const Datas = [
+  {
+    user_id: "01mdsvf3001000000axm",
+    actor_id: "zubai",
+    type: "sessionFriend",
+    entity_type: "session",
+    entity_id: {
+      name: "matematika dasar",
+      code: "679812"
+    },
+    from_group_id: null,
+    status: "unread",
+    created_at: "2023-01-01T00:00:00.000Z"
+  },
+  {
+    user_id: "01mdsvf3001000000axm",
+    actor_id: "merlon",
+    type: "sessionGroup",
+    entity_type: "session",
+    entity_id: {
+      name: "sejarah islam", //nama diambil dari nama dari quiz nya
+      code: "799712" // code diambil dari game_pin
+    },
+    status: null,
+    content: null,
+    is_read: false,
+    created_at: "2026-02-12 07:32:07.619+00",
+    from_group_id: "Belajar bersama" //nama diambil dari id groupnya
+  }
+];
+
+const getTimeAgo = (dateStr: string) => {
+  if (!dateStr) return "";
+  const d = new Date(dateStr);
+  const now = new Date();
+  const diff = Math.floor((now.getTime() - d.getTime()) / 1000);
+  if (diff < 60) return `Just now`;
+  if (diff < 3600) return `${Math.floor(diff / 60)} minutes ago`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} hours ago`;
+  return `${Math.floor(diff / 86400)} days ago`;
+};
 
 const Notifications = () => {
   const isMobile = useIsMobile();
   const [mounted, setMounted] = useState(false);
+  const { profileId } = useAuth();
+  const [dbNotifications, setDbNotifications] = useState<any[]>([]);
 
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    if (!profileId) return;
+
+    const fetchDatas = async () => {
+      const { data: notifs, error } = await supabase
+        .from("notifications")
+        .select("*")
+        .eq("user_id", profileId)
+        .order("created_at", { ascending: false });
+
+      if (error || !notifs) return;
+
+      const actorIds = [...new Set(notifs.map((n) => n.actor_id).filter(Boolean))];
+      const profilesMap: Record<string, any> = {};
+      if (actorIds.length > 0) {
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("id, nickname, fullname")
+          .in("id", actorIds);
+        if (profiles) {
+          profiles.forEach((p) => {
+            profilesMap[p.id] = p;
+          });
+        }
+      }
+
+      const groupIds = [
+        ...new Set([
+          ...notifs
+            .filter((n) => n.type === "group" && n.from_group_id)
+            .map((n) => n.from_group_id),
+          ...notifs
+            .filter((n) => n.type === "sessionGroup" && n.from_group_id)
+            .map((n) => n.from_group_id)
+        ])
+      ];
+      const groupsMap: Record<string, any> = {};
+      if (groupIds.length > 0) {
+        const { data: groups } = await supabase
+          .from("groups")
+          .select("id, name")
+          .in("id", groupIds);
+        if (groups) {
+          groups.forEach((g) => {
+            groupsMap[g.id] = g;
+          });
+        }
+      }
+
+      // Pre-fetch game sessions resolving to quizzes for session types
+      const sessionIds = [
+        ...new Set(
+          notifs
+            .filter((n) => (n.type === "sessionGroup" || n.type === "sessionFriend") && n.entity_id)
+            .map((n) => n.entity_id)
+        )
+      ];
+
+      const sessionsMap: Record<string, any> = {};
+
+      if (sessionIds.length > 0) {
+        const { data: sessions } = await supabase
+          .from("game_sessions")
+          .select(`id, game_pin, application, quizzes!game_sessions_quiz_id_fkey(title)`)
+          .in("id", sessionIds);
+
+        if (sessions) {
+          sessions.forEach((s: any) => {
+            const quizData = s.quizzes;
+            const title = Array.isArray(quizData) ? quizData[0]?.title : quizData?.title;
+
+            sessionsMap[s.id] = {
+              name: title || "Unknown Quiz",
+              code: s.game_pin || "N/A",
+              application: s.application
+            };
+          });
+        }
+      }
+
+      const enriched = notifs.map((n) => {
+        const actor = profilesMap[n.actor_id] || {};
+        const actorName = actor.nickname || actor.fullname || "User";
+
+        const adapted = {
+          id: n.id,
+          user_id: n.user_id,
+          actor_id: actorName,
+          type: n.type,
+          entity_type: n.entity_type,
+          entity_id: n.entity_id,
+          from_group_id: n.from_group_id,
+          status: n.status,
+          content: n.content,
+          is_read: n.is_read || false,
+          created_at: n.created_at
+        };
+
+        if (n.type === "group") {
+          adapted.from_group_id = { name: groupsMap[n.from_group_id]?.name || "Unknown Group" };
+        } else if (n.type === "sessionFriend" || n.type === "sessionGroup") {
+          adapted.entity_id = sessionsMap[n.entity_id] || {
+            name: "Unknown Session",
+            code: "N/A",
+            application: "N/A"
+          };
+
+          if (n.type === "sessionGroup" && n.from_group_id) {
+            adapted.from_group_id = groupsMap[n.from_group_id]?.name || "Unknown Group";
+          }
+        }
+
+        return adapted;
+      });
+
+      setDbNotifications(enriched);
+    };
+
+    fetchDatas();
+  }, [profileId]);
 
   if (!mounted) {
     return (
@@ -56,47 +222,161 @@ const Notifications = () => {
         </DropdownMenuLabel>
 
         <ScrollArea className="h-[350px]">
-          {notifications.map((item: Notification, key) => (
-            <DropdownMenuItem
-              key={key}
-              className="group flex cursor-pointer items-start gap-9 rounded-none border-b px-4 py-3">
-              <div className="flex flex-1 items-start gap-2">
-                <div className="flex-none">
-                  <Avatar className="size-8">
-                    <AvatarImage src={`/images/avatars/${item.avatar}`} />
-                    <AvatarFallback> {item.title.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                </div>
-                <div className="flex flex-1 flex-col gap-1">
-                  <div className="dark:group-hover:text-default-800 truncate text-sm font-medium">
-                    {item.title}
-                  </div>
-                  <div className="dark:group-hover:text-default-700 text-muted-foreground line-clamp-1 text-xs">
-                    {item.desc}
-                  </div>
-                  {item.type === "confirm" && (
-                    <div className="flex items-center gap-2">
-                      <Button size="sm" variant="outline">
-                        Accept
-                      </Button>
-                      <Button size="sm" variant="destructive">
-                        Decline
-                      </Button>
+          {dbNotifications.length === 0 ? (
+            <div className="text-muted-foreground p-4 text-center text-sm">No notifications</div>
+          ) : (
+            dbNotifications.map((dataItem, key) => {
+              if (dataItem.type === "sessionGroup") {
+                return (
+                  <DropdownMenuItem
+                    key={key}
+                    onSelect={(e) => e.preventDefault()}
+                    className="group flex cursor-pointer items-start gap-9 rounded-none border-b px-4 py-3">
+                    <div className="flex flex-1 items-start gap-2">
+                      <div className="flex flex-1 flex-col gap-1">
+                        <div className="dark:group-hover:text-default-800 text-sm font-medium">
+                          {dataItem.actor_id} mengundang anda dari group {dataItem.from_group_id}
+                        </div>
+                        <div className="dark:group-hover:text-default-700 text-muted-foreground text-xs">
+                          untuk mengikuti sesi {dataItem.entity_id?.name} code{" "}
+                          {dataItem.entity_id?.code} pada aplikasi {dataItem.entity_id?.application}
+                        </div>
+                        {dataItem.status === null && (
+                          <div className="flex items-center gap-2">
+                            <Button  size="sm" variant="outline">
+                              Accept
+                            </Button>
+                            <Button size="sm" variant="destructive">
+                              Decline
+                            </Button>
+                          </div>
+                        )}
+                        <div className="dark:group-hover:text-default-500 text-muted-foreground flex items-center gap-1 text-xs">
+                          <ClockIcon className="size-3!" />
+                          {getTimeAgo(dataItem.created_at)}
+                        </div>
+                      </div>
                     </div>
-                  )}
-                  <div className="dark:group-hover:text-default-500 text-muted-foreground flex items-center gap-1 text-xs">
-                    <ClockIcon className="size-3!" />
-                    {item.date}
-                  </div>
-                </div>
-              </div>
-              {item.unread_message && (
-                <div className="flex-0">
-                  <span className="bg-destructive/80 block size-2 rounded-full border" />
-                </div>
-              )}
-            </DropdownMenuItem>
-          ))}
+                    {!dataItem.is_read && (
+                      <div className="flex-0">
+                        <span className="bg-destructive/80 block size-2 rounded-full border" />
+                      </div>
+                    )}
+                  </DropdownMenuItem>
+                );
+              }
+
+              if (dataItem.type === "sessionFriend") {
+                return (
+                  <DropdownMenuItem
+                    key={key}
+                    onSelect={(e) => e.preventDefault()}
+                    className="group flex cursor-pointer items-start gap-9 rounded-none border-b px-4 py-3">
+                    <div className="flex flex-1 items-start gap-2">
+                      <div className="flex flex-1 flex-col gap-1">
+                        <div className="dark:group-hover:text-default-800 text-sm font-medium">
+                          {dataItem.actor_id} mengundang anda
+                        </div>
+                        <div className="dark:group-hover:text-default-700 text-muted-foreground text-xs">
+                          untuk mengikuti sesi {dataItem.entity_id?.name} code{" "}
+                          {dataItem.entity_id?.code} pada aplikasi {dataItem.entity_id?.application}
+                        </div>
+                        {dataItem.status === null && (
+                          <div className="flex items-center gap-2">
+                            <Button size="sm" variant="outline">
+                              Accept
+                            </Button>
+                            <Button size="sm" variant="destructive">
+                              Decline
+                            </Button>
+                          </div>
+                        )}
+                        <div className="dark:group-hover:text-default-500 text-muted-foreground flex items-center gap-1 text-xs">
+                          <ClockIcon className="size-3!" />
+                          {getTimeAgo(dataItem.created_at)}
+                        </div>
+                      </div>
+                    </div>
+                    {!dataItem.is_read && (
+                      <div className="flex-0">
+                        <span className="bg-destructive/80 block size-2 rounded-full border" />
+                      </div>
+                    )}
+                  </DropdownMenuItem>
+                );
+              }
+
+              if (dataItem.type === "group") {
+                return (
+                  <DropdownMenuItem
+                    key={key}
+                    onSelect={(e) => e.preventDefault()}
+                    className="group flex cursor-pointer items-start gap-9 rounded-none border-b px-4 py-3">
+                    <div className="flex flex-1 items-start gap-2">
+                      <div className="flex flex-1 flex-col gap-1">
+                        <div className="dark:group-hover:text-default-800 text-sm font-medium">
+                          {dataItem.actor_id} mengundang anda
+                        </div>
+                        <div className="dark:group-hover:text-default-700 text-muted-foreground text-xs">
+                          untuk memasuki group {dataItem.from_group_id?.name}
+                        </div>
+                        {dataItem.status === null && (
+                          <div className="flex items-center gap-2">
+                            <Button size="sm" variant="outline">
+                              Accept
+                            </Button>
+                            <Button size="sm" variant="destructive">
+                              Decline
+                            </Button>
+                          </div>
+                        )}
+                        <div className="dark:group-hover:text-default-500 text-muted-foreground flex items-center gap-1 text-xs">
+                          <ClockIcon className="size-3!" />
+                          {getTimeAgo(dataItem.created_at)}
+                        </div>
+                      </div>
+                    </div>
+                    {!dataItem.is_read && (
+                      <div className="flex-0">
+                        <span className="bg-destructive/80 block size-2 rounded-full border" />
+                      </div>
+                    )}
+                  </DropdownMenuItem>
+                );
+              }
+
+              if (dataItem.type === "admin") {
+                return (
+                  <DropdownMenuItem
+                    key={key}
+                    onSelect={(e) => e.preventDefault()}
+                    className="group flex cursor-pointer items-start gap-9 rounded-none border-b px-4 py-3">
+                    <div className="flex flex-1 items-start gap-2">
+                      <div className="flex flex-1 flex-col gap-1">
+                        <div className="dark:group-hover:text-default-800 text-sm font-medium">
+                          {dataItem.content?.title || "System Notification"}
+                        </div>
+                        <div className="dark:group-hover:text-default-700 text-muted-foreground text-xs leading-relaxed">
+                          {dataItem.content?.message || ""}
+                        </div>
+                        <div className="dark:group-hover:text-default-500 text-muted-foreground mt-1 flex items-center gap-1 text-xs">
+                          <ClockIcon className="size-3!" />
+                          {getTimeAgo(dataItem.created_at)}
+                        </div>
+                      </div>
+                    </div>
+                    {!dataItem.is_read && (
+                      <div className="flex-0">
+                        <span className="bg-destructive/80 block size-2 rounded-full border" />
+                      </div>
+                    )}
+                  </DropdownMenuItem>
+                );
+              }
+
+              return null;
+            })
+          )}
         </ScrollArea>
       </DropdownMenuContent>
     </DropdownMenu>
