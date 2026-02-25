@@ -361,7 +361,7 @@ const Notifications = () => {
           <div className="flex justify-between border-b px-6 py-4">
             <div className="font-medium">Notifications</div>
             <Button variant="link" className="relative h-auto p-0 text-xs" size="sm" asChild>
-              <Link href="#">
+              <Link href="/notifications">
                 View all
                 {hasUnread && (
                   <span className="bg-destructive absolute -top-1 -right-2 block size-2 shrink-0 rounded-full"></span>
