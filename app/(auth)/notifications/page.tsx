@@ -1,19 +1,9 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import {
-  FileText,
-  MessageSquare,
-  Users,
-  Check,
-  Settings,
-  ArrowUp01,
-  ArrowDown10
-} from "lucide-react";
+import { Check, ArrowUp01, ArrowDown10 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Table, TableBody, TableCell, TableRow } from "@/components/ui/table";
 import {
   Select,
   SelectContent,
@@ -171,6 +161,26 @@ export default function NotificationsPage() {
     };
 
     fetchDatas();
+
+    const channel = supabase
+      .channel("page-notifications")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${profileId}`
+        },
+        () => {
+          fetchDatas();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [profileId]);
 
   const handleAction = async (dataItem: any, action: "accepted" | "declined") => {
@@ -319,6 +329,28 @@ export default function NotificationsPage() {
     });
 
   const displayedNotifications = filteredNotifications.slice(0, visibleCount);
+
+  useEffect(() => {
+    const unreadDisplayed = displayedNotifications.filter((n) => !n.is_read);
+
+    if (unreadDisplayed.length > 0) {
+      const unreadIds = unreadDisplayed.map((n) => n.id);
+
+      // Optimistic upate local state immediately
+      setDbNotifications((prev) =>
+        prev.map((n) => (unreadIds.includes(n.id) ? { ...n, is_read: true } : n))
+      );
+
+      // Background update sync database
+      supabase
+        .from("notifications")
+        .update({ is_read: true })
+        .in("id", unreadIds)
+        .then(({ error }) => {
+          if (error) console.error("Error auto-reading notifications:", error);
+        });
+    }
+  }, [displayedNotifications]);
 
   const lastNotificationElementRef = useCallback(
     (node: HTMLDivElement | null) => {

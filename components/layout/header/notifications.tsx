@@ -314,6 +314,26 @@ const Notifications = () => {
     };
 
     fetchDatas();
+
+    const channel = supabase
+      .channel("header-notifications")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "notifications",
+          filter: `user_id=eq.${profileId}`
+        },
+        () => {
+          fetchDatas();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [profileId]);
 
   const hasUnread = dbNotifications.some((n) => !n.is_read);
