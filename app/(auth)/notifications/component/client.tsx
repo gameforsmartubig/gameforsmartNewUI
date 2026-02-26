@@ -383,7 +383,7 @@ export default function NotificationsPage() {
       <div className="flex items-center justify-between">
         <Button className="hidden sm:flex" onClick={handleMarkAllAsRead}>
           <Check className="size-4" />
-          Mark All as Read
+          Mark All as Read {`(${dbNotifications.filter((n) => !n.is_read).length})`}
         </Button>
         {/* Filters */}
         <div className="flex gap-4">

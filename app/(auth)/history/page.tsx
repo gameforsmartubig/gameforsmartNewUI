@@ -37,7 +37,7 @@ async function getQuizHistory(): Promise<QuizHistory[]> {
 
   if (!profile) return [];
 
-  const profileId = profile.id;
+  const profileId = (profile as any).id;
 
   const { data: sessions, error } = await supabase
     .from("game_sessions")
@@ -53,7 +53,8 @@ async function getQuizHistory(): Promise<QuizHistory[]> {
 
   const results: QuizHistory[] = [];
 
-  for (const session of sessions) {
+  for (const sessionData of sessions) {
+    const session: any = sessionData;
     const isHost = session.host_id === profileId;
 
     const members = Array.isArray(session.participants) ? session.participants : [];
