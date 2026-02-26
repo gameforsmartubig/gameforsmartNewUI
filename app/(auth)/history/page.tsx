@@ -1,112 +1,116 @@
 import { generateMeta } from "@/lib/utils";
-import { HistoryContent } from "./components/history-content";
+import QuizHistoryTabs from "./components/historytabs";
 import { createClient } from "@/lib/supabase-server";
-import type { HistoryItem } from "./components/types";
-import rawCategories from "@/data/categories.json";
 
 export async function generateMetadata() {
   return generateMeta({
     title: "History",
-    description: "View your quiz play history and performance.",
-    canonical: "/history"
+    description: "Track your quiz participation and hosting activity in one place.",
+    canonical: "/quiz-history"
   });
 }
 
-export default async function HistoryPage() {
+export type QuizActivityType = "host" | "player";
+
+export interface QuizHistory {
+  id: string;
+  quiztitle: string;
+  ended_at: string;
+  application: string;
+  role: QuizActivityType;
+}
+
+async function getQuizHistory(): Promise<QuizHistory[]> {
   const supabase = await createClient();
 
-  // Get current user
   const {
     data: { user }
   } = await supabase.auth.getUser();
 
-  if (!user) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <p className="text-muted-foreground">Please login to view your history.</p>
-      </div>
-    );
-  }
+  if (!user) return [];
 
-  // Get profile ID
   const { data: profile } = await supabase
     .from("profiles")
     .select("id")
     .eq("auth_user_id", user.id)
     .single();
 
-  if (!profile) {
-    return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <p className="text-muted-foreground">Profile not found.</p>
-      </div>
-    );
-  }
+  if (!profile) return [];
 
-  const profileId = (profile as any).id;
+  const profileId = profile.id;
 
-  // Fetch finished game sessions
-  const { data: rawSessions, error } = await supabase
+  const { data: sessions, error } = await supabase
     .from("game_sessions")
-    .select("id, host_id, quiz_detail, participants, responses, total_time_minutes, question_limit, started_at")
+    .select("id, host_id, ended_at, application, participants, quizzes(title), quiz_detail")
     .eq("status", "finished")
-    .order("started_at", { ascending: false });
+    .or(`host_id.eq.${profileId},participants.cs.[{"id":"${profileId}"}]`)
+    .order("ended_at", { ascending: false });
 
-  if (error) {
+  if (error || !sessions) {
     console.error("Error fetching history:", error);
-    return (
-      <div className="flex h-[50vh] items-center justify-center">
-        <p className="text-muted-foreground">Failed to load history.</p>
-      </div>
-    );
+    return [];
   }
 
-  const sessions = rawSessions as any[];
+  const results: QuizHistory[] = [];
 
-  // Filter sessions where current user participated or hosted ONLY
-  const historyItems: HistoryItem[] = [];
-
-  for (const session of sessions || []) {
-    // 1. Check if user is Host
+  for (const session of sessions) {
     const isHost = session.host_id === profileId;
-    
-    // 2. Check if user is Participant
-    const participants = (session.participants as any[]) || [];
-    const participant = participants.find((p: any) => p.user_id === profileId);
 
-    // STRICT GUARD: If user is neither Host NOR Participant, SKIP immediately.
-    // This prevents seeing other people's sessions.
-    if (!isHost && !participant) {
-      continue;
+    const members = Array.isArray(session.participants) ? session.participants : [];
+    const isParticipant = members.some((p: any) => p.user_id === profileId);
+
+    let quiztitle = "Unknown Quiz";
+    if (session.quizzes && (session.quizzes as any).title) {
+      quiztitle = (session.quizzes as any).title;
+    } else if (session.quiz_detail && (session.quiz_detail as any).title) {
+      quiztitle = (session.quiz_detail as any).title;
     }
 
-    const responses = (session.responses as any[]) || [];
-    const userResponse = participant 
-      ? responses.find((r: any) => r.participant === participant.id)
-      : null;
+    const application = session.application || "Unknown Application";
 
-    const quizDetail = session.quiz_detail as any;
-
-    historyItems.push({
-      id: `${session.id}-${participant?.id || 'host'}`, // Unique ID for key
-      sessionId: session.id,
-      quizTitle: quizDetail?.title || "Untitled Quiz",
-      category: quizDetail?.category || "general",
-      questionCount: parseInt(session.question_limit) || userResponse?.total_question || 0,
-      durationMinutes: session.total_time_minutes || 0,
-      score: userResponse?.score || 0,
-      accuracy: userResponse?.accuracy || "0",
-      playedAt: session.started_at,
-      isHost: isHost
+    const dateObj = session.ended_at ? new Date(session.ended_at) : new Date();
+    const ended_at = dateObj.toLocaleDateString("en-GB", {
+      day: "numeric",
+      month: "short",
+      year: "numeric"
     });
+
+    if (isHost) {
+      results.push({
+        id: `${session.id}-host`,
+        quiztitle,
+        ended_at,
+        application,
+        role: "host"
+      });
+    }
+
+    if (isParticipant) {
+      results.push({
+        id: `${session.id}-player`,
+        quiztitle,
+        ended_at,
+        application,
+        role: "player"
+      });
+    }
   }
 
-  // Get categories for filter
-  const categories = rawCategories.map((cat) => ({
-    id: cat.id,
-    title: cat.title
-  }));
-
-  return <HistoryContent items={historyItems} categories={categories} />;
+  return results;
 }
 
+export default async function QuizHistoryPage() {
+  const data = await getQuizHistory();
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold">History</h1>
+      </div>
+
+      {/* Client Tabs */}
+      <QuizHistoryTabs data={data} />
+    </div>
+  );
+}
