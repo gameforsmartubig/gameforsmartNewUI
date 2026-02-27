@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Check, ArrowUp01, ArrowDown10 } from "lucide-react";
+import { Check, ArrowUp01, ArrowDown10, ArrowUpDown } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -276,7 +276,7 @@ export default function NotificationsPage() {
               targetUrl = `https://axiomay.vercel.app/join/${code}`;
               openInNewTab = true;
               break;
-            case "gameforsmartnewui":
+            case "Quiz v2":
             default:
               targetUrl = `https://gameforsmartnewui.vercel.app/join/${code}`;
               openInNewTab = false;
@@ -414,7 +414,7 @@ export default function NotificationsPage() {
             variant={"outline"}
             onClick={() => setSortOrder((prev) => (prev === "newest" ? "oldest" : "newest"))}
             title={sortOrder === "newest" ? "Sort Oldest First" : "Sort Newest First"}>
-            {sortOrder === "newest" ? <ArrowUp01 /> : <ArrowDown10 />}
+            <ArrowUpDown />
           </Button>
         </div>
       </div>

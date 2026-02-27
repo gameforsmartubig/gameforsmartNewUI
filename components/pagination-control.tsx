@@ -108,21 +108,24 @@ export function PaginationControl({
         pages.push(i);
       }
     } else {
-      if (currentPage <= 4) {
-        for (let i = 1; i <= 5; i++) pages.push(i);
-        pages.push("right");
-        pages.push(totalPages);
-      } else if (currentPage >= totalPages - 3) {
-        pages.push(1);
-        pages.push("left");
-        for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+      if (currentPage === 1) {
+        pages.push(1, 2, "right", totalPages);
+      } else if (currentPage === totalPages) {
+        pages.push(1, "left", totalPages - 1, totalPages);
       } else {
         pages.push(1);
-        pages.push("left");
-        pages.push(currentPage - 1);
-        pages.push(currentPage);
-        pages.push(currentPage + 1);
-        pages.push("right");
+
+        const start = currentPage - 1;
+        const end = currentPage + 1;
+
+        if (start > 2) pages.push("left");
+
+        for (let i = Math.max(2, start); i <= Math.min(totalPages - 1, end); i++) {
+          pages.push(i);
+        }
+
+        if (end < totalPages - 1) pages.push("right");
+
         pages.push(totalPages);
       }
     }
