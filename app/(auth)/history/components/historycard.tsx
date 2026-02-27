@@ -4,10 +4,12 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Gamepad2, Grid } from "lucide-react";
+import { Calendar, Gamepad2 } from "lucide-react";
 import { QuizHistory } from "@/app/(auth)/history/page";
 import { PaginationControl } from "@/components/pagination-control";
 import { formatTimeAgo } from "@/lib/utils";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
 
 interface Props {
   quiz: QuizHistory[];
@@ -16,6 +18,8 @@ interface Props {
 export default function QuizHistoryCard({ quiz }: Props) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+  const router = useRouter();
+  console.log(quiz);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -33,7 +37,10 @@ export default function QuizHistoryCard({ quiz }: Props) {
       )}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {currentItems.map((quiz) => (
-          <Card key={quiz.id} className="py-0 transition hover:shadow-md">
+          <Card
+            key={quiz.id}
+            onClick={() => router.push(`/result/${quiz.id.split("-")[0]}`)}
+            className="py-0 transition hover:shadow-md">
             <CardContent className="space-y-4 p-6">
               {/* Top Badge */}
               <div className="flex items-start justify-between">
@@ -41,7 +48,6 @@ export default function QuizHistoryCard({ quiz }: Props) {
                   {quiz.role.toUpperCase()}
                 </Badge>
               </div>
-
               {/* Title */}
               <div>
                 <h3 className="truncate font-semibold" title={quiz.quiztitle}>

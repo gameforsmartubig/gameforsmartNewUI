@@ -313,7 +313,7 @@ export default function NotificationsPage() {
     .filter((n) => {
       let matchStatus = true;
       let matchType = true;
-      if (statusFilter === "unread") matchStatus = !n.is_read;
+      if (statusFilter === "unread") matchStatus = !n.is_read || n.read_in_session;
       if (statusFilter === "read") matchStatus = n.is_read;
       if (typeFilter !== "all") {
         if (typeFilter === "session")
@@ -338,7 +338,9 @@ export default function NotificationsPage() {
 
       // Optimistic upate local state immediately
       setDbNotifications((prev) =>
-        prev.map((n) => (unreadIds.includes(n.id) ? { ...n, is_read: true } : n))
+        prev.map((n) =>
+          unreadIds.includes(n.id) ? { ...n, is_read: true, read_in_session: true } : n
+        )
       );
 
       // Background update sync database

@@ -192,7 +192,7 @@ export function DashboardContent({
         total_time_minutes: 5,
         current_questions: [],
         quiz_detail: quizDetail,
-        application: "gameforsmartNewUI"
+        application: "Quiz V2"
       };
 
       const { data: newSession, error: sessionError } = await supabase
@@ -217,7 +217,7 @@ export function DashboardContent({
         game_end_mode: "first_finish",
         allow_join_after_start: false,
         question_limit: "5",
-        application: "gameforsmartNewUI"
+        application: "Quiz V2"
       };
 
       if (!supabaseRealtime) {
