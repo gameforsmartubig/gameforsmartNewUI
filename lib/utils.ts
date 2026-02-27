@@ -203,11 +203,11 @@ export function formatTimeAgo(
   if (diffInDays < 7) {
     if (style === "short") {
       // Use abbreviated format: d for day, h for hari
-      const abbrev = language === "id" ? "Hari" : "Days";
+      const abbrev = language === "id" ? " Hari" : " Days";
       return `${diffInDays}${abbrev} ${t.ago}`;
     }
     if (style === "relative") {
-      const abbrev = language === "id" ? "Hari" : "Days";
+      const abbrev = language === "id" ? " Hari" : " Days";
       return `${t.lastSeen} ${diffInDays}${abbrev} ${t.ago}`;
     }
     return `${diffInDays} ${t.days} ${t.ago}`;
@@ -223,11 +223,11 @@ export function formatTimeAgo(
   if (diffInWeeks < 4) {
     if (style === "short") {
       // Use abbreviated format: w for week, m for minggu
-      const abbrev = language === "id" ? "Minggu" : "Weeks";
+      const abbrev = language === "id" ? " Minggu" : " Weeks";
       return `${diffInWeeks}${abbrev} ${t.ago}`;
     }
     if (style === "relative") {
-      const abbrev = language === "id" ? "Minggu" : "Weeks";
+      const abbrev = language === "id" ? " Minggu" : " Weeks";
       return `${t.lastSeen} ${diffInWeeks}${abbrev} ${t.ago}`;
     }
     return `${diffInWeeks} ${t.weeks} ${t.ago}`;

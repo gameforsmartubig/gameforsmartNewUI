@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { PaginationControl } from "@/components/pagination-control";
 import {
   Table,
@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { QuizHistory } from "@/app/(auth)/history/page";
+import { formatTimeAgo } from "@/lib/utils";
 
 interface Props {
   data: QuizHistory[];
@@ -20,6 +21,10 @@ interface Props {
 export default function QuizHistoryTable({ data }: Props) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [data]);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = data.slice(startIndex, startIndex + itemsPerPage);
@@ -49,7 +54,12 @@ export default function QuizHistoryTable({ data }: Props) {
                 <TableRow key={item.id}>
                   <TableCell className="font-medium">{item.quiztitle}</TableCell>
 
-                  <TableCell>{item.ended_at}</TableCell>
+                  <TableCell
+                    title={`${item.ended_at}${
+                      item.role === "player" && item.hostName ? ` (Host: ${item.hostName})` : ""
+                    }`}>
+                    {formatTimeAgo(item.ended_at)}
+                  </TableCell>
 
                   <TableCell>{item.application}</TableCell>
 

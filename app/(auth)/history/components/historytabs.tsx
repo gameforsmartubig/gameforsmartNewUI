@@ -9,6 +9,7 @@ import {
   ArrowDown01,
   ArrowDown10,
   ArrowUp01,
+  ArrowUpDown,
   CalendarDays,
   LayoutGrid,
   List,
@@ -142,7 +143,7 @@ export default function QuizHistoryTabs({ data }: Props) {
               Player ({playerData.length})
             </TabsTrigger>
           </TabsList>
-          <ButtonGroup>
+          <ButtonGroup className="sm:hidden">
             <Button
               variant={model === "grid" ? "default" : "outline"}
               onClick={() => setModel("grid")}
@@ -165,15 +166,37 @@ export default function QuizHistoryTabs({ data }: Props) {
             </Button>
           </ButtonGroup>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-2">
           {/* Client Tabs */}
+          <ButtonGroup className="hidden sm:flex">
+            <Button
+              variant={model === "grid" ? "default" : "outline"}
+              onClick={() => setModel("grid")}
+              className={`h-8 w-8 transition-colors ${
+                model === "grid"
+                  ? "border-orange-400 bg-orange-400 text-white hover:bg-orange-500" // Saat aktif (Halaman sekarang)
+                  : "border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-400 dark:hover:bg-orange-950/50 dark:hover:text-orange-400"
+              }`}>
+              <LayoutGrid />
+            </Button>
+            <Button
+              variant={model === "list" ? "default" : "outline"}
+              onClick={() => setModel("list")}
+              className={`h-8 w-8 transition-colors ${
+                model === "list"
+                  ? "border-orange-400 bg-orange-400 text-white hover:bg-orange-500" // Saat aktif (Halaman sekarang)
+                  : "border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-400 dark:hover:bg-orange-950/50 dark:hover:text-orange-400"
+              }`}>
+              <List />
+            </Button>
+          </ButtonGroup>
           {sort === "asc" ? (
             <Button variant="outline" onClick={() => setSort("desc")}>
-              <ArrowUp01 />
+              <ArrowUpDown />
             </Button>
           ) : (
             <Button variant="outline" onClick={() => setSort("asc")}>
-              <ArrowDown10 />
+              <ArrowUpDown />
             </Button>
           )}
           <Select value={filterTime} onValueChange={setFilterTime}>

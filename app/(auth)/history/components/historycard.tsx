@@ -1,12 +1,13 @@
 // components/quiz-history-card.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Calendar, Grid } from "lucide-react";
+import { Calendar, Gamepad2, Grid } from "lucide-react";
 import { QuizHistory } from "@/app/(auth)/history/page";
 import { PaginationControl } from "@/components/pagination-control";
+import { formatTimeAgo } from "@/lib/utils";
 
 interface Props {
   quiz: QuizHistory[];
@@ -15,6 +16,10 @@ interface Props {
 export default function QuizHistoryCard({ quiz }: Props) {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 12;
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [quiz]);
 
   const startIndex = (currentPage - 1) * itemsPerPage;
   const currentItems = quiz.slice(startIndex, startIndex + itemsPerPage);
@@ -26,7 +31,7 @@ export default function QuizHistoryCard({ quiz }: Props) {
           <p className="text-muted-foreground">You still haven't played any quiz.</p>
         </div>
       )}
-      <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
         {currentItems.map((quiz) => (
           <Card key={quiz.id} className="py-0 transition hover:shadow-md">
             <CardContent className="space-y-4 p-6">
@@ -46,12 +51,16 @@ export default function QuizHistoryCard({ quiz }: Props) {
 
               {/* Meta */}
               <div className="text-muted-foreground space-y-1 text-sm">
-                <div className="flex items-center gap-2">
+                <div
+                  className="flex items-center gap-2"
+                  title={`${quiz.ended_at}${
+                    quiz.role === "player" && quiz.hostName ? ` (Host: ${quiz.hostName})` : ""
+                  }`}>
                   <Calendar className="size-4" />
-                  {quiz.ended_at}
+                  {formatTimeAgo(quiz.ended_at)}
                 </div>
                 <div className="flex items-center gap-2">
-                  <Grid className="size-4" />
+                  <Gamepad2 className="size-4" />
                   {quiz.application}
                 </div>
               </div>
@@ -68,7 +77,6 @@ export default function QuizHistoryCard({ quiz }: Props) {
           onPageChange={setCurrentPage}
         />
       )}
-
     </div>
   );
 }
