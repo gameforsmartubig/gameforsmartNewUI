@@ -699,15 +699,17 @@ export default function Leaderboard() {
 
         // 1. Get user's profile ID (XID format) - this matches host_id and participant.user_id
         let profileId: string | null = null;
+        let userRole: string | null = null;
 
         if (user) {
           // Authenticated user - get profile from database
           const { data: profile } = await supabase
             .from("profiles")
-            .select("id")
+            .select("id, role")
             .eq("auth_user_id", user.id)
             .single();
           profileId = profile?.id || null;
+          userRole = profile?.role || null;
         }
 
         // Fallback: If no auth user or profile not found via auth (edge case), try localStorage 'user_id'
@@ -750,8 +752,8 @@ export default function Leaderboard() {
         );
 
         if (session) {
-          // 3. Check if current user is host (compare profile ID with host_id)
-          const hostCheck = profileId === session.host_id;
+          // 3. Check if current user is host (compare profile ID with host_id) or an admin
+          const hostCheck = profileId === session.host_id || userRole === "admin";
           console.log("Setting isHost to:", hostCheck);
           setIsHost(hostCheck);
 
@@ -815,10 +817,14 @@ export default function Leaderboard() {
 
             const mappedPlayers: Player[] = participants
               .map((p) => {
-                // Get responses for THIS participant from the centralized responses array
-                const separateResponses = allSessionResponses.filter(
-                  (r) => r.participant_id === p.id || r.participant_id === p.user_id
+                // Get responses for THIS participant from the centralized grouped responses array
+                // Look for an object where 'participant' matches p.id or 'user_id' matches
+                const matchedResponseGroup = allSessionResponses.find(
+                  (r) => r.participant === p.id || r.user_id === p.user_id
                 );
+
+                // Extract the nested 'answers' array if found, otherwise empty array
+                const separateResponses = matchedResponseGroup?.answers || [];
 
                 // Fallback to embedded responses if available (Hybrid/Legacy), otherwise use separate
                 const embeddedResponses = Array.isArray(p.responses) ? p.responses : [];
