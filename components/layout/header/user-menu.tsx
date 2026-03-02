@@ -14,9 +14,11 @@ import Link from "next/link";
 import * as React from "react";
 import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/contexts/auth-context";
+import { useRouter } from "next/navigation";
 
 export default function UserMenu() {
   const { user, profile, signOut } = useAuth();
+  const router = useRouter();
 
   const handleSignOut = async () => {
     await signOut();
@@ -58,11 +60,11 @@ export default function UserMenu() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push("/account")}>
             <BadgeCheck />
             Account
           </DropdownMenuItem>
-          <DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push("/notifications")}>
             <Bell />
             Notifications
           </DropdownMenuItem>

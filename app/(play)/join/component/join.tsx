@@ -199,7 +199,7 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
     try {
       if (!user) {
         // Redirect to login
-        router.push(`/login?redirect=/join&pin=${gamePin}`);
+        router.push(`/login?redirect=/join/${gamePin}`);
         return;
       }
 
@@ -243,12 +243,14 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
       if (sessionError || !session) {
         toast.error("PIN not valid");
         setLoading(false);
+        setShouldAutoJoin(false);
         return;
       }
 
       if (session.status === "finished") {
         toast.error("sessions finished");
         setLoading(false);
+        setShouldAutoJoin(false);
         return;
       }
 
@@ -279,6 +281,7 @@ function JoinGameContent({ initialPin }: JoinGameContentProps) {
       if (session.status === "active" && !session.allow_join_after_start) {
         toast.error("The session has started and is not accepting new participants");
         setLoading(false);
+        setShouldAutoJoin(false);
         return;
       }
 
