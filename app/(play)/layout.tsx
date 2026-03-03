@@ -1,3 +1,4 @@
+import { SiteHeader } from "@/components/layout2";
 import React from "react";
 
 export default function PlayLayout({
@@ -6,5 +7,10 @@ export default function PlayLayout({
   children: React.ReactNode;
 }>) {
   // Use dark background by default to prevent white flash during redirect/countdown
-  return <div className="min-h-screen bg-white">{children}</div>;
+  return (
+    <div>
+    <SiteHeader />
+    <div className="base-background flex flex-1 flex-col">{children}</div>
+    </div>
+  );
 }

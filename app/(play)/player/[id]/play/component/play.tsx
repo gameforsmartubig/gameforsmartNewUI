@@ -615,31 +615,9 @@ export default function Play({ sessionId }: PlayProps) {
       ) : (
         <>
           {/* HEADER */}
-          <div className="relative flex h-auto w-full flex-col items-center md:h-16 md:flex-row">
-            {/* ===== BARIS 1 (Mobile) / KIRI (Desktop) ===== */}
-            <div className="flex w-full items-center justify-between px-2 py-2 md:flex-1 md:justify-start md:py-0">
-              <Image
-                src="/gameforsmartlogo.png"
-                width={200}
-                height={40}
-                alt="gameforsmart"
-                className="opacity-80 dark:opacity-100"
-                unoptimized
-              />
-
-              {/* End Session (Mobile only) - REPURPOSED AS TIMER BADGE PER REQUEST */}
-              <div className="flex items-center gap-2 rounded-lg bg-orange-100 px-4 py-2 font-semibold text-orange-700 shadow-sm md:hidden">
-                <Timer className="h-4 w-4" />
-                <span>
-                  {!session?.started_at && session?.status !== "finished"
-                    ? "--:--"
-                    : formatTime(timeLeft)}
-                </span>
-              </div>
-            </div>
-
-            {/* ===== STATISTIK (Baris 2 Mobile / Tengah Desktop) ===== */}
-            <div className="flex w-full flex-col items-center justify-center gap-2 px-6 py-2 md:flex-1 md:py-0">
+          <div className="flex h-auto w-full items-center gap-4 px-4">
+            {/* ===== STATISTIK ===== */}
+            <div className="flex w-full flex-col items-center justify-center gap-2 py-2 ">
               <div className="flex w-full items-center justify-between text-sm font-medium text-orange-600">
                 <p>Progress</p>
                 <p>
@@ -653,16 +631,14 @@ export default function Play({ sessionId }: PlayProps) {
               />
             </div>
 
-            {/* ===== KANAN DESKTOP ===== */}
-            <div className="hidden items-center justify-end px-2 md:flex md:flex-1">
-              <div className="flex items-center gap-2 rounded-lg bg-orange-100 px-4 py-2 font-semibold text-orange-700 shadow-sm">
-                <Timer className="h-4 w-4" />
-                <span>
-                  {!session?.started_at && session?.status !== "finished"
-                    ? "--:--"
-                    : formatTime(timeLeft)}
-                </span>
-              </div>
+            {/* ===== TIME ===== */}
+            <div className="flex items-center gap-2 rounded-lg bg-orange-100 px-4 py-2 font-semibold text-orange-700 shadow-sm">
+              <Timer className="h-4 w-4" />
+              <span>
+                {!session?.started_at && session?.status !== "finished"
+                  ? "--:--"
+                  : formatTime(timeLeft)}
+              </span>
             </div>
           </div>
 

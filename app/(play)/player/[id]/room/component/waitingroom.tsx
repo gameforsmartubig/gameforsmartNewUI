@@ -393,10 +393,10 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
   return (
     <div className="base-background relative h-screen overflow-y-auto">
-      <div className="grid min-h-full grid-cols-1 lg:grid-cols-[1fr_480px]">
+      <div className="grid  grid-cols-1 lg:grid-cols-[1fr_480px]">
         {/* Left Column: Stats & Participants */}
         <div className="order-2 p-4 lg:order-1">
-          <Card className="min-h-[96vh] gap-0 border-0 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+          <Card className="min-h-96 gap-0 border-0 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
             <CardContent>
               <div className="flex w-full items-center justify-between pb-6">
                 <div className="flex items-center gap-2 text-zinc-900 dark:text-zinc-100">
@@ -449,20 +449,9 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
         </div>
 
         {/* Right Column: Controls & QR */}
-        <div className="order-1 p-4 pb-0 sm:pb-4 sm:pl-0">
-          <Card className="h-full border-0 bg-white shadow-sm lg:order-2 dark:bg-zinc-900">
+        <div className="order-1 p-4 pb-0 lg:pb-4 pl-4 lg:pl-0">
+          <Card className=" border-0 bg-white shadow-sm lg:order-2 dark:bg-zinc-900">
             <CardContent className="sticky top-0 flex h-full flex-col gap-6">
-              <div className="flex justify-center">
-                <Image
-                  src="/gameforsmartlogo.png"
-                  width={200}
-                  height={40}
-                  alt="gameforsmart"
-                  className="opacity-90 dark:opacity-100 dark:invert"
-                  unoptimized
-                />
-              </div>
-
               <div className="flex flex-col gap-1">
                 <p className="text-3xl font-black tracking-tight text-orange-900 dark:text-orange-100">
                   {quizData.title}
@@ -472,7 +461,7 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                 </p>
               </div>
 
-              <Card className="border-orange-100 bg-orange-50/50 dark:border-zinc-800 dark:bg-zinc-950">
+              <Card className="border-orange-100 bg-orange-50/50 dark:border-zinc-800 dark:bg-zinc-950 py-0">
                 <CardContent className="p-0">
                   <div className="flex items-center justify-evenly py-4">
                     <div className="flex flex-col items-center justify-center">

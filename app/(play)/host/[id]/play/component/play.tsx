@@ -199,6 +199,9 @@ export default function Play({ sessionId }: PlayProps) {
         setParticipants(mapped);
       }
     });
+    if(session?.status === "finished"){
+      router.push(`/result/${sessionId}`)
+    };
 
     return () => {
       unsubscribeFromGameRT(channel);
@@ -300,168 +303,148 @@ export default function Play({ sessionId }: PlayProps) {
       ) : (
         <>
           {/* Header Bar - Rose-50 diubah ke Orange-50/Zinc */}
-          <div className="fixed top-0 right-0 left-0 z-50 w-full border-b border-orange-100 bg-orange-50/90 backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/90">
-            <div className="relative flex h-auto w-full flex-col items-center md:h-16 md:flex-row">
-              {/* Progress Bar Timer */}
-              <div className="absolute right-0 -bottom-1.5 left-0">
-                <GameTimerProgress
-                  startedAt={session.started_at}
-                  totalTimeMinutes={session.total_time_minutes}
-                  status={session.status}
-                  onTimeUp={handleTimeUp}
-                />
-              </div>
-
-              {/* Baris 1: Logo & End Session */}
-              <div className="flex w-full items-center justify-between px-4 py-2 md:flex-1 md:justify-start md:py-0">
-                <Image
-                  src="/gameforsmartlogo.png"
-                  width={180}
-                  height={36}
-                  alt="gameforsmart"
-                  className="opacity-90 dark:opacity-100"
-                  unoptimized
-                />
-
-                <div className="md:hidden">
-                  <Dialog>
-                    <DialogTrigger asChild>
-                      <Button variant={"destructive"} className="bg-red-600 hover:bg-red-700">
-                        End Session
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="dark:border-zinc-800 dark:bg-zinc-900">
-                      <DialogHeader>
-                        <DialogTitle className="dark:text-zinc-100">End Session</DialogTitle>
-                        <DialogDescription className="dark:text-zinc-400">
-                          Are you sure you want to end this session?
-                        </DialogDescription>
-                      </DialogHeader>
-                      <DialogFooter>
-                        <DialogClose asChild>
-                          <Button
-                            variant="outline"
-                            className="dark:border-zinc-700 dark:text-zinc-300">
-                            Cancel
-                          </Button>
-                        </DialogClose>
-                        <DialogClose asChild>
-                          <Button variant="destructive" onClick={handleEndGame}>
-                            End Session
-                          </Button>
-                        </DialogClose>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </div>
-
-              {/* Statistik - Update Icon & Text Colors */}
-              <div className="flex w-full items-center justify-center gap-8 py-2 md:flex-1 md:py-0">
-                <div className="flex flex-col items-center justify-center">
-                  <div className="flex items-center gap-2 text-lg font-bold text-orange-900 dark:text-zinc-100">
-                    <CircleQuestionMark className="size-5 text-yellow-500" />
-                    <span>{session.question_limit}</span>
-                  </div>
-                  <p className="text-[10px] font-bold tracking-wider text-orange-600/60 uppercase dark:text-orange-400/60">
-                    QUESTIONS
-                  </p>
-                </div>
-                <div className="flex flex-col items-center justify-center">
-                  <div className="flex items-center gap-2 text-lg font-bold text-orange-900 dark:text-zinc-100">
-                    <Timer className="size-5 text-orange-500" />
-                    <span>{session.total_time_minutes}m</span>
-                  </div>
-                  <p className="text-[10px] font-bold tracking-wider text-orange-600/60 uppercase dark:text-orange-400/60">
-                    TIME
-                  </p>
-                </div>
-                <div className="flex flex-col items-center justify-center">
-                  <div className="flex items-center gap-2 text-lg font-bold text-orange-900 dark:text-zinc-100">
-                    <User className="size-5 text-green-500" />
-                    <span>{participants.length}</span>
-                  </div>
-                  <p className="text-[10px] font-bold tracking-wider text-orange-600/60 uppercase dark:text-orange-400/60">
-                    PLAYERS
-                  </p>
-                </div>
-              </div>
-
-              {/* Kanan Desktop */}
-              <div className="hidden items-center justify-end px-4 md:flex md:flex-1">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant={"destructive"} className="bg-red-600 hover:bg-red-700">
-                      End Session
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="dark:border-zinc-800 dark:bg-zinc-900">
-                    {/* ... (isi dialog sama seperti di atas) */}
-                  </DialogContent>
-                </Dialog>
-              </div>
+          <div className="fixed top-[3.6rem] right-0 left-0 z-50 w-full backdrop-blur-md dark:border-zinc-800 dark:bg-zinc-900/90">
+            {/* Progress Bar Timer */}
+            <div className="absolute right-0 -bottom-1.5 left-0">
+              <GameTimerProgress
+                startedAt={session.started_at}
+                totalTimeMinutes={session.total_time_minutes}
+                status={session.status}
+                onTimeUp={handleTimeUp}
+              />
             </div>
           </div>
 
-          {/* Timer Display */}
-          <div className="pt-36 pb-4 md:pt-24">
-            <GameTimer
-              startedAt={session.started_at}
-              totalTimeMinutes={session.total_time_minutes}
-              status={session.status}
-              onTimeUp={handleTimeUp}
-            />
-          </div>
+          <div className="grid grid-cols-1 gap-2 lg:grid-cols-[1fr_360px]">
+            <div className="lg:fixed lg:top-16 lg:right-2 lg:order-1 max-h-fit">
+              <Card>
+                <CardContent className=" flex flex-col items-center space-y-4">
+                  {/* Timer Display */}
+                  <div className="">
+                    <GameTimer
+                      startedAt={session.started_at}
+                      totalTimeMinutes={session.total_time_minutes}
+                      status={session.status}
+                      onTimeUp={handleTimeUp}
+                    />
+                  </div>
+                    
+                  {/* Statistik - Update Icon & Text Colors */}
+                  <div className="flex w-full items-center justify-center gap-8 py-2 md:flex-1 md:py-0">
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="flex items-center gap-2 text-lg font-bold text-orange-900 dark:text-zinc-100">
+                        <CircleQuestionMark className="size-5 text-yellow-500" />
+                        <span>{session.question_limit}</span>
+                      </div>
+                      <p className="text-[10px] font-bold tracking-wider text-orange-600/60 uppercase dark:text-orange-400/60">
+                        QUESTIONS
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="flex items-center gap-2 text-lg font-bold text-orange-900 dark:text-zinc-100">
+                        <Timer className="size-5 text-orange-500" />
+                        <span>{session.total_time_minutes}m</span>
+                      </div>
+                      <p className="text-[10px] font-bold tracking-wider text-orange-600/60 uppercase dark:text-orange-400/60">
+                        TIME
+                      </p>
+                    </div>
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="flex items-center gap-2 text-lg font-bold text-orange-900 dark:text-zinc-100">
+                        <User className="size-5 text-green-500" />
+                        <span>{participants.length}</span>
+                      </div>
+                      <p className="text-[10px] font-bold tracking-wider text-orange-600/60 uppercase dark:text-orange-400/60">
+                        PLAYERS
+                      </p>
+                    </div>
+                  </div>
 
-          {/* Participant Grid */}
-          <div className="grid grid-cols-2 gap-3 p-4 sm:grid-cols-3 md:grid-cols-5">
-            <AnimatePresence mode="popLayout">
-              {participants.map((p) => {
-                const answeredCount = p.responses?.length || 0;
-                const max =
-                  parseInt(session.question_limit) || session.current_questions?.length || 20;
-                const percent = Math.min(100, Math.round((answeredCount / max) * 100));
+                  {/* dialog  end game */}
+                  <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant={"destructive"} className="bg-red-600 hover:bg-red-700">
+                          End Session
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="dark:border-zinc-800 dark:bg-zinc-900">
+                        <DialogHeader>
+                          <DialogTitle className="dark:text-zinc-100">End Session</DialogTitle>
+                          <DialogDescription className="dark:text-zinc-400">
+                            Are you sure you want to end this session?
+                          </DialogDescription>
+                        </DialogHeader>
+                        <DialogFooter>
+                          <DialogClose asChild>
+                            <Button
+                              variant="outline"
+                              className="dark:border-zinc-700 dark:text-zinc-300">
+                              Cancel
+                            </Button>
+                          </DialogClose>
+                          <DialogClose asChild>
+                            <Button variant="destructive" onClick={handleEndGame}>
+                              End Session
+                            </Button>
+                          </DialogClose>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
+                </CardContent>
+              </Card>
+            </div>
+            {/* Participant Grid */}
+            <div className="sm:order-2">
+              <div className=" grid grid-cols-1 gap-3 p-4 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+                <AnimatePresence mode="popLayout">
+                  {participants.map((p) => {
+                    const answeredCount = p.responses?.length || 0;
+                    const max =
+                      parseInt(session.question_limit) || session.current_questions?.length || 20;
+                    const percent = Math.min(100, Math.round((answeredCount / max) * 100));
 
-                return (
-                  <motion.div
-                    key={p.id}
-                    layout
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    exit={{ scale: 0.8, opacity: 0 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 25 }}>
-                    <Card className="h-full border-orange-100 py-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
-                      <CardContent className="px-4">
-                        <div className="flex items-center justify-between gap-3">
-                          <Avatar className="border-2 border-orange-100 dark:border-zinc-700">
-                            <AvatarImage src={p.avatar_url} alt={p.nickname} />
-                            <AvatarFallback className="bg-orange-100 font-bold text-orange-600 dark:bg-zinc-800 dark:text-orange-400">
-                              {p.nickname.substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <p className="flex-1 overflow-hidden font-bold text-ellipsis text-orange-950 dark:text-zinc-100">
-                            {p.nickname}
-                          </p>
-                          <p className="text-xs font-black text-green-600 dark:text-green-400">
-                            {percent}%
-                          </p>
-                        </div>
-                        <div className="mt-4 flex flex-col gap-1">
-                          <div className="flex items-center justify-between text-[10px] font-bold tracking-widest text-orange-800/50 uppercase dark:text-zinc-500">
-                            <p>Progress</p>
-                            <p>
-                              {answeredCount}/{max}
-                            </p>
-                          </div>
-                          {/* Progress bar menggunakan warna Hijau */}
-                          <Progress value={percent} className="h-2 bg-orange-500" />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
+                    return (
+                      <motion.div
+                        key={p.id}
+                        layout
+                        initial={{ scale: 0.8, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0.8, opacity: 0 }}
+                        transition={{ type: "spring", stiffness: 300, damping: 25 }}>
+                        <Card className="h-full border-orange-100 py-4 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+                          <CardContent className="px-4">
+                            <div className="flex items-center justify-between gap-3">
+                              <Avatar className="border-2 border-orange-100 dark:border-zinc-700">
+                                <AvatarImage src={p.avatar_url} alt={p.nickname} />
+                                <AvatarFallback className="bg-orange-100 font-bold text-orange-600 dark:bg-zinc-800 dark:text-orange-400">
+                                  {p.nickname.substring(0, 2).toUpperCase()}
+                                </AvatarFallback>
+                              </Avatar>
+                              <p className="flex-1 overflow-hidden font-bold text-ellipsis text-orange-950 dark:text-zinc-100">
+                                {p.nickname}
+                              </p>
+                              <p className="text-xs font-black text-green-600 dark:text-green-400">
+                                {percent}%
+                              </p>
+                            </div>
+                            <div className="mt-4 flex flex-col gap-1">
+                              <div className="flex items-center justify-between text-[10px] font-bold tracking-widest text-orange-800/50 uppercase dark:text-zinc-500">
+                                <p>Progress</p>
+                                <p>
+                                  {answeredCount}/{max}
+                                </p>
+                              </div>
+                              {/* Progress bar menggunakan warna Hijau */}
+                              <Progress value={percent} className="h-2 bg-orange-500" />
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </motion.div>
+                    );
+                  })}
+                </AnimatePresence>
+              </div>
+            </div>
           </div>
 
           {participants.length === 0 && (

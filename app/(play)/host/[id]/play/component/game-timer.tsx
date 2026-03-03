@@ -82,7 +82,7 @@ export function GameTimer({ startedAt, totalTimeMinutes, onTimeUp, status }: Gam
       <Card className="card transition-colors duration-500">
         <CardContent className="w-32">
           <p
-            className={`text-3xl font-bold transition-colors duration-500 sm:text-5xl ${currentColorClass}`}>
+            className={`text-3xl font-bold transition-colors duration-500 sm:text-5xl text-center ${currentColorClass}`}>
             {isWaitingForStart
               ? "--"
               : Math.floor(timeLeft / 60)
@@ -102,7 +102,7 @@ export function GameTimer({ startedAt, totalTimeMinutes, onTimeUp, status }: Gam
       <Card className="card transition-colors duration-500">
         <CardContent className="w-32">
           <p
-            className={`text-3xl font-bold transition-colors duration-500 sm:text-5xl ${currentColorClass}`}>
+            className={`text-3xl font-bold transition-colors duration-500 sm:text-5xl text-center ${currentColorClass}`}>
             {isWaitingForStart ? "--" : (timeLeft % 60).toString().padStart(2, "0")}
           </p>
         </CardContent>
