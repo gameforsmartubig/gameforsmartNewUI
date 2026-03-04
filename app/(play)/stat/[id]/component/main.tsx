@@ -1,8 +1,12 @@
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+"use client";
+
+import { useEffect, useState, use } from "react";
+import { useRouter } from "next/navigation";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import {
   CheckCircle2,
   XCircle,
@@ -11,19 +15,20 @@ import {
   LayoutDashboard,
   Users,
   Check,
-  HelpCircle,
   FileQuestion,
   MessageSquare,
-  Trophy
+  Loader2,
+  ChevronRight,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
-import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { useEffect } from "react";
+import { supabase } from "@/lib/supabase";
 
 interface Question {
   id: string;
   question: string;
-  correct?: string; // ID of the correct answer
+  correct?: string;
   answers: {
     id: string;
     text?: string;
@@ -45,38 +50,120 @@ interface PlayerWithResponses {
   responses: PlayerResponse[];
 }
 
-interface StatisticsViewProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  isHost: boolean;
-  questions: Question[];
-  players: PlayerWithResponses[];
-  currentPlayerId?: string;
-}
+export default function StatisticsPage({ params }: { params: Promise<{ id: string }> }) {
+  const resolvedParams = use(params);
+  const id = resolvedParams.id;
 
-export function StatisticsView({
-  open,
-  onOpenChange,
-  isHost,
-  questions = [],
-  players = [],
-  currentPlayerId
-}: StatisticsViewProps) {
   const router = useRouter();
 
-  // Lock body scroll when open to prevent double scrollbars
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "unset";
-    }
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, [open]);
+  const [loading, setLoading] = useState(true);
+  const [isHost, setIsHost] = useState(false);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [players, setPlayers] = useState<PlayerWithResponses[]>([]);
+  const [currentPlayerId, setCurrentPlayerId] = useState<string | undefined>();
+  const [isCollapsedAll, setIsCollapsedAll] = useState(false);
 
-  if (!open) return null;
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const {
+          data: { user }
+        } = await supabase.auth.getUser();
+
+        let profileId: string | null = null;
+        let userRole: string | null = null;
+
+        if (user) {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("id, role")
+            .eq("auth_user_id", user.id)
+            .single();
+          profileId = profile?.id || null;
+          userRole = profile?.role || null;
+        }
+
+        if (!profileId) {
+          profileId = localStorage.getItem("user_id");
+        }
+
+        const { data: session, error: sessionError } = await supabase
+          .from("game_sessions")
+          .select(`*, quizzes (questions)`)
+          .eq("id", id)
+          .single();
+
+        if (sessionError || !session) {
+          toast.error("Session not found");
+          router.push("/dashboard");
+          return;
+        }
+
+        const hostCheck = profileId === session.host_id || userRole === "admin";
+        setIsHost(hostCheck);
+
+        const quiz = Array.isArray(session.quizzes) ? session.quizzes[0] : session.quizzes;
+        const fullQuestions = quiz?.questions || [];
+
+        // Use current_questions if available (most accurate source of truth for session),
+        // otherwise fallback to full source list
+        let activeQuestions =
+          session.current_questions && session.current_questions.length > 0
+            ? session.current_questions
+            : fullQuestions;
+
+        // Apply question limit explicitly
+        const questionLimit = parseInt(session.question_limit);
+        if (!isNaN(questionLimit) && questionLimit > 0 && questionLimit < activeQuestions.length) {
+          activeQuestions = activeQuestions.slice(0, questionLimit);
+        }
+
+        setQuestions(activeQuestions);
+
+        const participants = (session.participants as any[]) || [];
+        const allSessionResponses = (session.responses as any[]) || [];
+
+        const mappedPlayers: PlayerWithResponses[] = participants.map((p) => {
+          const matchedResponseGroup = allSessionResponses.find(
+            (r) => r.participant === p.id || r.user_id === p.user_id
+          );
+          const separateResponses = matchedResponseGroup?.answers || [];
+          const embeddedResponses = Array.isArray(p.responses) ? p.responses : [];
+          const responses = separateResponses.length > 0 ? separateResponses : embeddedResponses;
+
+          return {
+            id: p.user_id || p.id,
+            name: p.nickname || "Unknown",
+            responses: responses
+          };
+        });
+
+        setPlayers(mappedPlayers);
+
+        if (profileId) {
+          const me = mappedPlayers.find((p) => p.id === profileId);
+          if (me) setCurrentPlayerId(profileId);
+          else if (!hostCheck) {
+            toast.error("You are not part of this session.");
+            router.push("/dashboard?redirect=/stat/" + id);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching statistics:", error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [id, router]);
+
+  if (loading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-50/50">
+        <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
+      </div>
+    );
+  }
 
   // --- STATS CALCULATION ---
   const totalQuestions = questions.length;
@@ -161,19 +248,23 @@ export function StatisticsView({
   };
 
   return (
-    <div className="base-background animate-in fade-in fixed inset-0 z-50 flex flex-col overflow-hidden duration-200">
+    <div className="base-background animate-in fade-in flex min-h-screen flex-col duration-200">
       {/* 1. Header Navigation */}
-      <header className="base-background z-10 flex h-16 shrink-0 items-center justify-between border-b px-6 shadow-sm">
+      <header className="flex h-16 shrink-0 items-center justify-between px-6">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-bold text-orange-900">
             <BarChart3 className="h-6 w-6" />
-            Quiz Summary
+            Statistics
           </h1>
         </div>
         <div className="flex items-center gap-3">
-          <Button variant="outline" onClick={() => onOpenChange(false)} className="gap-2">
+          <Button variant="outline" onClick={() => setIsCollapsedAll(!isCollapsedAll)} className="gap-2">
+            {isCollapsedAll ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            {isCollapsedAll ? "expand all" : "collapse all"}
+          </Button>
+          <Button variant="outline" onClick={() => router.push(`/result/${id}`)} className="gap-2">
             <ChevronLeft className="h-4 w-4" />
-            Back
+            Back to Result
           </Button>
           <Button onClick={() => router.push("/dashboard")} className="button-orange gap-2">
             <LayoutDashboard className="h-4 w-4" />
@@ -183,10 +274,8 @@ export function StatisticsView({
       </header>
 
       {/* 2. Scrollable Content Area */}
-      {/* Remove double scroll by using simple overflow-y-auto instead of ScrollArea which might conflict */}
       <div className="flex-1 overflow-y-auto bg-slate-50/30">
         <div className="container mx-auto max-w-6xl space-y-8 p-6 pb-20">
-          {/* Summary Cards (Host Only) */}
           {/* Summary Cards (Host Only) */}
           {isHost && (
             <div className="grid grid-cols-3 gap-3 md:gap-4">
@@ -243,8 +332,6 @@ export function StatisticsView({
             </div>
           )}
 
-          {/* 3. Section Title (Removed) */}
-
           {/* 4. Question Cards List */}
           <div className="space-y-6">
             {questions.map((q, index) => {
@@ -274,69 +361,80 @@ export function StatisticsView({
                   className="overflow-hidden border-none py-0 shadow-sm ring-1 ring-slate-200">
                   <CardContent className="p-0">
                     {/* Header Row */}
-                    <div className="flex items-start justify-between gap-4 p-4 pb-2">
-                      <div className="flex-1 space-y-2">
+                    <div className="flex flex-col items-start justify-between gap-2 p-4 pb-2">
+                      <div className="flex items-center justify-between gap-4 w-full">
                         <Badge
                           variant="secondary"
                           className="rounded-md border-orange-100 bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700 hover:bg-orange-100">
                           Question {index + 1}
                         </Badge>
-                        <h3 className="text-base leading-relaxed font-medium text-slate-800">
-                          {q.question}
-                        </h3>
-                      </div>
 
-                      {/* Host Badges */}
-                      {isHost && stats && (
-                        <div className="flex shrink-0 gap-2">
-                          <Badge
-                            variant="outline"
-                            className="hidden h-8 gap-1.5 border-yellow-100 bg-yellow-50 px-3 text-yellow-700 sm:flex">
-                            <Users className="h-3.5 w-3.5" />
-                            <span>{stats.participantCount}</span>
-                          </Badge>
-                          <Badge
-                            variant="outline"
-                            className="hidden h-8 gap-1.5 border-green-100 bg-green-50 px-3 text-green-700 sm:flex">
-                            <Check className="h-3.5 w-3.5" />
-                            <span>{stats.correctCount}</span>
-                          </Badge>
-                        </div>
-                      )}
-
-                      {/* Player Badges */}
-                      {!isHost && myStatus && (
-                        <div className="shrink-0">
-                          {myStatus.status === "correct" ? (
-                            <Badge className="border-green-200 bg-green-100 px-3 py-1 text-green-700 shadow-none">
-                              <CheckCircle2 className="mr-1.5 h-4 w-4" /> Correct
-                            </Badge>
-                          ) : myStatus.status === "incorrect" ? (
-                            <Badge
-                              variant="destructive"
-                              className="border-red-200 bg-red-100 px-3 py-1 text-red-700 shadow-none">
-                              <XCircle className="mr-1.5 h-4 w-4" /> Incorrect
-                            </Badge>
-                          ) : (
-                            <Badge variant="outline">Skipped</Badge>
+                        <div className="flex items-center gap-2">
+                          {/* Host Badges */}
+                          {isHost && stats && (
+                            <div className="flex shrink-0 gap-2">
+                              <Badge
+                                variant="outline"
+                                className="hidden h-8 gap-1.5 border-yellow-100 bg-yellow-50 px-3 text-yellow-700 sm:flex">
+                                <Users className="h-3.5 w-3.5" />
+                                <span>{stats.participantCount}</span>
+                              </Badge>
+                              <Badge
+                                variant="outline"
+                                className="hidden h-8 gap-1.5 border-green-100 bg-green-50 px-3 text-green-700 sm:flex">
+                                <Check className="h-3.5 w-3.5" />
+                                <span>{stats.correctCount}</span>
+                              </Badge>
+                            </div>
                           )}
+
+                          {/* Player Badges */}
+                          {!isHost && myStatus && (
+                            <div className="shrink-0">
+                              {myStatus.status === "correct" ? (
+                                <Badge className="border-green-200 bg-green-100 px-3 py-1 text-green-700 shadow-none">
+                                  <CheckCircle2 className="mr-1.5 h-4 w-4" /> Correct
+                                </Badge>
+                              ) : myStatus.status === "incorrect" ? (
+                                <Badge
+                                  variant="destructive"
+                                  className="border-red-200 bg-red-100 px-3 py-1 text-red-700 shadow-none">
+                                  <XCircle className="mr-1.5 h-4 w-4" /> Incorrect
+                                </Badge>
+                              ) : (
+                                <Badge variant="outline">Skipped</Badge>
+                              )}
+                            </div>
+                          )}
+
+                          <Button
+                            variant="outline"
+                            onClick={() => setIsCollapsedAll(!isCollapsedAll)}
+                            className="gap-2">
+                            {isCollapsedAll ? (
+                              <ChevronUp className="h-4 w-4" />
+                            ) : (
+                              <ChevronDown className="h-4 w-4" />
+                            )}
+                            {isCollapsedAll ? "expand" : "collapse"}
+                          </Button>
                         </div>
-                      )}
+                      </div>
+                      <h3 className="text-base leading-relaxed font-medium text-slate-800">
+                        {q.question}
+                      </h3>
                     </div>
 
                     {/* Answer Options List */}
                     <div className="px-4 pt-2 pb-4">
                       <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                         {q.answers.map((ans: any, idx) => {
-                          // Handle potential different property names for correctness
-                          // Check if q.correct (string ID) matches ans.id OR if ans.isCorrect is strictly true
                           const isCorrect =
                             (q.correct !== undefined && String(q.correct) === String(ans.id)) ||
                             ans.isCorrect === true ||
                             ans.is_correct === true;
 
                           const optionLabel = String.fromCharCode(65 + idx); // A, B, C, D
-                          // Handle potential different property names for the answer text
                           const answerText =
                             ans.text || ans.answer || ans.option || ans.label || "";
 

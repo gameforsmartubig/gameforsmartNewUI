@@ -4,15 +4,6 @@ import { useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardContent } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogTrigger,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogClose
-} from "@/components/ui/dialog";
-import {
   Crown,
   Medal,
   Trophy,
@@ -31,7 +22,6 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { generateXID } from "@/lib/id-generator";
 import { toast } from "sonner";
-import { StatisticsView } from "./statistics-view";
 import { createGameSessionRT, isRealtimeDbConfigured } from "@/lib/supabase-realtime";
 
 // ========== TYPES & INTERFACES ==========
@@ -379,18 +369,17 @@ function HostLeaderboard({ players, onStatistics, onExport, onRestart }: HostLea
           <Tooltip>
             <TooltipTrigger asChild>
               <Button
-            variant="ghost"
-            size="sm"
-            className="button-green size-10 rounded-full"
-            onClick={onStatistics}>
-            <BarChart3 className="h-4 w-4" />
-          </Button>
+                variant="ghost"
+                size="sm"
+                className="button-green size-10 rounded-full"
+                onClick={onStatistics}>
+                <BarChart3 className="h-4 w-4" />
+              </Button>
             </TooltipTrigger>
             <TooltipContent side="left">
               <p>Statistics</p>
             </TooltipContent>
           </Tooltip>
-          
         </div>
 
         {/* Bottom Section: Players List */}
@@ -558,8 +547,6 @@ export default function Leaderboard() {
     (Player & { rank: number; totalPlayers: number }) | null
   >(null);
 
-  // Statistics State
-  const [showStats, setShowStats] = useState(false);
   const [questions, setQuestions] = useState<any[]>([]);
 
   const handleDashboard = () => {
@@ -1047,11 +1034,17 @@ export default function Leaderboard() {
   return (
     <div className="bg-background flex h-full flex-col">
       {isHost ? (
-        <HostLeaderboard players={players} onRestart={handleRestart}
-        onExport={handleExport}
-        onStatistics={() => setShowStats(true)}/>
+        <HostLeaderboard
+          players={players}
+          onRestart={handleRestart}
+          onExport={handleExport}
+          onStatistics={() => router.push("/stat/" + id)}
+        />
       ) : currentPlayer ? (
-        <PlayerResult player={currentPlayer} onStatistics={() => setShowStats(true)}/>
+        <PlayerResult
+          player={currentPlayer}
+          onStatistics={() => router.push("/stat/" + id)}
+        />
       ) : (
         <div className="flex flex-1 items-center justify-center p-4 text-center">
           <div className="max-w-md space-y-4">
@@ -1064,16 +1057,6 @@ export default function Leaderboard() {
           </div>
         </div>
       )}
-
-      {/* Statistics Dialog */}
-      <StatisticsView
-        open={showStats}
-        onOpenChange={setShowStats}
-        isHost={isHost}
-        questions={questions}
-        players={players}
-        currentPlayerId={currentPlayer?.id}
-      />
     </div>
   );
 }
