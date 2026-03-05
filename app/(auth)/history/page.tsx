@@ -44,7 +44,7 @@ async function getQuizHistory(): Promise<QuizHistory[]> {
     .from("game_sessions")
     .select("id, host_id, ended_at, application, participants, quizzes(title), quiz_detail")
     .eq("status", "finished")
-    .or(`host_id.eq.${profileId},participants.cs.[{"id":"${profileId}"}]`)
+    .or(`host_id.eq.${profileId},participants.cs.[{"user_id":"${profileId}"}]`)
     .order("ended_at", { ascending: false });
 
   if (error || !sessions) {
@@ -83,12 +83,7 @@ async function getQuizHistory(): Promise<QuizHistory[]> {
 
     const application = session.application || "Unknown Application";
 
-    const dateObj = session.ended_at ? new Date(session.ended_at) : new Date();
-    const ended_at = dateObj.toLocaleDateString("en-GB", {
-      day: "numeric",
-      month: "short",
-      year: "numeric"
-    });
+    const ended_at = session.ended_at || new Date().toISOString();
 
     if (isHost) {
       results.push({

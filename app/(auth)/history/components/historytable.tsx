@@ -55,9 +55,13 @@ export default function QuizHistoryTable({ data }: Props) {
                   <TableCell className="font-medium">{item.quiztitle}</TableCell>
 
                   <TableCell
-                    title={`${item.ended_at}${
-                      item.role === "player" && item.hostName ? ` (Host: ${item.hostName})` : ""
-                    }`}>
+                    title={`${new Date(item.ended_at).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit"
+                    })}${item.role === "player" && item.hostName ? ` (Host: ${item.hostName})` : ""}`}>
                     {formatTimeAgo(item.ended_at)}
                   </TableCell>
 

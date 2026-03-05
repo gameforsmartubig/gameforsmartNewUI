@@ -59,9 +59,13 @@ export default function QuizHistoryCard({ quiz }: Props) {
               <div className="text-muted-foreground space-y-1 text-sm">
                 <div
                   className="flex items-center gap-2"
-                  title={`${quiz.ended_at}${
-                    quiz.role === "player" && quiz.hostName ? ` (Host: ${quiz.hostName})` : ""
-                  }`}>
+                  title={`${new Date(quiz.ended_at).toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "long",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit"
+                  })}${quiz.role === "player" && quiz.hostName ? ` (Host: ${quiz.hostName})` : ""}`}>
                   <Calendar className="size-4" />
                   {formatTimeAgo(quiz.ended_at)}
                 </div>
