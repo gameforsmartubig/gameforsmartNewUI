@@ -89,7 +89,15 @@ export function EditProfile({ data, onCancel }: any) {
 
           <div>
             <Label>Gender</Label>
-            <Input value={personal.gender} />
+            <Select value={personal.gender}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder={personal.gender} />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="male">Male</SelectItem>
+                <SelectItem value="female">Female</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div>
