@@ -19,7 +19,7 @@ export function ProfileCard({
         </Avatar>
 
         <h2 className="mt-4 text-xl font-semibold">{profile.fullName}</h2>
-        <p className="text-muted-foreground">{profile.username}</p>
+        <p className="text-muted-foreground">@{profile.username}</p>
 
         <div className="mt-6 flex justify-between border-t pt-4">
           <div>

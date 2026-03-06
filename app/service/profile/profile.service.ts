@@ -46,7 +46,7 @@ export async function getProfileData(): Promise<ProfileData> {
     id: "",
     profile: {
       fullName: "Anonymous",
-      username: "@unknown",
+      username: "unknown",
       avatar: "",
       followers: 0,
       following: 0,
@@ -124,7 +124,7 @@ export async function getProfileData(): Promise<ProfileData> {
     id: profileData.id,
     profile: {
       fullName: profileData.fullname || "Anonymous User",
-      username: profileData.username ? `@${profileData.username}` : "@user",
+      username: profileData.username || "@user",
       avatar: profileData.avatar_url || "",
       followers: followerIds.length,
       following: followingIds.length,
@@ -133,7 +133,7 @@ export async function getProfileData(): Promise<ProfileData> {
     personal: {
       fullName: profileData.fullname || "",
       email: profileData.email || user.email || "",
-      username: profileData.username ? `@${profileData.username}` : "",
+      username: profileData.username || "",
       birthDate: profileData.birthdate
         ? new Date(profileData.birthdate).toLocaleDateString("en-GB", {
             day: "numeric",

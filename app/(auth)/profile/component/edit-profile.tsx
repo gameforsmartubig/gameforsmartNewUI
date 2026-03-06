@@ -33,9 +33,9 @@ export function EditProfile({ data, onCancel }: any) {
               {personal.fullName.substring(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>
-          <div className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm cursor-pointer">
+          <Button variant={"ghost"} className="absolute bottom-0 right-0 w-8 h-8 bg-blue-600 hover:bg-blue-700 rounded-full flex items-center justify-center text-white hover:text-white text-sm cursor-pointer">
             <Camera/>
-          </div>
+          </Button>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -94,8 +94,8 @@ export function EditProfile({ data, onCancel }: any) {
                 <SelectValue placeholder={personal.gender} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="male">Male</SelectItem>
-                <SelectItem value="female">Female</SelectItem>
+                <SelectItem value="Male">Male</SelectItem>
+                <SelectItem value="Female">Female</SelectItem>
               </SelectContent>
             </Select>
           </div>
