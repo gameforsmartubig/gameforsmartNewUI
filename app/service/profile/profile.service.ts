@@ -1,63 +1,156 @@
+"use server";
+
+import { createClient } from "@/lib/supabase-server";
+
 export interface Profile {
-  fullName: string
-  username: string
-  avatar: string
-  followers: number
-  following: number
-  friends: number
+  fullName: string;
+  username: string;
+  avatar: string;
+  followers: number;
+  following: number;
+  friends: number;
 }
 
 export interface PersonalInfo {
-  fullName: string
-  email: string
-  username: string
-  birthDate: string
-  grade: string
-  organization: string
-  phone: string
-  gender: string
-  nickname: string
+  fullName: string;
+  email: string;
+  username: string;
+  birthDate: string;
+  grade: string;
+  organization: string;
+  phone: string;
+  gender: string;
+  nickname: string;
 }
 
 export interface AddressInfo {
-  country: string
-  state: string
-  city: string
+  country: string;
+  state: string;
+  city: string;
 }
 
 export interface ProfileData {
-  profile: Profile
-  personal: PersonalInfo
-  address: AddressInfo
+  id: string;
+  profile: Profile;
+  personal: PersonalInfo;
+  address: AddressInfo;
 }
 
 export async function getProfileData(): Promise<ProfileData> {
-  return {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+
+  const defaultResult: ProfileData = {
+    id: "",
     profile: {
-      fullName: "Alex Johnson",
-      username: "@alex_j_dev",
-      avatar: "https://i.pravatar.cc/150?img=12",
-      followers: 1200,
-      following: 850,
-      friends: 430
+      fullName: "Anonymous",
+      username: "@unknown",
+      avatar: "",
+      followers: 0,
+      following: 0,
+      friends: 0
     },
-
     personal: {
-      fullName: "Alex Johnson",
-      email: "alex.johnson@technova.io",
-      username: "@alex_j_dev",
-      birthDate: "6 Oct 2026",
-      grade: "Senior High School",
-      organization: "SMAN 1 Padang",
-      phone: "+1 (555) 902-3456",
-      gender: "Male",
-      nickname: "Alexios",
+      fullName: "",
+      email: "",
+      username: "",
+      birthDate: "",
+      grade: "",
+      organization: "",
+      phone: "",
+      gender: "",
+      nickname: ""
     },
-
     address: {
-      country: "United States",
-      state: "California",
-      city: "San Francisco"
+      country: "-",
+      state: "-",
+      city: "-"
     }
+  };
+
+  if (!user) return defaultResult;
+
+  // Fetch Profile and Address Location resolving using foreign keys
+  // Assuming foreign relations: countries(id), states(id), cities(id)
+  const { data: profileData, error } = await supabase
+    .from("profiles")
+    .select(
+      `
+      id,
+      fullname,
+      nickname,
+      username,
+      avatar_url,
+      email,
+      phone,
+      birthdate,
+      grade,
+      organization,
+      gender,
+      countries (name),
+      states (name),
+      cities (name)
+    `
+    )
+    .eq("auth_user_id", user.id)
+    .single();
+
+  if (error || !profileData) {
+    console.error("Error fetching profile:", error);
+    return defaultResult;
   }
+
+  // Fetch friendships
+  const currentUserId = profileData.id;
+  const { data: followingList } = await supabase
+    .from("friendships")
+    .select("addressee_id")
+    .eq("requester_id", currentUserId);
+
+  const { data: followersList } = await supabase
+    .from("friendships")
+    .select("requester_id")
+    .eq("addressee_id", currentUserId);
+
+  const followingIds = followingList?.map((f: any) => f.addressee_id) || [];
+  const followerIds = followersList?.map((f: any) => f.requester_id) || [];
+
+  // Calculate Friends (Mutuals)
+  const friendsCount = followingIds.filter((id) => followerIds.includes(id)).length;
+
+  return {
+    id: profileData.id,
+    profile: {
+      fullName: profileData.fullname || "Anonymous User",
+      username: profileData.username ? `@${profileData.username}` : "@user",
+      avatar: profileData.avatar_url || "",
+      followers: followerIds.length,
+      following: followingIds.length,
+      friends: friendsCount
+    },
+    personal: {
+      fullName: profileData.fullname || "",
+      email: profileData.email || user.email || "",
+      username: profileData.username ? `@${profileData.username}` : "",
+      birthDate: profileData.birthdate
+        ? new Date(profileData.birthdate).toLocaleDateString("en-GB", {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+          })
+        : "",
+      grade: profileData.grade || "",
+      organization: profileData.organization || "",
+      phone: profileData.phone || "",
+      gender: profileData.gender || "",
+      nickname: profileData.nickname || ""
+    },
+    address: {
+      country: (profileData.countries as any)?.name || "-",
+      state: (profileData.states as any)?.name || "-",
+      city: (profileData.cities as any)?.name || "-"
+    }
+  };
 }
