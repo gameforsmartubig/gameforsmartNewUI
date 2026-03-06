@@ -18,7 +18,7 @@ export function ProfileView({ data }: any) {
 
   return (
     <div className="flex gap-6">
-      <ProfileCard {...data.profile} />
+      <ProfileCard profile={data.profile} />
 
       <ProfileInfo
         personal={data.personal}

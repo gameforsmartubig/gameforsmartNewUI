@@ -1,9 +1,10 @@
 "use client"
 
+import { AddressInfo, PersonalInfo } from "@/app/service/profile/profile.service"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-export function ProfileInfo({ personal, address, onEdit  }: any) {
+export function ProfileInfo({ personal, address, onEdit  }: {personal: PersonalInfo, address: AddressInfo, onEdit: () => void}) {
 
   return (
     <Card className="flex-1">

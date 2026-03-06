@@ -1,5 +1,5 @@
 export interface Profile {
-  name: string
+  fullName: string
   username: string
   avatar: string
   followers: number
@@ -34,7 +34,7 @@ export interface ProfileData {
 export async function getProfileData(): Promise<ProfileData> {
   return {
     profile: {
-      name: "Alex Johnson",
+      fullName: "Alex Johnson",
       username: "@alex_j_dev",
       avatar: "https://i.pravatar.cc/150?img=12",
       followers: 1200,
