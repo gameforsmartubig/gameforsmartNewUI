@@ -526,7 +526,7 @@ export function LocationSelector({
       )}
 
       <SearchableSelect
-        label="Negara"
+        label="Country"
         placeholder="Pilih negara..."
         value={{ id: value.countryId, name: value.countryName }}
         options={countries.map((c) => ({ id: c.id, name: c.name, emoji: c.emoji, iso2: c.iso2 }))}
@@ -541,7 +541,7 @@ export function LocationSelector({
       />
 
       <SearchableSelect
-        label="Provinsi"
+        label="State"
         placeholder={value.countryId ? "Pilih provinsi..." : "Pilih negara dulu"}
         value={{ id: value.stateId, name: value.stateName }}
         options={states.map((s) => ({ id: s.id, name: s.name }))}
@@ -556,8 +556,8 @@ export function LocationSelector({
       />
 
       <SearchableSelect
-        label="Kota"
-        placeholder={value.stateId ? "Pilih kota..." : "Pilih provinsi dulu"}
+        label="City"
+        placeholder={value.stateId ? "Select city..." : "Select the province first"}
         value={{ id: value.cityId, name: value.cityName }}
         options={cities.map((c) => ({ id: c.id, name: c.name }))}
         onSearch={() => {}}
