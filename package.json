@@ -52,6 +52,7 @@
     "@remixicon/react": "^4.6.0",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.89.0",
+    "@tanstack/react-query": "^5.90.21",
     "@tanstack/react-table": "^8.21.3",
     "@tiptap/extension-code-block-lowlight": "^2.22.3",
     "@tiptap/extension-color": "^2.22.3",
@@ -106,7 +107,7 @@
     "xid-js": "^1.0.1",
     "xlsx": "^0.18.5",
     "zod": "^3.25.67",
-    "zustand": "^5.0.5"
+    "zustand": "^5.0.11"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.10",
