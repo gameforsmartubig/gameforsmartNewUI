@@ -35,6 +35,7 @@ interface DashboardTabsProps {
   onEdit:              (quizId: string) => void;
   onAnalytic:          (quizId: string) => void;
   onToggleFavorite:    (quiz: Quiz) => void;
+  onDelete:            (quiz: Quiz) => void;
 }
 
 export function DashboardTabs({
@@ -50,7 +51,8 @@ export function DashboardTabs({
   onHost,
   onEdit,
   onAnalytic,
-  onToggleFavorite
+  onToggleFavorite,
+  onDelete
 }: DashboardTabsProps) {
   const router = useRouter();
 
@@ -60,7 +62,7 @@ export function DashboardTabs({
     favorite: filteredFavorite
   };
 
-  const sharedGridProps = { categoryMap, onHost, onEdit, onAnalytic, onToggleFavorite };
+  const sharedGridProps = { categoryMap, onHost, onEdit, onAnalytic, onToggleFavorite, onDelete };
 
   return (
     <div className="flex flex-col gap-4">

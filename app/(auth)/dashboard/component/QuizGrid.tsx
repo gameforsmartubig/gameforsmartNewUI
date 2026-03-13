@@ -23,6 +23,7 @@ interface QuizGridProps {
   onEdit:           (quizId: string) => void;
   onAnalytic:       (quizId: string) => void;
   onToggleFavorite: (quiz: Quiz) => void;
+  onDelete:         (quiz: Quiz) => void;
 }
 
 export function QuizGrid({
@@ -35,7 +36,8 @@ export function QuizGrid({
   onHost,
   onEdit,
   onAnalytic,
-  onToggleFavorite
+  onToggleFavorite,
+  onDelete
 }: QuizGridProps) {
   if (quizzes.length === 0) {
     return (
@@ -58,6 +60,7 @@ export function QuizGrid({
             onEdit={onEdit}
             onAnalytic={onAnalytic}
             onToggleFavorite={onToggleFavorite}
+            onDelete={onDelete}
           />
         ))}
       </div>

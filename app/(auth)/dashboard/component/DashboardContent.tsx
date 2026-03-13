@@ -11,6 +11,7 @@
 import { useDashboard } from "../hooks/useDashboard";
 import { DashboardHeader } from "./DashboardHeader";
 import { DashboardTabs } from "./DashboardTabs";
+import { DeleteQuizDialog } from "./DeleteQuizDialog";
 import type { Category, Quiz } from "./types";
 
 interface DashboardContentProps {
@@ -36,7 +37,10 @@ export function DashboardContent({
     selectedCategory, handleFilterChange, handleSearchSubmit,
     pageState, handlePageChange, getPaginatedQuizzes,
     filteredPublic, filteredMy, filteredFavorite,
-    handleHostClick, handleEditClick, handleAnalyticClick, handleToggleFavorite
+    handleHostClick, handleEditClick, handleAnalyticClick, handleToggleFavorite,
+    // delete
+    showDeleteDialog, setShowDeleteDialog,
+    quizToDelete, isDeleting, handleDeleteClick, confirmDeleteQuiz
   } = useDashboard(publicQuizzes, myQuizzes, favoriteQuizzes, currentProfileId);
 
   return (
@@ -66,6 +70,16 @@ export function DashboardContent({
         onEdit={handleEditClick}
         onAnalytic={handleAnalyticClick}
         onToggleFavorite={handleToggleFavorite}
+        onDelete={handleDeleteClick}
+      />
+
+      {/* Delete Quiz Confirmation Dialog */}
+      <DeleteQuizDialog
+        open={showDeleteDialog}
+        quizTitle={quizToDelete?.title || ""}
+        deleting={isDeleting}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={confirmDeleteQuiz}
       />
     </div>
   );

@@ -37,6 +37,7 @@ interface QuizCardProps {
   onEdit: (quizId: string) => void;
   onAnalytic: (quizId: string) => void;
   onToggleFavorite: (quiz: Quiz) => void;
+  onDelete: (quiz: Quiz) => void;
 }
 
 export function QuizCard({
@@ -46,7 +47,8 @@ export function QuizCard({
   onHost,
   onEdit,
   onAnalytic,
-  onToggleFavorite
+  onToggleFavorite,
+  onDelete
 }: QuizCardProps) {
   const isFavorite = quiz._raw?.isFavorite;
   const isMyQuiz = tabKey === "myQuiz";
@@ -95,7 +97,10 @@ export function QuizCard({
 
               {isMyQuiz ? (
                 <>
-                  <DropdownMenuItem className="text-red-600 dark:text-red-500">
+                  <DropdownMenuItem
+                    className="text-red-600 dark:text-red-500"
+                    onClick={() => onDelete(quiz)}
+                  >
                     <Trash className="mr-2 h-4 w-4 text-red-600 dark:text-red-500" />
                     Delete
                   </DropdownMenuItem>

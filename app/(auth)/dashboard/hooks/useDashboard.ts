@@ -14,7 +14,8 @@ import { supabase } from "@/lib/supabase";
 import { supabaseRealtime } from "@/lib/supabase-realtime";
 import {
   toggleFavorite,
-  createGameSession
+  createGameSession,
+  softDeleteQuiz
 } from "../services/dashboardService";
 import type { Quiz } from "../component/types";
 
@@ -30,6 +31,11 @@ export function useDashboard(
 
   // ── Tab ────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState("quiz");
+
+  // ── Delete dialog ──────────────────────────────────────────
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [quizToDelete, setQuizToDelete]         = useState<Quiz | null>(null);
+  const [isDeleting, setIsDeleting]             = useState(false);
 
   // ── Search & filter ────────────────────────────────────────
   const [searchQuery, setSearchQuery]         = useState("");
@@ -151,6 +157,30 @@ export function useDashboard(
     router.refresh();
   };
 
+  // ── Delete logic ───────────────────────────────────────────
+  const handleDeleteClick = (quiz: Quiz) => {
+    setQuizToDelete(quiz);
+    setShowDeleteDialog(true);
+  };
+
+  const confirmDeleteQuiz = async () => {
+    if (!quizToDelete) return;
+    setIsDeleting(true);
+
+    const result = await softDeleteQuiz(supabase, quizToDelete.id);
+
+    if (!result.success) {
+      toast.error(result.error || "Gagal menghapus quiz");
+    } else {
+      toast.success("Quiz berhasil dihapus");
+      router.refresh();
+    }
+
+    setIsDeleting(false);
+    setShowDeleteDialog(false);
+    setQuizToDelete(null);
+  };
+
   return {
     // tab
     activeTab,
@@ -174,6 +204,13 @@ export function useDashboard(
     handleHostClick,
     handleEditClick,
     handleAnalyticClick,
-    handleToggleFavorite
+    handleToggleFavorite,
+    // delete
+    showDeleteDialog,
+    setShowDeleteDialog,
+    quizToDelete,
+    isDeleting,
+    handleDeleteClick,
+    confirmDeleteQuiz
   };
 }

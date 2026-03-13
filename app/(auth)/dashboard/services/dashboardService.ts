@@ -56,10 +56,11 @@ export async function fetchDashboardData(
     if (profile) currentProfileId = (profile as any).id;
   }
 
-  // 2. Semua quiz
+  // 2. Semua quiz (exclude soft-deleted)
   const { data: quizzesData, error: quizzesError } = await supabase
     .from("quizzes")
     .select("*")
+    .is("deleted_at", null)
     .order("created_at", { ascending: false });
 
   if (quizzesError) throw quizzesError;
@@ -268,6 +269,36 @@ export async function createGameSession(
     return { success: true, sessionId: newSession.id };
   } catch (error: any) {
     console.error("[dashboardService] createGameSession:", error);
+    return { success: false, error: error?.message || "Unknown error" };
+  }
+}
+
+// ─── softDeleteQuiz ──────────────────────────────────────────
+
+export interface SoftDeleteResult {
+  success: boolean;
+  error?: string;
+}
+
+/**
+ * Soft-delete quiz: set `deleted_at` to NOW().
+ * Quiz tidak benar-benar dihapus dari database.
+ */
+export async function softDeleteQuiz(
+  supabase: any,
+  quizId: string
+): Promise<SoftDeleteResult> {
+  try {
+    const { error } = await supabase
+      .from("quizzes")
+      .update({ deleted_at: new Date().toISOString() })
+      .eq("id", quizId);
+
+    if (error) throw error;
+
+    return { success: true };
+  } catch (error: any) {
+    console.error("[dashboardService] softDeleteQuiz:", error);
     return { success: false, error: error?.message || "Unknown error" };
   }
 }
