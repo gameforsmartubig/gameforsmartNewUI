@@ -44,11 +44,14 @@ function AnswerCard({
       const file = (e.target as HTMLInputElement).files?.[0];
       if (!file) return;
       try {
-        const { uploadImage } = await import("@/lib/upload-image");
-        const url = await uploadImage(file);
-        onUpdateAnswer(questionId, answer.id, "image_url", url);
+        // Store as data URL preview — actual upload happens on Save
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          onUpdateAnswer(questionId, answer.id, "image_url", reader.result as string);
+        };
+        reader.readAsDataURL(file);
       } catch (err) {
-        console.error("Upload failed:", err);
+        console.error("Image read failed:", err);
       }
     };
     input.click();
@@ -270,7 +273,6 @@ function QuestionEditor({
                 imageUrl={question.image_url || null}
                 onImageChange={(url) => onUpdateQuestion(question.id, "image_url", url)}
                 className="w-full h-full"
-                cacheKey={`question_${question.id}`}
               />
             </div>
           </div>

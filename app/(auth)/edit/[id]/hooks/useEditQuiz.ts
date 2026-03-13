@@ -325,9 +325,50 @@ export function useEditQuiz(quizId: string) {
     setSavingProgress("Menyimpan informasi quiz...");
 
     try {
+      // ── Upload all pending data URL images before saving ──
+      const { uploadImage } = await import("@/lib/upload-image");
+
+      // Helper: convert a data URL to a File and upload to Supabase
+      const uploadDataUrl = async (dataUrl: string): Promise<string | null> => {
+        const res = await fetch(dataUrl);
+        const blob = await res.blob();
+        const file = new File([blob], `image_${Date.now()}.webp`, { type: blob.type });
+        return uploadImage(file);
+      };
+
+      setSavingProgress("Mengupload gambar...");
+
+      // Deep-clone quiz and upload any data URL images in questions/answers
+      const updatedQuestions = await Promise.all(
+        quiz.questions.map(async (question) => {
+          let imageUrl = question.image_url;
+          if (imageUrl?.startsWith("data:")) {
+            imageUrl = await uploadDataUrl(imageUrl) || null;
+          }
+
+          const updatedAnswers = await Promise.all(
+            question.answers.map(async (answer) => {
+              let answerImage = answer.image_url;
+              if (answerImage?.startsWith("data:")) {
+                answerImage = await uploadDataUrl(answerImage) || null;
+              }
+              return { ...answer, image_url: answerImage };
+            })
+          );
+
+          return { ...question, image_url: imageUrl, answers: updatedAnswers };
+        })
+      );
+
+      // Replace quiz questions with uploaded URLs
+      const quizToSave: typeof quiz = {
+        ...quiz,
+        questions: updatedQuestions,
+      };
+
       setSavingProgress("Memproses semua pertanyaan dan jawaban...");
 
-      const result = await svcSaveQuiz(quiz, isPublicRequest);
+      const result = await svcSaveQuiz(quizToSave, isPublicRequest);
       if (!result.success) throw new Error(result.error);
 
       setSavingProgress("Selesai!");
