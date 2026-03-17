@@ -11,7 +11,7 @@ export function SiteHeader() {
 
   return (
     <header className=" bg-background/40 sticky top-0 z-50 flex items-center h-(--header-height) shrink-0 gap-2 border-b backdrop-blur-md transition-[width,height] dark:bg-zinc-950">
-      <div className="box-content flex w-full items-center gap-1 px-4 md:px-52 lg:gap-2 py-2">
+      <div className="box-content flex w-full items-center gap-1 px-4 max-w-6xl mx-auto lg:gap-2 py-2">
         <div className="h-10 flex items-center cursor-pointer" onClick={() => router.push("/dashboard")}>
           <Logo />
         </div>
