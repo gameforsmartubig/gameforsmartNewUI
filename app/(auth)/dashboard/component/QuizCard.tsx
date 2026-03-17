@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import type { Quiz, Category } from "./types";
 import { categoryIconMap } from "./quiz-icons";
+import Link from "next/link";
 
 interface QuizCardProps {
   quiz: Quiz;
@@ -160,9 +161,11 @@ export function QuizCard({
             <Button size="sm" className="button-orange" onClick={() => onHost(quiz.id)}>
               <Play className="mr-1 h-3 w-3 fill-current" /> Host
             </Button>
-            <Button variant="outline" size="sm" className="button-yellow-outline">
-              Tryout
-            </Button>
+            <Link href={`/tryout/settings/${quiz.id}`}>
+              <Button variant="outline" size="sm" className="button-yellow-outline">
+                Tryout
+              </Button>
+            </Link>
           </div>
         </div>
       </CardContent>

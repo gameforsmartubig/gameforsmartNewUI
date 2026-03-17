@@ -107,7 +107,7 @@ export function useDashboard(
 
   // ── Navigation ─────────────────────────────────────────────
   const handleEditClick     = (quizId: string) => router.push(`/edit/${quizId}`);
-  const handleAnalyticClick = (quizId: string) => router.push(`/analytic/${quizId}`);
+  const handleAnalyticClick = (quizId: string) => router.push(`/detail/${quizId}`);
 
   // ── Host logic ─────────────────────────────────────────────
   const handleHostClick = async (quizId: string) => {
