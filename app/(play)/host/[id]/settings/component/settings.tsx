@@ -34,8 +34,9 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Hourglass, Trophy } from "lucide-react";
 import { supabase } from "@/lib/supabase";
-import { supabaseRealtime, isRealtimeDbConfigured } from "@/lib/supabase-realtime";
+import { supabaseRealtime, isRealtimeDbConfigured, addParticipantRT } from "@/lib/supabase-realtime";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/auth-context";
 
 // Helper function to update realtime session
 const updateGameSessionRT = async (sessionId: string, updates: any) => {
@@ -66,6 +67,11 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter();
   const resolvedParams = use(params);
   const sessionId = resolvedParams.id;
+  const { profileId, profile } = useAuth();
+
+  const searchParams = useSearchParams();
+  const mode = searchParams.get("mode");
+  const isTryout = mode === "tryout";
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -132,11 +138,10 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
     fetchSessionData();
   }, [fetchSessionData]);
 
-  const searchParams = useSearchParams();
-  const from = searchParams.get("from");
+  const searchParamsFrom = searchParams.get("from");
 
   const handleCancel = async () => {
-    if (from === "room") {
+    if (searchParamsFrom === "room") {
       setShowExitDialog(true);
       return;
     }
@@ -227,7 +232,29 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
       }
 
       toast.success("Pengaturan disimpan");
-      router.push(`/host/${sessionId}/room`); // Redirect to waiting room (usually next step)
+
+      if (isTryout) {
+        // ── Tryout: auto-start game & redirect to player play ──
+        // 1. Add host as participant
+        if (profileId && isRealtimeDbConfigured && supabaseRealtime) {
+          await addParticipantRT({
+            session_id: sessionId,
+            user_id: profileId,
+            nickname: profile?.nickname || profile?.fullname || profile?.username || "Tryout Player",
+          });
+        }
+
+        // 2. Call start-game edge function
+        supabase.functions
+          .invoke("start-game", { body: { sessionId } })
+          .catch((err) => console.error("Edge Function error:", err));
+
+        // 3. Redirect to player play
+        const now = new Date().toISOString();
+        router.push(`/player/${sessionId}/play?ts=${now}`);
+      } else {
+        router.push(`/host/${sessionId}/room`);
+      }
     } catch (err: any) {
       console.error(err);
       toast.error(`Gagal menyimpan: ${err.message}`);
@@ -249,7 +276,7 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
         style={{ "--card-border-w": "4px" } as React.CSSProperties}>
         <CardHeader>
           <CardTitle className="text-xl font-bold tracking-tight text-orange-900 lg:text-2xl dark:text-zinc-100">
-            Settings
+            {isTryout ? "Tryout Settings" : "Settings"}
           </CardTitle>
           <CardDescription className="text-orange-800/60 dark:text-zinc-400">
             {quizData?.title || "Quiz Title"}
@@ -302,7 +329,9 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
             </div>
           </div>
 
-          <Separator className="bg-orange-100 dark:bg-zinc-800" />
+          {!isTryout && (
+            <>
+            <Separator className="bg-orange-100 dark:bg-zinc-800" />
 
           {/* Game Mode */}
           <div className="space-y-4">
@@ -386,6 +415,8 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
               </p>
             </div>
           </div>
+            </>
+          )}
         </CardContent>
 
         <CardFooter className="flex justify-end gap-4 pt-2">

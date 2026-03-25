@@ -32,6 +32,7 @@ interface DashboardTabsProps {
   onPageChange:        (tab: string, page: number) => void;
   getPaginatedQuizzes: (quizzes: Quiz[], tabKey: string) => Quiz[];
   onHost:              (quizId: string) => void;
+  onTryout:            (quizId: string) => void;
   onEdit:              (quizId: string) => void;
   onAnalytic:          (quizId: string) => void;
   onToggleFavorite:    (quiz: Quiz) => void;
@@ -49,6 +50,7 @@ export function DashboardTabs({
   onPageChange,
   getPaginatedQuizzes,
   onHost,
+  onTryout,
   onEdit,
   onAnalytic,
   onToggleFavorite,
@@ -62,7 +64,7 @@ export function DashboardTabs({
     favorite: filteredFavorite
   };
 
-  const sharedGridProps = { categoryMap, onHost, onEdit, onAnalytic, onToggleFavorite, onDelete };
+  const sharedGridProps = { categoryMap, onHost, onTryout, onEdit, onAnalytic, onToggleFavorite, onDelete };
 
   return (
     <div className="flex flex-col gap-4">

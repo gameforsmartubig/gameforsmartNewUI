@@ -37,7 +37,7 @@ export function DashboardContent({
     selectedCategory, handleFilterChange, handleSearchSubmit,
     pageState, handlePageChange, getPaginatedQuizzes,
     filteredPublic, filteredMy, filteredFavorite,
-    handleHostClick, handleEditClick, handleAnalyticClick, handleToggleFavorite,
+    handleHostClick, handleTryoutClick, handleEditClick, handleAnalyticClick, handleToggleFavorite,
     // delete
     showDeleteDialog, setShowDeleteDialog,
     quizToDelete, isDeleting, handleDeleteClick, confirmDeleteQuiz
@@ -67,6 +67,7 @@ export function DashboardContent({
         onPageChange={handlePageChange}
         getPaginatedQuizzes={getPaginatedQuizzes}
         onHost={handleHostClick}
+        onTryout={handleTryoutClick}
         onEdit={handleEditClick}
         onAnalytic={handleAnalyticClick}
         onToggleFavorite={handleToggleFavorite}

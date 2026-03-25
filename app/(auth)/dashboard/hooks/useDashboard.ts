@@ -135,6 +135,32 @@ export function useDashboard(
     router.push(`/host/${result.sessionId}/settings`);
   };
 
+  // ── Tryout logic ───────────────────────────────────────────
+  const handleTryoutClick = async (quizId: string) => {
+    if (!currentProfileId) {
+      toast.error("Profil tidak ditemukan. Silakan login ulang.");
+      return;
+    }
+
+    const result = await createGameSession(
+      supabase,
+      supabaseRealtime,
+      quizId,
+      currentProfileId
+    );
+
+    if (!result.success) {
+      if (!supabaseRealtime) {
+        toast.error("Koneksi realtime tidak tersedia.");
+      } else {
+        toast.error(result.error || "Terjadi kesalahan saat membuat session");
+      }
+      return;
+    }
+
+    router.push(`/host/${result.sessionId}/settings?mode=tryout`);
+  };
+
   // ── Favorite logic ─────────────────────────────────────────
   const handleToggleFavorite = async (quiz: Quiz) => {
     if (!currentProfileId) {
@@ -202,6 +228,7 @@ export function useDashboard(
     filteredFavorite,
     // actions
     handleHostClick,
+    handleTryoutClick,
     handleEditClick,
     handleAnalyticClick,
     handleToggleFavorite,

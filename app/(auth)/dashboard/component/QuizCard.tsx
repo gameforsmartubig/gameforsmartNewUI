@@ -35,6 +35,7 @@ interface QuizCardProps {
   tabKey: string;
   category?: Category;
   onHost: (quizId: string) => void;
+  onTryout: (quizId: string) => void;
   onEdit: (quizId: string) => void;
   onAnalytic: (quizId: string) => void;
   onToggleFavorite: (quiz: Quiz) => void;
@@ -46,6 +47,7 @@ export function QuizCard({
   tabKey,
   category,
   onHost,
+  onTryout,
   onEdit,
   onAnalytic,
   onToggleFavorite,
@@ -161,11 +163,9 @@ export function QuizCard({
             <Button size="sm" className="button-orange" onClick={() => onHost(quiz.id)}>
               <Play className="mr-1 h-3 w-3 fill-current" /> Host
             </Button>
-            <Link href={`/tryout/settings/${quiz.id}`}>
-              <Button variant="outline" size="sm" className="button-yellow-outline">
+              <Button variant="outline" size="sm" className="button-yellow-outline" onClick={() => onTryout(quiz.id)}>
                 Tryout
               </Button>
-            </Link>
           </div>
         </div>
       </CardContent>

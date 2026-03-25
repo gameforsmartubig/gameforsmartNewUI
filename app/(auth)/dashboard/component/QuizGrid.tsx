@@ -20,6 +20,7 @@ interface QuizGridProps {
   currentPage:      number;
   onPageChange:     (page: number) => void;
   onHost:           (quizId: string) => void;
+  onTryout:         (quizId: string) => void;
   onEdit:           (quizId: string) => void;
   onAnalytic:       (quizId: string) => void;
   onToggleFavorite: (quiz: Quiz) => void;
@@ -34,6 +35,7 @@ export function QuizGrid({
   currentPage,
   onPageChange,
   onHost,
+  onTryout,
   onEdit,
   onAnalytic,
   onToggleFavorite,
@@ -57,6 +59,7 @@ export function QuizGrid({
             tabKey={tabKey}
             category={categoryMap[quiz.categoryId]}
             onHost={onHost}
+            onTryout={onTryout}
             onEdit={onEdit}
             onAnalytic={onAnalytic}
             onToggleFavorite={onToggleFavorite}
