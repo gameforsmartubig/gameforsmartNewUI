@@ -3,7 +3,6 @@
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import { Card, CardContent } from "@/components/ui/card";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -87,6 +86,11 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
         let profileId: string | null = null;
         let userRole: string | null = null;
 
+        if (!user) {
+          router.push("/login?redirect=/stat/" + id);
+          return;
+        }
+
         if (user) {
           const { data: profile } = await supabase
             .from("profiles")
@@ -159,7 +163,7 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
           if (me) setCurrentPlayerId(profileId);
           else if (!hostCheck) {
             toast.error("You are not part of this session.");
-            router.push("/login?redirect=/stat/" + id);
+            router.push("/dashboard?redirect=/stat/" + id);
           }
         }
       } catch (error) {
