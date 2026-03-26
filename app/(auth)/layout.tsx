@@ -29,7 +29,7 @@ export default async function AuthLayout({
             "calc(100vh - var(--header-height) - (var(--content-padding) * 2) - (var(--content-margin) * 2))"
         } as React.CSSProperties
       }>
-      <AppSidebar variant="inset" />
+      <AppSidebar variant="sidebar" />
       <NotificationListener />
       <SidebarInset>
         <SiteHeader />

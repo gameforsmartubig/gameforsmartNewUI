@@ -147,25 +147,25 @@ export function QuizCard({
         </div>
 
         {/* Stats + tombol aksi */}
-        <div className="flex flex-wrap items-center justify-between gap-2 pt-3">
-          <div className="flex items-center gap-4 text-xs font-medium text-zinc-700 dark:text-zinc-400">
-            <div className="flex items-center gap-1.5">
-              <CircleQuestionMark size={14} className="text-green-500" />
-              <span>{quiz.questions} Soal</span>
+        <div className="mt-auto flex items-end justify-between gap-3 pt-3">
+          <div className="flex flex-col gap-1 text-xs font-medium text-zinc-700 dark:text-zinc-400 min-w-0">
+            <div className="flex items-center gap-1.5 shrink-0">
+              <CircleQuestionMark size={14} className="text-green-500 shrink-0" />
+              <span className="truncate">{quiz.questions} Soal</span>
             </div>
-            <div className="flex items-center gap-1.5">
-              <Play size={14} className="text-yellow-500" />
-              <span>{quiz.played} Main</span>
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Play size={14} className="text-yellow-500 shrink-0" />
+              <span className="truncate">{quiz.played} Main</span>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 shrink-0">
             <Button size="sm" className="button-orange" onClick={() => onHost(quiz.id)}>
               <Play className="mr-1 h-3 w-3 fill-current" /> Host
             </Button>
-              <Button variant="outline" size="sm" className="button-yellow-outline" onClick={() => onTryout(quiz.id)}>
-                Tryout
-              </Button>
+            <Button variant="outline" size="sm" className="button-yellow-outline" onClick={() => onTryout(quiz.id)}>
+              Tryout
+            </Button>
           </div>
         </div>
       </CardContent>

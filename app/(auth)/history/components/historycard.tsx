@@ -10,6 +10,7 @@ import { PaginationControl } from "@/components/pagination-control";
 import { formatTimeAgo } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface Props {
   quiz: QuizHistory[];
@@ -40,39 +41,45 @@ export default function QuizHistoryCard({ quiz }: Props) {
           <Card
             key={quiz.id}
             onClick={() => router.push(`/result/${quiz.id.split("-")[0]}`)}
-            className="py-0 transition hover:shadow-md">
-            <CardContent className="space-y-4 p-6">
+            className="border-card py-0 transition-all hover:shadow-md cursor-pointer group relative overflow-hidden"
+          >
+            <div className={cn(
+              "vertical-line",
+              quiz.role === "host" ? "bg-green-500" : "bg-yellow-500"
+            )} />
+            <CardContent className="flex flex-1 flex-col gap-3 px-5 py-4">
               {/* Top Badge */}
-              <div className="flex items-start justify-between">
-                <Badge variant={quiz.role === "host" ? "default" : "secondary"}>
-                  {quiz.role.toUpperCase()}
-                </Badge>
-              </div>
-              {/* Title */}
-              <div>
-                <h3 className="truncate font-semibold" title={quiz.quiztitle}>
-                  {quiz.quiztitle}
-                </h3>
+              <div className="flex items-center justify-between">
+                <span className={cn(
+                  "rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                  quiz.role === "host"
+                    ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400"
+                    : "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                )}>
+                  {quiz.role}
+                </span>
+                <span className="text-[10px] font-medium text-zinc-400">
+                  {formatTimeAgo(quiz.ended_at)}
+                </span>
               </div>
 
+              {/* Title */}
+              <h3 className="line-clamp-2 text-sm font-bold text-zinc-800 dark:text-zinc-200 group-hover:text-orange-600 transition-colors" title={quiz.quiztitle}>
+                {quiz.quiztitle}
+              </h3>
+
               {/* Meta */}
-              <div className="text-muted-foreground space-y-1 text-sm">
-                <div
-                  className="flex items-center gap-2"
-                  title={`${new Date(quiz.ended_at).toLocaleDateString("id-ID", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                    hour: "2-digit",
-                    minute: "2-digit"
-                  })}${quiz.role === "player" && quiz.hostName ? ` (Host: ${quiz.hostName})` : ""}`}>
-                  <Calendar className="size-4" />
-                  {formatTimeAgo(quiz.ended_at)}
+              <div className="mt-auto flex items-center justify-between border-t border-zinc-100 dark:border-zinc-800 pt-3">
+                <div className="flex items-center gap-2 text-[11px] font-semibold text-zinc-600 dark:text-zinc-400">
+                  <Gamepad2 size={13} className="text-orange-500" />
+                  <span className="truncate max-w-[120px]">{quiz.application}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <Gamepad2 className="size-4" />
-                  {quiz.application}
-                </div>
+                {quiz.role === "player" && quiz.hostName && (
+                  <div className="flex items-center gap-1.5 text-[10px] text-zinc-400">
+                    <span className="h-1 w-1 rounded-full bg-zinc-300" />
+                    <span className="truncate max-w-[80px]">Host: {quiz.hostName}</span>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

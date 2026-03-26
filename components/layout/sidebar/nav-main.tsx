@@ -159,10 +159,10 @@ export function NavMain() {
                               <SidebarMenuButton
                                 tooltip={item.title}
                                 className={`sidebar ${isSubItemActive ? "active" : ""}`}>
-                                <div className="relative z-10 flex w-full items-center gap-2">
+                                <div className="relative z-10 flex w-full items-center gap-3 group-data-[collapsible=icon]:justify-center">
                                   {item.icon && <item.icon />}
-                                  <span>{item.title}</span>
-                                  <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                  <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                                  <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
                                 </div>
                               </SidebarMenuButton>
                             </DropdownMenuTrigger>
@@ -196,10 +196,10 @@ export function NavMain() {
                             <SidebarMenuButton
                               className="sidebar transition-all duration-300"
                               tooltip={item.title}>
-                              <div className="relative z-10 flex w-full items-center gap-2">
+                              <div className="relative z-10 flex w-full items-center gap-3 group-data-[collapsible=icon]:justify-center">
                                 {item.icon && <item.icon />}
-                                <span>{item.title}</span>
-                                <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
+                                <ChevronRight className="ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90 group-data-[collapsible=icon]:hidden" />
                               </div>
                             </SidebarMenuButton>
                           </CollapsibleTrigger>
@@ -237,12 +237,12 @@ export function NavMain() {
                         isActive={isParentActive}
                         tooltip={item.title}
                         asChild>
-                        <Link
+                          <Link
                           href={item.href}
                           target={item.newTab ? "_blank" : ""}
-                          className="relative z-10 flex w-full items-center gap-2">
+                          className="relative z-10 flex w-full items-center gap-3 group-data-[collapsible=icon]:justify-center">
                           {item.icon && <item.icon />}
-                          <span>{item.title}</span>
+                          <span className="group-data-[collapsible=icon]:hidden">{item.title}</span>
                         </Link>
                       </SidebarMenuButton>
                     )}

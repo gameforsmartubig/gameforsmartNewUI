@@ -82,16 +82,14 @@ export function DashboardTabs({
 
           <div className="hidden flex-row items-center justify-end gap-2 sm:flex sm:w-auto">
             <Button
-              variant="outline"
-              className="button-green flex"
+              className="bg-green-600 hover:bg-green-700 text-white flex shadow-sm border-0"
               onClick={() => router.push("/create")}
             >
               <PlusIcon className="mr-1 h-4 w-4" />
               <span>Create Quiz</span>
             </Button>
             <Button
-              variant="outline"
-              className="button-yellow flex"
+              className="bg-amber-500 hover:bg-amber-600 text-white flex shadow-sm border-0"
               onClick={() => router.push("/join")}
             >
               <Play className="mr-1 h-4 w-4" />
@@ -103,15 +101,13 @@ export function DashboardTabs({
         {/* Tombol mobile */}
         <div className="mt-4 flex w-full gap-2 sm:hidden">
           <Button
-            variant="outline"
-            className="button-green flex-1"
+            className="bg-green-600 hover:bg-green-700 text-white flex-1 shadow-sm border-0"
             onClick={() => router.push("/create")}
           >
             Create
           </Button>
           <Button
-            variant="outline"
-            className="button-yellow flex-1"
+            className="bg-amber-500 hover:bg-amber-600 text-white flex-1 shadow-sm border-0"
             onClick={() => router.push("/join")}
           >
             Join

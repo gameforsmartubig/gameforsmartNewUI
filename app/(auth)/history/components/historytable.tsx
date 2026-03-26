@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { QuizHistory } from "@/app/(auth)/history/page";
-import { formatTimeAgo } from "@/lib/utils";
+import { formatTimeAgo, cn } from "@/lib/utils";
 
 interface Props {
   data: QuizHistory[];
@@ -51,8 +51,10 @@ export default function QuizHistoryTable({ data }: Props) {
               </TableRow>
             ) : (
               currentItems.map((item) => (
-                <TableRow key={item.id}>
-                  <TableCell className="font-medium">{item.quiztitle}</TableCell>
+                <TableRow key={item.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors">
+                  <TableCell className="font-bold text-zinc-800 dark:text-zinc-200 truncate max-w-[200px]" title={item.quiztitle}>
+                    {item.quiztitle}
+                  </TableCell>
 
                   <TableCell
                     title={`${new Date(item.ended_at).toLocaleDateString("id-ID", {
@@ -68,9 +70,14 @@ export default function QuizHistoryTable({ data }: Props) {
                   <TableCell>{item.application}</TableCell>
 
                   <TableCell className="text-right">
-                    <Badge variant={item.role === "host" ? "default" : "secondary"}>
-                      {item.role === "host" ? "HOST" : "PLAYER"}
-                    </Badge>
+                    <span className={cn(
+                      "inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                      item.role === "host"
+                        ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400"
+                        : "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                    )}>
+                      {item.role}
+                    </span>
                   </TableCell>
                 </TableRow>
               ))

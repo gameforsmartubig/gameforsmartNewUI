@@ -41,20 +41,20 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-                <div className="h-10 group-data-[collapsible=icon]:px-0!">
+                <div className="h-14 flex items-center justify-center group-data-[collapsible=icon]:px-0!">
                   <Image
                         src="/logo.png"
                         width={100}
-                        height={40}
-                        className="hidden ml-1 group-data-[collapsible=icon]:block group-data-[collapsible=icon]:size-8"
+                        height={100}
+                        className="hidden group-data-[collapsible=icon]:block group-data-[collapsible=icon]:size-12 object-contain mx-auto"
                         alt="gameforsmart logo"
                         unoptimized
                       />
                   <Image
                         src="/gameforsmartlogo.png"
-                        width={100}
-                        height={40}
-                        className="w-full ml-1 group-data-[collapsible=icon]:hidden"
+                        width={240}
+                        height={80}
+                        className="w-[220px] max-w-none group-data-[collapsible=icon]:hidden object-contain mx-auto"
                         alt="gameforsmart logo"
                         unoptimized
                       />

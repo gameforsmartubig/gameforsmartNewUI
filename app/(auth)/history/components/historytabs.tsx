@@ -5,6 +5,7 @@ import QuizHistoryCard from "./historycard";
 import { QuizHistory } from "@/app/(auth)/history/page";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import {
   ArrowDown01,
   ArrowDown10,
@@ -147,22 +148,20 @@ export default function QuizHistoryTabs({ data }: Props) {
             <Button
               variant={model === "grid" ? "default" : "outline"}
               onClick={() => setModel("grid")}
-              className={`h-8 w-8 transition-colors ${
-                model === "grid"
-                  ? "border-orange-400 bg-orange-400 text-white hover:bg-orange-500" // Saat aktif (Halaman sekarang)
-                  : "border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-400 dark:hover:bg-orange-950/50 dark:hover:text-orange-400"
-              }`}>
-              <LayoutGrid />
+              className={cn(
+                "h-8 w-8 px-0 transition-all",
+                model === "grid" ? "button-orange border-0" : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+              )}>
+              <LayoutGrid className="size-4" />
             </Button>
             <Button
               variant={model === "list" ? "default" : "outline"}
               onClick={() => setModel("list")}
-              className={`h-8 w-8 transition-colors ${
-                model === "list"
-                  ? "border-orange-400 bg-orange-400 text-white hover:bg-orange-500" // Saat aktif (Halaman sekarang)
-                  : "border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-400 dark:hover:bg-orange-950/50 dark:hover:text-orange-400"
-              }`}>
-              <List />
+              className={cn(
+                "h-8 w-8 px-0 transition-all",
+                model === "list" ? "button-orange border-0" : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+              )}>
+              <List className="size-4" />
             </Button>
           </ButtonGroup>
         </div>
@@ -172,22 +171,20 @@ export default function QuizHistoryTabs({ data }: Props) {
             <Button
               variant={model === "grid" ? "default" : "outline"}
               onClick={() => setModel("grid")}
-              className={`h-8 w-8 transition-colors ${
-                model === "grid"
-                  ? "border-orange-400 bg-orange-400 text-white hover:bg-orange-500" // Saat aktif (Halaman sekarang)
-                  : "border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-400 dark:hover:bg-orange-950/50 dark:hover:text-orange-400"
-              }`}>
-              <LayoutGrid />
+              className={cn(
+                "h-8 w-8 px-0 transition-all",
+                model === "grid" ? "button-orange border-0" : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+              )}>
+              <LayoutGrid className="size-4" />
             </Button>
             <Button
               variant={model === "list" ? "default" : "outline"}
               onClick={() => setModel("list")}
-              className={`h-8 w-8 transition-colors ${
-                model === "list"
-                  ? "border-orange-400 bg-orange-400 text-white hover:bg-orange-500" // Saat aktif (Halaman sekarang)
-                  : "border-slate-200 text-black hover:border-orange-300 hover:bg-orange-50 hover:text-orange-600 dark:border-zinc-700 dark:text-white dark:hover:border-orange-400 dark:hover:bg-orange-950/50 dark:hover:text-orange-400"
-              }`}>
-              <List />
+              className={cn(
+                "h-8 w-8 px-0 transition-all",
+                model === "list" ? "button-orange border-0" : "bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+              )}>
+              <List className="size-4" />
             </Button>
           </ButtonGroup>
           {sort === "asc" ? (
@@ -200,7 +197,7 @@ export default function QuizHistoryTabs({ data }: Props) {
             </Button>
           )}
           <Select value={filterTime} onValueChange={setFilterTime}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="input h-8 w-[140px] text-xs font-semibold">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
@@ -213,8 +210,8 @@ export default function QuizHistoryTabs({ data }: Props) {
           </Select>
           <div className="relative w-full sm:w-auto">
             <Input
-              placeholder="Search quizzes..."
-              className="input w-full pr-20 pl-3 sm:w-[250px]"
+              placeholder="Cari history..."
+              className="input h-8 w-full pr-20 pl-3 sm:w-[220px] text-xs"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
               onKeyDown={(e) => {
@@ -225,9 +222,9 @@ export default function QuizHistoryTabs({ data }: Props) {
             />
             <Button
               variant="default"
-              className="button-orange absolute top-1 right-1 h-7 w-7 p-2"
+              className="button-orange absolute top-1 right-1 h-6 w-6 p-1.5"
               onClick={handleSearch}>
-              <Search size={20} />
+              <Search size={14} />
             </Button>
           </div>
         </div>

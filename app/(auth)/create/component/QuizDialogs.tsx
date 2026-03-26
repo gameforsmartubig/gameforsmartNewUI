@@ -68,7 +68,7 @@ export function ValidationDialog({ open, onOpenChange, validationIssues, onFix }
           <Button
             size="sm"
             onClick={onFix}
-            className="gap-1.5 text-xs bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 text-white"
+            className="gap-1.5 text-xs button-orange"
           >
             Perbaiki Soal
             <ArrowRight className="w-3.5 h-3.5" />
@@ -107,7 +107,7 @@ export function QuotaExceededDialog({ open, onOpenChange }: QuotaExceededDialogP
           <Button
             size="sm"
             onClick={() => onOpenChange(false)}
-            className="w-full text-xs bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 text-white"
+            className="w-full text-xs button-orange"
           >
             Mengerti
           </Button>
@@ -179,7 +179,7 @@ export function PublicRequestDialog({ open, onOpenChange, onConfirm }: PublicReq
           <Button
             size="sm"
             onClick={onConfirm}
-            className="gap-1.5 text-xs bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 text-white"
+            className="gap-1.5 text-xs button-orange"
           >
             <Globe className="w-3.5 h-3.5" />
             Ajukan sebagai Publik

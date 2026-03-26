@@ -1,12 +1,6 @@
 "use client";
 
-// ============================================================
-// _components/steps/ImportStep.tsx  (Shadcn Admin style)
-// Excel file import + quiz metadata
-// ============================================================
-
 import { useRef } from "react";
-import { Separator } from "@/components/ui/separator";
 import { FileSpreadsheet, Upload, CheckCircle2, FileUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { QuizFormFields } from "../QuizFormFields";
@@ -24,16 +18,15 @@ export function ImportStep({ formData, onChange, questionsCount, onImport }: Imp
 
   return (
     <div className="space-y-6 max-w-3xl">
-
       {/* Upload card */}
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-        <div className="flex items-center gap-2.5 px-5 py-4 border-b border-zinc-100 dark:border-zinc-800">
-          <div className="w-7 h-7 rounded-md bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+        <div className="flex items-center gap-2.5 px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
+          <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center text-white">
+            <FileSpreadsheet className="w-4 h-4" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">Import dari Excel</p>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400">Upload file .xlsx atau .xls</p>
+            <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Import Excel</p>
+            <p className="text-[10px] text-green-600 dark:text-green-400 font-semibold">XLSX, XLS Supported</p>
           </div>
         </div>
 
@@ -51,64 +44,50 @@ export function ImportStep({ formData, onChange, questionsCount, onImport }: Imp
           />
 
           {questionsCount > 0 ? (
-            /* Success state */
-            <div className="flex flex-col items-center justify-center py-10 text-center">
-              <div className="w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center mb-3">
-                <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+            <div className="flex flex-col items-center py-12 text-center">
+              <div className="w-16 h-16 rounded-xl bg-green-50 dark:bg-green-900/20 flex items-center justify-center mb-4">
+                <CheckCircle2 className="w-8 h-8 text-green-500" />
               </div>
-              <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-1">
-                {questionsCount} soal berhasil diimpor
-              </p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
-                Anda bisa mengedit soal di tab <span className="font-medium text-zinc-700 dark:text-zinc-300">Soal</span>
+              <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100 mb-1">{questionsCount} Soal Berhasil Diimpor!</p>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 mb-6 max-w-xs">
+                Data berhasil diproses. Anda bisa mengedit di tab <span className="font-bold text-green-600 dark:text-green-400">Soal</span>.
               </p>
               <button
                 type="button"
                 onClick={() => inputRef.current?.click()}
-                className="text-xs text-zinc-500 underline underline-offset-2 hover:text-zinc-700 dark:hover:text-zinc-300"
+                className="text-xs font-semibold text-zinc-400 hover:text-green-600 transition-colors flex items-center gap-1.5"
               >
-                Upload file berbeda
+                <Upload className="w-3.5 h-3.5" /> Upload file berbeda
               </button>
             </div>
           ) : (
-            /* Drop zone */
             <label
               htmlFor="excel-upload"
               className={cn(
-                "flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed px-6 py-12",
-                "border-zinc-200 dark:border-zinc-700 cursor-pointer",
-                "hover:border-zinc-400 dark:hover:border-zinc-500 hover:bg-zinc-50 dark:hover:bg-zinc-800/30 transition-colors"
+                "flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-dashed px-6 py-14 cursor-pointer transition-colors",
+                "border-zinc-200 dark:border-zinc-700",
+                "hover:border-green-400 hover:bg-green-50/50 dark:hover:border-green-700 dark:hover:bg-green-900/10"
               )}
             >
-              <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
-                <FileUp className="w-5 h-5 text-zinc-400 dark:text-zinc-500" />
+              <div className="w-14 h-14 rounded-xl bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+                <FileUp className="w-7 h-7 text-zinc-400 dark:text-zinc-500" />
               </div>
               <div className="text-center">
-                <p className="text-sm font-medium text-zinc-700 dark:text-zinc-300">
-                  Klik untuk upload, atau drag & drop
-                </p>
-                <p className="text-xs text-zinc-400 dark:text-zinc-500 mt-0.5">
-                  Format yang didukung: .xlsx, .xls
-                </p>
+                <p className="text-sm font-bold text-zinc-700 dark:text-zinc-300">Tarik & Lepas File ke Sini</p>
+                <p className="text-xs text-zinc-400 mt-1">Atau klik untuk memilih file Excel dari perangkat Anda</p>
               </div>
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-800 transition-colors">
-                <Upload className="w-3 h-3" />
-                Pilih File
+              <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-green-500 text-white text-xs font-bold hover:bg-green-600 transition-colors">
+                <Upload className="w-3.5 h-3.5" /> Pilih File Excel
               </span>
             </label>
           )}
         </div>
       </div>
 
-      {/* Metadata section */}
-      <div>
-        <div className="flex items-center gap-3 mb-4">
-          <p className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider whitespace-nowrap">
-            Detail Quiz
-          </p>
-          <Separator className="flex-1" />
-        </div>
-        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6">
+      {/* Quiz metadata */}
+      <div className="space-y-3">
+        <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Pengaturan Quiz</h3>
+        <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 p-5">
           <QuizFormFields formData={formData} onChange={onChange} idPrefix="excel" />
         </div>
       </div>

@@ -1,11 +1,5 @@
 "use client";
 
-// ============================================================
-// _components/QuizFormFields.tsx  (Shadcn Admin style)
-// Shared quiz metadata form – title, desc, category, language,
-// visibility, image. Used across InfoStep, GenerateStep, ImportStep.
-// ============================================================
-
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,118 +19,131 @@ interface QuizFormFieldsProps {
   idPrefix?: string;
 }
 
-// Reusable field wrapper
-function Field({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
-  return (
-    <div className={cn("space-y-1.5", className)}>
-      <Label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">{label}</Label>
-      {children}
-    </div>
-  );
-}
-
 export function QuizFormFields({ formData, onChange, idPrefix = "quiz" }: QuizFormFieldsProps) {
   const { t } = useI18n();
 
   return (
-    <div className="grid gap-6 sm:grid-cols-2">
+    <div className="space-y-5">
       {/* Title */}
-      <Field label="Title" className="sm:col-span-2">
+      <div className="space-y-1.5">
+        <Label htmlFor={`${idPrefix}-title`} className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Judul Quiz</Label>
         <Input
           id={`${idPrefix}-title`}
-          placeholder="Title"
+          placeholder="Contoh: Pengetahuan Umum Dunia"
           value={formData.title}
           onChange={(e) => onChange({ title: e.target.value })}
-          className="h-9 text-sm border-zinc-200 dark:border-zinc-700 focus-visible:ring-zinc-500"
+          className="input"
         />
-      </Field>
+      </div>
 
       {/* Description */}
-      <Field label="Description" className="sm:col-span-2">
+      <div className="space-y-1.5">
+        <Label htmlFor={`${idPrefix}-description`} className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Deskripsi</Label>
         <Textarea
           id={`${idPrefix}-description`}
-          placeholder="Description"
+          placeholder="Jelaskan tentang apa quiz ini..."
           value={formData.description}
           onChange={(e) => onChange({ description: e.target.value })}
           rows={3}
-          className="text-sm border-zinc-200 dark:border-zinc-700 focus-visible:ring-zinc-500 resize-none"
+          className="input resize-none"
         />
-      </Field>
+      </div>
 
-      {/* Category */}
-      <Field label="Category">
-        <Select value={formData.category} onValueChange={(v) => onChange({ category: v })}>
-          <SelectTrigger className="h-9 text-sm border-zinc-200 dark:border-zinc-700">
-            <SelectValue placeholder="Category" />
-          </SelectTrigger>
-          <SelectContent>
-            {[
-              { value: "general", emoji: "🌍", label: "General" },
-              { value: "science", emoji: "🔬", label: "Science" },
-              { value: "math", emoji: "📊", label: "Math" },
-              { value: "history", emoji: "📚", label: "History" },
-              { value: "geography", emoji: "🗺️", label: "Geography" },
-              { value: "language", emoji: "💬", label: "Language" },
-              { value: "technology", emoji: "💻", label: "Technology" },
-              { value: "sports", emoji: "⚽", label: "Sports" },
-              { value: "entertainment", emoji: "🎬", label: "Entertainment" },
-              { value: "business", emoji: "💼", label: "Business" },
-            ].map((c) => (
-              <SelectItem key={c.value} value={c.value} className="text-sm">
-                {c.emoji} {c.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </Field>
+      {/* Category + Language row */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Kategori</Label>
+          <Select value={formData.category} onValueChange={(v) => onChange({ category: v })}>
+            <SelectTrigger className="input">
+              <SelectValue placeholder="Pilih Kategori" />
+            </SelectTrigger>
+            <SelectContent>
+              {[
+                { value: "general", emoji: "🌍", label: "Umum" },
+                { value: "science", emoji: "🔬", label: "Sains" },
+                { value: "math", emoji: "📊", label: "Matematika" },
+                { value: "history", emoji: "📚", label: "Sejarah" },
+                { value: "geography", emoji: "🗺️", label: "Geografi" },
+                { value: "language", emoji: "💬", label: "Bahasa" },
+                { value: "technology", emoji: "💻", label: "Teknologi" },
+                { value: "sports", emoji: "⚽", label: "Olahraga" },
+                { value: "entertainment", emoji: "🎬", label: "Hiburan" },
+                { value: "business", emoji: "💼", label: "Bisnis" },
+              ].map((c) => (
+                <SelectItem key={c.value} value={c.value}>
+                  <span className="mr-1.5">{c.emoji}</span> {c.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-      {/* Language */}
-      <Field label="Language">
-        <Select value={formData.language} onValueChange={(v) => onChange({ language: v })}>
-          <SelectTrigger className="h-9 text-sm border-zinc-200 dark:border-zinc-700">
-            <SelectValue placeholder="Language" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="id" className="text-sm">🇮🇩 Indonesia</SelectItem>
-            <SelectItem value="en" className="text-sm">🇺🇸 English</SelectItem>
-          </SelectContent>
-        </Select>
-      </Field>
+        <div className="space-y-1.5">
+          <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Bahasa</Label>
+          <Select value={formData.language} onValueChange={(v) => onChange({ language: v })}>
+            <SelectTrigger className="input">
+              <SelectValue placeholder="Pilih Bahasa" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="id">🇮🇩 Indonesia</SelectItem>
+              <SelectItem value="en">🇺🇸 English</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
       {/* Visibility */}
-      <Field label="Visibility" className="sm:col-span-2">
-        <div className="flex items-center justify-between rounded-lg border border-zinc-200 dark:border-zinc-700 px-4 py-3 bg-zinc-50 dark:bg-zinc-900/50">
-          <div className="flex items-center gap-2.5">
-            {formData.is_public
-              ? <Globe className="w-4 h-4 text-emerald-500" />
-              : <Lock className="w-4 h-4 text-zinc-400" />}
-            <div>
-              <p className="text-sm font-medium text-zinc-800 dark:text-zinc-200">
-                {formData.is_public ? "Public" : "Private"}
-              </p>
-              <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                {formData.is_public
-                  ? "Quiz akan diajukan untuk review dan menjadi publik setelah disetujui"
-                  : "Hanya Anda yang bisa melihat quiz ini"}
-              </p>
-            </div>
+      <div className={cn(
+        "flex items-center justify-between rounded-lg border p-4 transition-colors",
+        formData.is_public
+          ? "border-green-200 bg-green-50/50 dark:border-green-800 dark:bg-green-900/10"
+          : "border-zinc-200 dark:border-zinc-800"
+      )}>
+        <div className="flex items-center gap-3">
+          <div className={cn(
+            "w-8 h-8 rounded-lg flex items-center justify-center",
+            formData.is_public
+              ? "bg-green-500 text-white"
+              : "bg-zinc-100 dark:bg-zinc-800 text-zinc-500"
+          )}>
+            {formData.is_public ? <Globe className="w-4 h-4" /> : <Lock className="w-4 h-4" />}
           </div>
-          <Switch
-            checked={formData.is_public}
-            onCheckedChange={(checked) => onChange({ is_public: checked })}
-          />
+          <div>
+            <p className={cn(
+              "text-sm font-bold",
+              formData.is_public ? "text-green-700 dark:text-green-400" : "text-zinc-800 dark:text-zinc-200"
+            )}>
+              {formData.is_public ? "Buka untuk Publik" : "Quiz Privat"}
+            </p>
+            <p className="text-[11px] text-zinc-500 dark:text-zinc-400">
+              {formData.is_public
+                ? "Bisa dimainkan semua orang setelah disetujui."
+                : "Hanya Anda yang bisa mengakses quiz ini."}
+            </p>
+          </div>
         </div>
-      </Field>
+        <Switch
+          checked={formData.is_public}
+          onCheckedChange={(checked) => onChange({ is_public: checked })}
+          className="data-[state=checked]:bg-green-500"
+        />
+      </div>
 
       {/* Cover Image */}
-      <Field label="Gambar Cover" className="sm:col-span-2">
-        <ImageUpload
-          imageUrl={formData.image_url}
-          onImageChange={(url: any) => onChange({ image_url: url })}
-          label=""
-          className="w-full max-w-sm"
-        />
-      </Field>
+      <div className="space-y-1.5">
+        <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Gambar Cover</Label>
+        <div className="rounded-lg border border-zinc-200 dark:border-zinc-800 p-4">
+          <ImageUpload
+            imageUrl={formData.image_url}
+            onImageChange={(url: any) => onChange({ image_url: url })}
+            label=""
+            className="w-full max-w-md mx-auto aspect-video rounded-lg overflow-hidden"
+          />
+          <p className="text-[10px] text-center text-zinc-400 mt-3 font-medium">
+            Rekomendasi: 1200x630 pixel (JPG/PNG)
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

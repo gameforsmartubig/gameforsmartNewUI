@@ -1,21 +1,16 @@
 "use client";
 
-// ============================================================
-// _components/steps/QuestionsStep.tsx  (Shadcn Admin style)
-// Question editor + sidebar navigator
-// ============================================================
-
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
 import Image from "next/image";
 import {
   Plus, Trash2, ChevronLeft, ChevronRight, FileText,
-  Zap, Image as ImageIcon, Loader2, Wand2,
+  Image as ImageIcon, Loader2, Wand2, CheckCircle2,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useI18n } from "@/hooks/use-i18n";
@@ -23,10 +18,9 @@ import { ANSWER_COLORS, QUESTIONS_PER_PAGE } from "../../utils/constants";
 import type { Question, CreationMethod, AiOptions } from "../../types";
 import CompactImageUpload from "@/components/ui/compact-image-upload";
 
-// Answer label letters
 const ANSWER_LABELS = ["A", "B", "C", "D"];
 
-// ---- Single answer card ----
+// ─── Answer Card ───
 interface AnswerCardProps {
   answerId: string;
   answerIndex: number;
@@ -48,16 +42,9 @@ function AnswerCard({ answerId, answerIndex, answerText, answerImage, isCorrect,
     input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        try {
-          // Store as data URL preview — actual upload happens on Save
-          const reader = new FileReader();
-          reader.onloadend = () => {
-            onUpdate(questionId, answerId, "image", reader.result as string);
-          };
-          reader.readAsDataURL(file);
-        } catch (err) {
-          console.error(err);
-        }
+        const reader = new FileReader();
+        reader.onloadend = () => onUpdate(questionId, answerId, "image", reader.result as string);
+        reader.readAsDataURL(file);
       }
     };
     input.click();
@@ -66,76 +53,68 @@ function AnswerCard({ answerId, answerIndex, answerText, answerImage, isCorrect,
   const isDataUrl = answerImage?.startsWith("data:");
 
   return (
-    <div
-      className={cn(
-        "rounded-lg border transition-colors",
-        isCorrect
-          ? "border-emerald-300 bg-emerald-50 dark:border-emerald-700 dark:bg-emerald-900/20"
-          : "border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-900"
-      )}
-    >
-      <div className="flex items-center gap-2.5 px-3 pt-3 pb-2">
-        {/* Color dot + radio */}
-        <label className="flex items-center gap-2 cursor-pointer flex-shrink-0">
-          <div
-            className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
-            style={{ backgroundColor: color }}
-          >
+    <div className={cn(
+      "rounded-lg border p-3 transition-colors",
+      isCorrect
+        ? "border-green-300 bg-green-50/50 dark:border-green-700 dark:bg-green-900/10"
+        : "border-zinc-200 dark:border-zinc-800 hover:border-zinc-300"
+    )}>
+      <div className="flex items-center gap-2.5 mb-2">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <div className="w-6 h-6 rounded flex items-center justify-center text-white text-[10px] font-bold" style={{ backgroundColor: color }}>
             {label}
           </div>
-          <input
-            type="radio"
-            name={`correct-${questionId}`}
-            checked={isCorrect}
-            onChange={() => onUpdate(questionId, answerId, "correct-radio", answerId)}
-            className="w-3 h-3 accent-emerald-500"
-            aria-label={`Jawaban ${label} benar`}
-          />
-          <span className="text-[10px] text-zinc-500 dark:text-zinc-400">Benar</span>
+          <div className="relative flex items-center">
+            <input
+              type="radio"
+              name={`correct-${questionId}`}
+              checked={isCorrect}
+              onChange={() => onUpdate(questionId, answerId, "correct-radio", answerId)}
+              className="peer appearance-none w-4 h-4 rounded-full border-2 border-zinc-300 dark:border-zinc-600 checked:border-green-500 checked:bg-green-500 transition-all cursor-pointer"
+            />
+            <CheckCircle2 className="absolute w-2.5 h-2.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none left-[3px]" />
+          </div>
+          <span className={cn(
+            "text-[10px] font-semibold",
+            isCorrect ? "text-green-600 dark:text-green-400" : "text-zinc-400"
+          )}>
+            Correct
+          </span>
         </label>
-
-        {/* Image upload button */}
-        <button
-          type="button"
-          onClick={handleImageUpload}
-          className="ml-auto flex items-center gap-1 text-[10px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 px-1.5 py-0.5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
-        >
-          <ImageIcon className="w-3 h-3" />
-          <span>Gambar</span>
+        <button type="button" onClick={handleImageUpload} className="ml-auto text-zinc-400 hover:text-orange-500 transition-colors" title="Add image">
+          <ImageIcon className="w-3.5 h-3.5" />
         </button>
       </div>
 
-      <div className="px-3 pb-3">
-        <Input
-          value={answerText}
-          onChange={(e) => onUpdate(questionId, answerId, "answer", e.target.value)}
-          placeholder={`Jawaban ${label}`}
-          className="h-8 text-xs border-zinc-200 dark:border-zinc-700 focus-visible:ring-emerald-400"
-        />
-      </div>
+      <Input
+        value={answerText}
+        onChange={(e) => onUpdate(questionId, answerId, "answer", e.target.value)}
+        placeholder={`Jawaban ${label}...`}
+        className={cn("input h-9 text-sm", isCorrect ? "focus-visible:ring-green-500" : "")}
+      />
 
       {answerImage && (
-        <div className="px-3 pb-3">
-          <div className="relative w-full h-16 rounded-md overflow-hidden border border-zinc-200 dark:border-zinc-700">
-            {isDataUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={answerImage} alt={`Answer ${label}`} className="object-cover w-full h-full" />
-            ) : (
-              <Image src={answerImage} alt={`Answer ${label}`} fill className="object-cover" />
-            )}
-            <button
-              type="button"
-              onClick={() => onUpdate(questionId, answerId, "image", null)}
-              className="absolute top-1 right-1 w-4 h-4 bg-red-500 hover:bg-red-600 text-white rounded-full text-[10px] flex items-center justify-center"
-            >×</button>
-          </div>
+        <div className="mt-2 relative w-full aspect-video rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-800 group">
+          {isDataUrl ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={answerImage} alt={`Answer ${label}`} className="object-cover w-full h-full" />
+          ) : (
+            <Image src={answerImage} alt={`Answer ${label}`} fill className="object-cover" />
+          )}
+          <button
+            type="button"
+            onClick={() => onUpdate(questionId, answerId, "image", null)}
+            className="absolute top-1.5 right-1.5 w-6 h-6 bg-red-500 text-white rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
         </div>
       )}
     </div>
   );
 }
 
-// ---- Question editor panel ----
+// ─── Question Editor ───
 interface QuestionEditorProps {
   question: Question;
   questionIndex: number;
@@ -148,9 +127,6 @@ interface QuestionEditorProps {
 }
 
 function QuestionEditor({ question, questionIndex, totalQuestions, onUpdate, onUpdateAnswer, onDelete, onPrev, onNext }: QuestionEditorProps) {
-  const { t } = useI18n();
-
-  // Proxy updateAnswer to handle correct radio special case
   const handleUpdateAnswer = (questionId: string, answerId: string, field: string, value: unknown) => {
     if (field === "correct-radio") {
       onUpdate(questionId, "correct", value);
@@ -160,40 +136,38 @@ function QuestionEditor({ question, questionIndex, totalQuestions, onUpdate, onU
   };
 
   return (
-    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-      {/* Question header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider">
-            Soal
-          </span>
-          <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5 tabular-nums">
-            {questionIndex + 1} / {totalQuestions}
-          </Badge>
+    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+      {/* Header */}
+      <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center font-bold text-xs">
+            {questionIndex + 1}
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Pertanyaan {questionIndex + 1}</h3>
+            <p className="text-[10px] text-zinc-500">Total {totalQuestions} Soal</p>
+          </div>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => onDelete(question.id)}
-          className="h-7 w-7 p-0 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
+        <Button variant="ghost" size="icon" onClick={() => onDelete(question.id)} className="h-8 w-8 text-zinc-400 hover:text-red-500 rounded-lg">
+          <Trash2 className="w-4 h-4" />
         </Button>
       </div>
 
       <div className="p-5 space-y-5">
-        {/* Question text + image */}
-        <div className="space-y-1.5">
-          <Label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Pertanyaan</Label>
-          <div className="flex gap-3">
+        {/* Question text + media */}
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1 space-y-1.5">
+            <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Teks Pertanyaan</Label>
             <Textarea
               value={question.question}
               onChange={(e) => onUpdate(question.id, "question", e.target.value)}
-              placeholder="Tulis pertanyaan di sini..."
-              rows={2}
-              className="flex-1 text-sm border-zinc-200 dark:border-zinc-700 focus-visible:ring-zinc-500 resize-none"
+              placeholder="Tuliskan pertanyaan Anda di sini..."
+              className="input min-h-[100px] resize-none"
             />
-            <div className="w-28 flex-shrink-0">
+          </div>
+          <div className="w-full md:w-48 shrink-0 space-y-1.5">
+            <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Media</Label>
+            <div className="aspect-square rounded-lg overflow-hidden border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-900">
               <CompactImageUpload
                 imageUrl={question.image}
                 onImageChange={(url: any) => onUpdate(question.id, "image", url)}
@@ -204,9 +178,12 @@ function QuestionEditor({ question, questionIndex, totalQuestions, onUpdate, onU
         </div>
 
         {/* Answers */}
-        <div className="space-y-1.5">
-          <Label className="text-xs font-medium text-zinc-700 dark:text-zinc-300">Pilihan Jawaban</Label>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Opsi Jawaban</Label>
+            <p className="text-[10px] text-zinc-400">Pilih satu jawaban yang benar</p>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {question.answers.map((answer, aIndex) => (
               <AnswerCard
                 key={answer.id}
@@ -223,37 +200,21 @@ function QuestionEditor({ question, questionIndex, totalQuestions, onUpdate, onU
         </div>
       </div>
 
-      {/* Navigation footer */}
-      <div className="flex items-center justify-between px-5 py-3 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/50">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onPrev}
-          disabled={questionIndex === 0}
-          className="gap-1.5 h-8 text-xs"
-        >
-          <ChevronLeft className="w-3.5 h-3.5" />
-          Sebelumnya
+      {/* Navigation */}
+      <div className="flex items-center justify-between px-5 py-3 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
+        <Button variant="outline" size="sm" onClick={onPrev} disabled={questionIndex === 0} className="gap-1 text-xs rounded-lg">
+          <ChevronLeft className="w-3.5 h-3.5" /> Sebelumnya
         </Button>
-        <span className="text-xs text-zinc-400 dark:text-zinc-500 tabular-nums">
-          {questionIndex + 1} dari {totalQuestions}
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onNext}
-          disabled={questionIndex === totalQuestions - 1}
-          className="gap-1.5 h-8 text-xs"
-        >
-          Berikutnya
-          <ChevronRight className="w-3.5 h-3.5" />
+        <span className="text-[10px] text-zinc-400 font-semibold">{questionIndex + 1} / {totalQuestions}</span>
+        <Button variant="outline" size="sm" onClick={onNext} disabled={questionIndex === totalQuestions - 1} className="gap-1 text-xs rounded-lg">
+          Berikutnya <ChevronRight className="w-3.5 h-3.5" />
         </Button>
       </div>
     </div>
   );
 }
 
-// ---- Question navigator sidebar ----
+// ─── Navigator Sidebar ───
 interface QuestionNavigatorProps {
   questions: Question[];
   currentQuestionIndex: number;
@@ -272,40 +233,33 @@ function QuestionNavigator({ questions, currentQuestionIndex, currentPage, total
   ).length;
 
   return (
-    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden sticky top-4">
-      {/* Header */}
-      <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
+    <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden sticky top-32">
+      <div className="px-4 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
         <div className="flex items-center justify-between mb-2">
-          <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">Navigator</p>
-          <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums">
-            {completedCount}/{questions.length} selesai
-          </span>
+          <p className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">Navigator</p>
+          <Badge variant="secondary" className="text-[10px] font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 border-none px-1.5 py-0">
+            {completedCount}/{questions.length}
+          </Badge>
         </div>
-        {/* Progress bar */}
         <div className="h-1 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
-          <div
-            className="h-full bg-emerald-500 rounded-full transition-all duration-300"
-            style={{ width: `${questions.length > 0 ? (completedCount / questions.length) * 100 : 0}%` }}
-          />
+          <div className="h-full bg-green-500 rounded-full transition-all" style={{ width: `${questions.length > 0 ? (completedCount / questions.length) * 100 : 0}%` }} />
         </div>
       </div>
 
       <div className="p-3 space-y-3">
-        {/* Page controls */}
         {totalPages > 1 && (
-          <div className="flex items-center justify-between">
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => { const p = Math.max(0, currentPage - 1); onPageChange(p); onNavigate(p * QUESTIONS_PER_PAGE); }} disabled={currentPage === 0}>
+          <div className="flex items-center justify-between text-xs">
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { const p = Math.max(0, currentPage - 1); onPageChange(p); onNavigate(p * QUESTIONS_PER_PAGE); }} disabled={currentPage === 0}>
               <ChevronLeft className="w-3 h-3" />
             </Button>
-            <span className="text-[10px] text-zinc-400 dark:text-zinc-500 tabular-nums">{startIndex + 1}–{endIndex}</span>
-            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => { const p = Math.min(totalPages - 1, currentPage + 1); onPageChange(p); onNavigate(p * QUESTIONS_PER_PAGE); }} disabled={currentPage >= totalPages - 1}>
+            <span className="text-[10px] text-zinc-500 font-semibold">{startIndex + 1}–{endIndex}</span>
+            <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => { const p = Math.min(totalPages - 1, currentPage + 1); onPageChange(p); onNavigate(p * QUESTIONS_PER_PAGE); }} disabled={currentPage >= totalPages - 1}>
               <ChevronRight className="w-3 h-3" />
             </Button>
           </div>
         )}
 
-        {/* Question dots */}
-        <div className="flex flex-wrap gap-1.5">
+        <div className="grid grid-cols-4 gap-1.5">
           {currentPageQuestions.map((question, pageIndex) => {
             const globalIndex = startIndex + pageIndex;
             const isAnswered = question.question.trim() && question.answers.some((a) => a.id === question.correct) && question.answers.every(a => a.answer.trim());
@@ -316,12 +270,10 @@ function QuestionNavigator({ questions, currentQuestionIndex, currentPage, total
                 key={question.id}
                 onClick={() => onNavigate(globalIndex)}
                 className={cn(
-                  "w-7 h-7 rounded-md text-xs font-semibold transition-all",
-                  isCurrent
-                    ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
-                    : isAnswered
-                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-200"
-                    : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
+                  "aspect-square rounded-lg text-[10px] font-bold flex items-center justify-center transition-colors",
+                  isCurrent ? "bg-orange-500 text-white"
+                    : isAnswered ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                    : "bg-zinc-100 text-zinc-400 dark:bg-zinc-800 dark:text-zinc-600"
                 )}
               >
                 {globalIndex + 1}
@@ -330,16 +282,15 @@ function QuestionNavigator({ questions, currentQuestionIndex, currentPage, total
           })}
         </div>
 
-        {/* Legend */}
-        <div className="space-y-1 pt-1 border-t border-zinc-100 dark:border-zinc-800">
+        <div className="space-y-1 pt-2 border-t border-zinc-100 dark:border-zinc-800 text-[10px]">
           {[
-            { color: "bg-zinc-900 dark:bg-white", label: "Sedang diedit" },
-            { color: "bg-emerald-100 dark:bg-emerald-900/30", label: "Sudah diisi" },
-            { color: "bg-zinc-100 dark:bg-zinc-800", label: "Belum diisi" },
+            { color: "bg-orange-500", label: "Aktif" },
+            { color: "bg-green-500", label: "Lengkap" },
+            { color: "bg-zinc-200 dark:bg-zinc-800", label: "Kosong" },
           ].map(item => (
             <div key={item.label} className="flex items-center gap-2">
-              <div className={cn("w-3 h-3 rounded-sm", item.color)} />
-              <span className="text-[10px] text-zinc-400 dark:text-zinc-500">{item.label}</span>
+              <div className={cn("w-2 h-2 rounded-full", item.color)} />
+              <span className="text-zinc-500">{item.label}</span>
             </div>
           ))}
         </div>
@@ -348,7 +299,7 @@ function QuestionNavigator({ questions, currentQuestionIndex, currentPage, total
   );
 }
 
-// ---- AI Helper panel ----
+// ─── AI Helper ───
 interface AIHelperProps {
   aiPrompt: string;
   aiGenerating: boolean;
@@ -359,35 +310,29 @@ interface AIHelperProps {
 
 function AIHelperPanel({ aiPrompt, aiGenerating, onPromptChange, onGenerate, onClose }: AIHelperProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
-      transition={{ duration: 0.2 }}
-      className="overflow-hidden"
-    >
-      <div className="rounded-xl border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-900/20 p-5">
+    <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="mb-4">
+      <div className="rounded-xl border border-orange-200 dark:border-orange-800 bg-orange-50/50 dark:bg-orange-900/10 p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Zap className="w-4 h-4 text-violet-500" />
-            <p className="text-sm font-semibold text-violet-900 dark:text-violet-200">AI Question Helper</p>
+            <div className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center text-white">
+              <Sparkles className="w-3.5 h-3.5" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-zinc-900 dark:text-zinc-100">AI Helper</p>
+              <p className="text-[10px] text-orange-600 dark:text-orange-400 font-semibold">Generate pertanyaan otomatis</p>
+            </div>
           </div>
-          <button type="button" onClick={onClose} className="text-violet-400 hover:text-violet-600 text-lg leading-none">×</button>
+          <button type="button" onClick={onClose} className="text-zinc-400 hover:text-zinc-600 text-lg font-bold">×</button>
         </div>
-        <div className="space-y-3">
-          <Textarea
-            placeholder="Deskripsikan soal yang ingin dibuat dengan AI..."
-            value={aiPrompt}
-            onChange={(e) => onPromptChange(e.target.value)}
-            rows={2}
-            className="text-sm border-violet-200 dark:border-violet-700 bg-white dark:bg-zinc-900 resize-none"
-          />
-          <Button
-            onClick={onGenerate}
-            disabled={!aiPrompt.trim() || aiGenerating}
-            size="sm"
-            className="gap-1.5 bg-violet-600 hover:bg-violet-700 text-white"
-          >
+        <Textarea
+          placeholder="Ketik topik soal..."
+          value={aiPrompt}
+          onChange={(e) => onPromptChange(e.target.value)}
+          rows={2}
+          className="input resize-none mb-3"
+        />
+        <div className="flex justify-end">
+          <Button onClick={onGenerate} disabled={!aiPrompt.trim() || aiGenerating} size="sm" className="button-orange gap-1.5 text-xs font-bold rounded-lg">
             {aiGenerating ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Wand2 className="w-3.5 h-3.5" />}
             {aiGenerating ? "Generating..." : "Generate"}
           </Button>
@@ -397,7 +342,7 @@ function AIHelperPanel({ aiPrompt, aiGenerating, onPromptChange, onGenerate, onC
   );
 }
 
-// ---- Main QuestionsStep ----
+// ─── Main QuestionsStep ───
 interface QuestionsStepProps {
   questions: Question[];
   currentQuestionIndex: number;
@@ -440,20 +385,18 @@ export function QuestionsStep({
               variant="outline"
               size="sm"
               onClick={() => onSetShowAIHelper(!showAIHelper)}
-              className={cn("gap-1.5 h-8 text-xs", showAIHelper && "border-violet-400 text-violet-600 bg-violet-50 dark:bg-violet-900/20")}
+              className={cn(
+                "gap-1.5 text-xs font-semibold rounded-lg",
+                showAIHelper ? "border-orange-400 text-orange-600 bg-orange-50 dark:bg-orange-900/10" : ""
+              )}
             >
-              <Zap className="w-3 h-3" />
+              <Sparkles className={cn("w-3.5 h-3.5", showAIHelper ? "text-orange-500" : "")} />
               AI Helper
             </Button>
           )}
         </div>
-        <Button
-          size="sm"
-          onClick={onAddQuestion}
-          className="gap-1.5 h-8 text-xs bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 text-white"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Tambah Soal
+        <Button onClick={onAddQuestion} size="sm" className="button-orange gap-1.5 text-xs font-bold rounded-lg">
+          <Plus className="w-3.5 h-3.5" /> Tambah Soal
         </Button>
       </div>
 
@@ -472,25 +415,23 @@ export function QuestionsStep({
 
       {/* Empty state */}
       {questions.length === 0 ? (
-        <div className="rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 py-16 text-center">
-          <div className="w-10 h-10 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center mx-auto mb-3">
-            <FileText className="w-5 h-5 text-zinc-400" />
-          </div>
-          <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-1">Belum ada soal</p>
-          <p className="text-xs text-zinc-400 dark:text-zinc-500 mb-4">
-            {selectedMethod === "manual" ? "Tambah soal pertama Anda" : "Kembali ke tab sebelumnya untuk generate/import soal"}
+        <div className="rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-800 py-16 text-center">
+          <FileText className="w-10 h-10 text-zinc-300 mx-auto mb-3" />
+          <h3 className="text-lg font-bold text-zinc-800 dark:text-zinc-200 mb-1">Soal Masih Kosong</h3>
+          <p className="text-sm text-zinc-500 mb-5 max-w-xs mx-auto">
+            {selectedMethod === "manual"
+              ? "Ayo mulai buat soal pertama Anda!"
+              : "Generate atau import soal di tab sebelumnya."}
           </p>
           {selectedMethod === "manual" && (
-            <Button size="sm" onClick={onAddQuestion} className="gap-1.5 text-xs bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 text-white">
-              <Plus className="w-3.5 h-3.5" />
-              Tambah Soal Pertama
+            <Button onClick={onAddQuestion} className="button-orange gap-1.5 text-sm font-bold rounded-lg">
+              <Plus className="w-4 h-4" /> Buat Soal Pertama
             </Button>
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 xl:grid-cols-[1fr_180px] gap-4 items-start">
-          {/* Editor */}
-          <div>
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_200px] gap-4 items-start">
+          <div className="min-w-0">
             <AnimatePresence mode="wait">
               <motion.div
                 key={currentQuestionIndex}
@@ -515,8 +456,7 @@ export function QuestionsStep({
             </AnimatePresence>
           </div>
 
-          {/* Navigator */}
-          <div>
+          <div className="hidden lg:block">
             <QuestionNavigator
               questions={questions}
               currentQuestionIndex={currentQuestionIndex}
