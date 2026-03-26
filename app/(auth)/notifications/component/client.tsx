@@ -376,36 +376,37 @@ export default function NotificationsPage() {
       <div className="flex items-start justify-between">
         <h1 className="text-xl font-bold tracking-tight lg:text-2xl">Notifications</h1>
 
-        <Button className="sm:hidden" onClick={handleMarkAllAsRead}>
+        <Button className="button-orange sm:hidden" onClick={handleMarkAllAsRead}>
           <Check className="size-4" />
           Mark All as Read
         </Button>
       </div>
 
-      <div className="flex items-center justify-between">
-        <Button className="hidden sm:flex" onClick={handleMarkAllAsRead}>
+      <div className="flex items-center justify-between gap-4">
+        <Button className="button-orange hidden sm:flex shrink-0" onClick={handleMarkAllAsRead}>
           <Check className="size-4" />
           Mark All as Read {`(${dbNotifications.filter((n) => !n.is_read).length})`}
         </Button>
+
         {/* Filters */}
-        <div className="flex gap-4">
+        <div className="flex flex-wrap items-center justify-end gap-2">
           <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="input h-9 w-[120px] text-xs font-semibold">
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="unread">Unread</SelectItem>
               <SelectItem value="read">Read</SelectItem>
             </SelectContent>
           </Select>
 
           <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-[140px]">
+            <SelectTrigger className="input h-9 w-[120px] text-xs font-semibold">
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">All Types</SelectItem>
               <SelectItem value="session">Session</SelectItem>
               <SelectItem value="group">Group</SelectItem>
               <SelectItem value="admin">System</SelectItem>
@@ -413,10 +414,11 @@ export default function NotificationsPage() {
           </Select>
 
           <Button
-            variant={"outline"}
+            variant="outline"
+            className="input h-9 w-9 p-0"
             onClick={() => setSortOrder((prev) => (prev === "newest" ? "oldest" : "newest"))}
             title={sortOrder === "newest" ? "Sort Oldest First" : "Sort Newest First"}>
-            <ArrowUpDown />
+            <ArrowUpDown className="size-4" />
           </Button>
         </div>
       </div>
