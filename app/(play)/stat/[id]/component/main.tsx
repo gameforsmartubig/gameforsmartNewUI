@@ -78,6 +78,7 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
 
   useEffect(() => {
     async function fetchData() {
+      let isRedirecting = false;
       try {
         const {
           data: { user }
@@ -101,8 +102,10 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
           userRole = profile?.role || null;
         }
 
+        const localUserId = localStorage.getItem("user_id");
+
         if (!profileId) {
-          profileId = localStorage.getItem("user_id");
+          profileId = localUserId;
         }
 
         const { data: session, error: sessionError } = await supabase
@@ -113,12 +116,17 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
 
         if (sessionError || !session) {
           toast.error("Session not found");
-          router.push("/dashboard");
+          isRedirecting = true;
+          router.replace("/dashboard");
           return;
         }
 
-        const hostCheck = profileId === session.host_id || userRole === "admin";
-        setIsHost(hostCheck);
+        const hostCheck = 
+          profileId === session.host_id || 
+          userRole === "admin" || 
+          (localUserId && localUserId === session.host_id);
+          
+        setIsHost(!!hostCheck);
 
         const quiz = Array.isArray(session.quizzes) ? session.quizzes[0] : session.quizzes;
         const fullQuestions = quiz?.questions || [];
@@ -158,18 +166,26 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
 
         setPlayers(mappedPlayers);
 
-        if (profileId) {
-          const me = mappedPlayers.find((p) => p.id === profileId);
-          if (me) setCurrentPlayerId(profileId);
-          else if (!hostCheck) {
+        if (profileId || localUserId) {
+          const me = mappedPlayers.find(
+            (p) => p.id === profileId || (localUserId && p.id === localUserId)
+          );
+          
+          if (me) {
+            setCurrentPlayerId(me.id);
+          } else if (!hostCheck) {
             toast.error("You are not part of this session.");
-            router.push("/dashboard?redirect=/stat/" + id);
+            isRedirecting = true;
+            router.replace("/dashboard");
+            return;
           }
         }
       } catch (error) {
         console.error("Error fetching statistics:", error);
       } finally {
-        setLoading(false);
+        if (!isRedirecting) {
+          setLoading(false);
+        }
       }
     }
     fetchData();
