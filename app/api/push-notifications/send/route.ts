@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
     const notificationPayload = JSON.stringify({
       title: payload?.title || 'GameForSmart',
       body: payload?.body || '',
-      icon: payload?.icon || '/gameforsmartlogo.png',
+      icon: payload?.icon || '/logo.png',
       data: data || {},
     });
 
