@@ -5,7 +5,7 @@ import { detectSuspiciousActivity } from "@/lib/security-validation";
 import { corsHandler } from "@/lib/cors-config";
 
 // Protected routes that require account status check
-const protectedRoutes = ["/dashboard", "/host", "/create", "/learn", "/tryout", "/edit", "/join"];
+const protectedRoutes = ["/dashboard", "/host", "/create", "/learn", "/tryout", "/edit", "/join", "/stat"];
 
 // API routes that need extra security
 const sensitiveApiRoutes = ["/api/admin", "/api/ai", "/api/reports"];
@@ -203,6 +203,7 @@ export const config = {
     "/learn/:path*",
     "/tryout/:path*",
     "/edit/:path*",
-    "/join/:path*"
+    "/join/:path*",
+    "/stat/:path*"
   ]
 };

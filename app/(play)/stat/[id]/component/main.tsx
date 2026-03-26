@@ -20,7 +20,6 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/contexts/auth-context";
 
 interface Question {
   id: string;
@@ -52,7 +51,6 @@ interface PlayerWithResponses {
 export default function StatisticsPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const id = resolvedParams.id;
-  const { user } = useAuth();
 
   const router = useRouter();
 
@@ -63,14 +61,6 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
   const [currentPlayerId, setCurrentPlayerId] = useState<string | undefined>();
   const [isCollapsedAll, setIsCollapsedAll] = useState(false);
   const [collapsedItems, setCollapsedItems] = useState<Record<string, boolean>>({});
-
-   useEffect(() => {
-    if (loading) return;
-    if(!user){
-      router.push("/login?redirect=/stat/" + id);
-    }
-
-  }, [user, loading, router]);
 
   const toggleCollapseAll = () => {
     const newState = !isCollapsedAll;
