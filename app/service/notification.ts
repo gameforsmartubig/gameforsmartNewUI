@@ -55,19 +55,19 @@ function buildPushPayload(notif: any): { title: string; body: string; url: strin
     case "sessionFriend":
       return {
         title: "Game Invitation",
-        body: `${notif.content.sender_name} has invited you to join a game session!`,
+        body: `You have been invited to join a game session!`,
         url: "/notifications",
       };
     case "sessionGroup":
       return {
         title: "Game Invitation",
-        body: `${notif.content.sender_name} has invited you to join a game session from group ${notif.content.group_name}!`,
+        body: `You have been invited to join a game session from group!`,
         url: "/notifications",
       };
     case "group":
       return {
         title: "Group Invitation",
-        body: `${notif.content.sender_name} has invited you to join a group ${notif.content.group_name}!`,
+        body: `You have been invited to join a group!`,
         url: "/notifications",
       };
     case "friend_request":
