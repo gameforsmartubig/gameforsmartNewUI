@@ -159,7 +159,7 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
           if (me) setCurrentPlayerId(profileId);
           else if (!hostCheck) {
             toast.error("You are not part of this session.");
-            router.push("/dashboard?redirect=/stat/" + id);
+            router.push("/login?redirect=/stat/" + id);
           }
         }
       } catch (error) {
