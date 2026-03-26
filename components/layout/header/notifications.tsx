@@ -20,37 +20,6 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/auth-context";
 import { toast } from "sonner";
 
-const Datas = [
-  {
-    user_id: "01mdsvf3001000000axm",
-    actor_id: "zubai",
-    type: "sessionFriend",
-    entity_type: "session",
-    entity_id: {
-      name: "matematika dasar",
-      code: "679812"
-    },
-    from_group_id: null,
-    status: "unread",
-    created_at: "2023-01-01T00:00:00.000Z"
-  },
-  {
-    user_id: "01mdsvf3001000000axm",
-    actor_id: "merlon",
-    type: "sessionGroup",
-    entity_type: "session",
-    entity_id: {
-      name: "sejarah islam", //nama diambil dari nama dari quiz nya
-      code: "799712" // code diambil dari game_pin
-    },
-    status: null,
-    content: null,
-    is_read: false,
-    created_at: "2026-02-12 07:32:07.619+00",
-    from_group_id: "Belajar bersama" //nama diambil dari id groupnya
-  }
-];
-
 const getTimeAgo = (dateStr: string) => {
   if (!dateStr) return "";
   const d = new Date(dateStr);
