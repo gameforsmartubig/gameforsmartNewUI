@@ -116,7 +116,7 @@ export default function Header({ discoverGroups, myGroups }: HeaderProps) {
       {/* Header with Search and Filter */}
       <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">
         <div className="flex w-full items-center justify-between sm:w-auto">
-          <h1 className="text-xl font-bold tracking-tight lg:text-2xl">Group</h1>
+          <h1 className="text-xl font-bold tracking-tight lg:text-2xl">Groups</h1>
         </div>
 
         <div className="flex w-full items-center space-x-2 sm:w-auto">
