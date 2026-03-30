@@ -34,7 +34,7 @@ export function DashboardContent({
   const {
     activeTab, setActiveTab,
     searchInputValue, setSearchInputValue, searchInputRef,
-    selectedCategory, handleFilterChange, handleSearchSubmit,
+    selectedCategory, selectedLanguage, handleFilterChange, handleSearchSubmit,
     pageState, handlePageChange, getPaginatedQuizzes,
     filteredPublic, filteredMy, filteredFavorite,
     handleHostClick, handleTryoutClick, handleEditClick, handleAnalyticClick, handleToggleFavorite,
@@ -49,9 +49,11 @@ export function DashboardContent({
         categories={categories}
         categoryMap={categoryMap}
         selectedCategory={selectedCategory}
+        selectedLanguage={selectedLanguage}
         searchInputValue={searchInputValue}
         searchInputRef={searchInputRef}
         onCategoryChange={(id) => handleFilterChange("category", id)}
+        onLanguageChange={(id) => handleFilterChange("language", id)}
         onSearchChange={setSearchInputValue}
         onSearchSubmit={handleSearchSubmit}
       />

@@ -2,7 +2,7 @@
 
 // ============================================================
 // components/DashboardHeader.tsx
-// Bar atas: judul "Dashboard", dropdown kategori, kotak search
+// Bar atas: judul "Dashboard", dropdown kategori, bahasa, kotak search
 // ============================================================
 
 import { RefObject } from "react";
@@ -14,17 +14,25 @@ import {
   DropdownMenuContent,
   DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { ChevronDownIcon, Search } from "lucide-react";
+import { ChevronDownIcon, Search, Languages } from "lucide-react";
 import { categoryIconMap } from "./quiz-icons";
 import type { Category } from "./types";
+
+// ── Language options ──
+const languageOptions = [
+  { id: "id", label: "🇮🇩 Indonesia" },
+  { id: "en", label: "🇺🇸 English" },
+];
 
 interface DashboardHeaderProps {
   categories:         Category[];
   categoryMap:        Record<string, Category>;
   selectedCategory:   string | null;
+  selectedLanguage:   string | null;
   searchInputValue:   string;
   searchInputRef:     RefObject<HTMLInputElement | null>;
   onCategoryChange:   (categoryId: string) => void;
+  onLanguageChange:   (languageId: string) => void;
   onSearchChange:     (value: string) => void;
   onSearchSubmit:     () => void;
 }
@@ -33,9 +41,11 @@ export function DashboardHeader({
   categories,
   categoryMap,
   selectedCategory,
+  selectedLanguage,
   searchInputValue,
   searchInputRef,
   onCategoryChange,
+  onLanguageChange,
   onSearchChange,
   onSearchSubmit
 }: DashboardHeaderProps) {
@@ -82,12 +92,41 @@ export function DashboardHeader({
           </DropdownMenuContent>
         </DropdownMenu>
 
+        {/* Dropdown bahasa */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild className="input">
+            <Button variant="outline" className="ml-auto">
+              {selectedLanguage && selectedLanguage !== "all"
+                ? languageOptions.find((l) => l.id === selectedLanguage)?.label ?? "Language"
+                : "Language"}
+              <ChevronDownIcon className="ml-2 h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuCheckboxItem
+              checked={!selectedLanguage || selectedLanguage === "all"}
+              onCheckedChange={() => onLanguageChange("all")}
+            >
+              All Languages
+            </DropdownMenuCheckboxItem>
+            {languageOptions.map((lang) => (
+              <DropdownMenuCheckboxItem
+                key={lang.id}
+                checked={selectedLanguage === lang.id}
+                onCheckedChange={() => onLanguageChange(lang.id)}
+              >
+                {lang.label}
+              </DropdownMenuCheckboxItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         {/* Search input */}
         <div className="relative w-full sm:w-auto">
           <Input
             ref={searchInputRef}
             placeholder="Search...."
-            className="input w-full pr-20 pl-3 sm:w-[250px]"
+            className="input w-full pr-10 pl-3 sm:w-[250px]"
             value={searchInputValue}
             onChange={(e) => onSearchChange(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") onSearchSubmit(); }}

@@ -41,6 +41,7 @@ export function useDashboard(
   const [searchQuery, setSearchQuery]         = useState("");
   const [searchInputValue, setSearchInputValue] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [selectedLanguage, setSelectedLanguage] = useState<string | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Keyboard shortcut: Ctrl+K / Cmd+K / "k" untuk fokus search
@@ -73,9 +74,10 @@ export function useDashboard(
   });
 
   // Reset semua halaman saat filter berubah
-  const handleFilterChange = (type: "search" | "category", value: string | null) => {
+  const handleFilterChange = (type: "search" | "category" | "language", value: string | null) => {
     if (type === "search")   setSearchQuery(value || "");
     if (type === "category") setSelectedCategory(value);
+    if (type === "language") setSelectedLanguage(value);
     setPageState({ quiz: 1, myQuiz: 1, favorite: 1 });
   };
 
@@ -91,7 +93,10 @@ export function useDashboard(
       const matchCategory = selectedCategory
         ? q.categoryId === selectedCategory || selectedCategory === "all"
         : true;
-      return matchSearch && matchCategory;
+      const matchLanguage = selectedLanguage
+        ? q.language === selectedLanguage || selectedLanguage === "all"
+        : true;
+      return matchSearch && matchCategory && matchLanguage;
     });
 
   const filteredPublic   = filterQuizzes(publicQuizzes);
@@ -216,6 +221,7 @@ export function useDashboard(
     setSearchInputValue,
     searchInputRef,
     selectedCategory,
+    selectedLanguage,
     handleFilterChange,
     handleSearchSubmit,
     // pagination
