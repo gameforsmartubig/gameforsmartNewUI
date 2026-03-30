@@ -143,7 +143,7 @@ export default function Page() {
                       <div className="space-y-0.5">
                         <FormLabel className="text-base">Social emails</FormLabel>
                         <FormDescription>
-                          Receive emails for friend requests, follows, and more.
+                          Receive emails for friends requests, follows, and more.
                         </FormDescription>
                       </div>
                       <FormControl>

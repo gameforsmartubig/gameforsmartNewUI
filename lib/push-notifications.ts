@@ -97,7 +97,7 @@ export async function sendGameInviteNotification(
   );
 }
 
-// Send friend invite notification
+// Send friends invite notification
 export async function sendFriendInviteNotification(
   targetUserId: string,
   requesterName: string,
@@ -106,7 +106,7 @@ export async function sendFriendInviteNotification(
   return sendPushViaAPI(
     [targetUserId],
     {
-      title: 'Friend Request 👋',
+      title: 'Friends Request 👋',
       body: `${requesterName} sent you a friend request!`,
     },
     {

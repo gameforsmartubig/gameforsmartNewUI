@@ -35,7 +35,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const { data: group, error } = await supabase.from("groups").select("*").eq("id", id).single();
 
   if (error || !group) {
-    return <div>Group not found or error loading group.</div>;
+    return <div>Groups not found or error loading groups.</div>;
   }
 
   // Fetch profiles for members

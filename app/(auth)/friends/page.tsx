@@ -5,9 +5,9 @@ import { redirect } from "next/navigation";
 
 export async function generateMetadata() {
   return generateMeta({
-    title: "Friend",
+    title: "Friends",
     description:
-      "A friend dashboard",
+      "A friends dashboard",
     canonical: "/friends"
   });
 }
@@ -37,7 +37,7 @@ export default async function Page() {
     <div className="space-y-4">
       <div className="flex flex-col items-center justify-between gap-2 sm:flex-row">
         <div className="flex w-full items-center justify-between sm:w-auto">
-          <h1 className="text-xl font-bold tracking-tight lg:text-2xl">Friend</h1>
+          <h1 className="text-xl font-bold tracking-tight lg:text-2xl">Friends</h1>
         </div>
       </div>
       <Friends currentUserId={(profile as any).id} />
