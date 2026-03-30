@@ -9,6 +9,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Plus, Trash2, ChevronLeft, ChevronRight,
   FileText, Image as ImageIcon, CheckCircle2,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -72,7 +73,7 @@ function AnswerCard({
       <div className="flex items-center gap-2.5 px-3 pt-3 pb-2">
         {/* Color dot */}
         <div
-          className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
+          className="w-5 h-5 rounded flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0"
           style={{ backgroundColor: answer.color }}
         >
           {label}
@@ -80,25 +81,33 @@ function AnswerCard({
 
         {/* Correct radio */}
         <label className="flex items-center gap-1.5 cursor-pointer">
-          <input
-            type="radio"
-            name={`correct-${questionId}`}
-            checked={isCorrect}
-            onChange={() => onSetCorrect(questionId, answer.id)}
-            className="w-3 h-3 accent-emerald-500"
-            aria-label={`Jawaban ${label} benar`}
-          />
-          <span className="text-[10px] text-zinc-500 dark:text-zinc-400">Benar</span>
+          <div className="relative flex items-center">
+            <input
+              type="radio"
+              name={`correct-${questionId}`}
+              checked={isCorrect}
+              onChange={() => onSetCorrect(questionId, answer.id)}
+              className="peer appearance-none w-4 h-4 rounded-full border-2 border-zinc-300 dark:border-zinc-600 checked:border-emerald-500 checked:bg-emerald-500 transition-all cursor-pointer"
+              aria-label={`Jawaban ${label} benar`}
+            />
+            <CheckCircle2 className="absolute w-2.5 h-2.5 text-white opacity-0 peer-checked:opacity-100 pointer-events-none left-[3px]" />
+          </div>
+          <span className={cn(
+            "text-[10px] font-semibold",
+            isCorrect ? "text-emerald-600 dark:text-emerald-400" : "text-zinc-400"
+          )}>
+            Benar
+          </span>
         </label>
 
         {/* Image upload */}
         <button
           type="button"
           onClick={handleImageUpload}
-          className="ml-auto flex items-center gap-1 text-[10px] text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 px-1.5 py-0.5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
+          className="ml-auto flex items-center gap-1 text-[10px] text-zinc-400 hover:text-orange-500 dark:hover:text-orange-400 px-1.5 py-0.5 rounded hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
         >
           <ImageIcon className="w-3 h-3" />
-          <span>Gambar</span>
+          <span className="sr-only sm:not-sr-only">Gambar</span>
         </button>
       </div>
 
@@ -108,7 +117,7 @@ function AnswerCard({
           value={answer.text}
           onChange={(e) => onUpdateAnswer(questionId, answer.id, "text", e.target.value)}
           placeholder={`Jawaban ${label}`}
-          className="h-8 text-xs border-zinc-200 dark:border-zinc-700 focus-visible:ring-emerald-400"
+          className="h-9 text-xs input"
         />
       </div>
 
@@ -155,12 +164,17 @@ function QuestionNavigator({
           </span>
         </div>
         {/* Progress bar */}
-        <div className="h-1 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
-          <div
-            className="h-full bg-emerald-500 rounded-full transition-all duration-300"
-            style={{ width: `${questions.length > 0 ? (completedCount / questions.length) * 100 : 0}%` }}
-          />
-        </div>
+        <div className="h-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+            <div
+              className={cn(
+                "h-full rounded-full transition-all",
+                completedCount === questions.length && questions.length > 0
+                  ? "bg-emerald-500"
+                  : "bg-emerald-400/50"
+              )}
+              style={{ width: `${questions.length > 0 ? (completedCount / questions.length) * 100 : 0}%` }}
+            />
+          </div>
       </div>
 
       <div className="p-3 space-y-3">
@@ -169,7 +183,7 @@ function QuestionNavigator({
           {questions.map((question, index) => {
             const isAnswered =
               question.text.trim().length > 0 &&
-              (question.answers.some((_, i) => question.correct === i.toString()) || question.image_url);
+              (question.answers.some((a) => question.correct === a.id) || question.image_url);
             const isCurrent = selectedIndex === index;
 
             return (
@@ -177,11 +191,11 @@ function QuestionNavigator({
                 key={question.id}
                 onClick={() => onSelect(index)}
                 className={cn(
-                  "w-7 h-7 rounded-md text-xs font-semibold transition-all",
+                  "w-7 h-7 rounded-md text-xs font-bold transition-all",
                   isCurrent
-                    ? "bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
+                    ? "bg-orange-500 text-white shadow-sm shadow-orange-500/20"
                     : isAnswered
-                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400 hover:bg-emerald-200"
+                    ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400 hover:bg-emerald-100"
                     : "bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700"
                 )}
               >
@@ -194,13 +208,13 @@ function QuestionNavigator({
         {/* Legend */}
         <div className="space-y-1 pt-1 border-t border-zinc-100 dark:border-zinc-800">
           {[
-            { color: "bg-zinc-900 dark:bg-white", label: "Sedang diedit" },
-            { color: "bg-emerald-100 dark:bg-emerald-900/30", label: "Sudah diisi" },
-            { color: "bg-zinc-100 dark:bg-zinc-800", label: "Belum diisi" },
+            { color: "bg-orange-500", label: "Aktif" },
+            { color: "bg-emerald-500", label: "Lengkap" },
+            { color: "bg-zinc-100 dark:bg-zinc-800", label: "Kosong" },
           ].map((item) => (
             <div key={item.label} className="flex items-center gap-2">
-              <div className={cn("w-3 h-3 rounded-sm", item.color)} />
-              <span className="text-[10px] text-zinc-400 dark:text-zinc-500">{item.label}</span>
+              <div className={cn("w-2 h-2 rounded-full", item.color)} />
+              <span className="text-[10px] text-zinc-400 dark:text-zinc-500 font-medium">{item.label}</span>
             </div>
           ))}
         </div>
@@ -236,21 +250,24 @@ function QuestionEditor({
   return (
     <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
       {/* Question header */}
-      <div className="flex items-center justify-between px-5 py-3.5 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold text-zinc-500 uppercase tracking-wider">Soal</span>
-          <Badge variant="secondary" className="text-xs px-1.5 py-0 h-5 tabular-nums">
-            {questionIndex + 1} / {quiz.questions.length}
-          </Badge>
+      <div className="flex items-center justify-between px-5 py-3 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center font-bold text-xs">
+            {questionIndex + 1}
+          </div>
+          <div>
+            <h3 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Pertanyaan {questionIndex + 1}</h3>
+            <p className="text-[10px] text-zinc-500 font-medium tracking-tight">Total {quiz.questions.length} Soal</p>
+          </div>
         </div>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => onRemove(question.id)}
           disabled={quiz.questions.length <= 1}
-          className="h-7 w-7 p-0 text-zinc-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+          className="h-8 w-8 p-0 text-zinc-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20"
         >
-          <Trash2 className="w-3.5 h-3.5" />
+          <Trash2 className="w-4 h-4" />
         </Button>
       </div>
 
@@ -264,9 +281,9 @@ function QuestionEditor({
             <Textarea
               value={question.text}
               onChange={(e) => onUpdateQuestion(question.id, "text", e.target.value)}
-              placeholder="Enter question"
-              rows={2}
-              className="flex-1 text-sm border-zinc-200 dark:border-zinc-700 focus-visible:ring-zinc-500 resize-none"
+              placeholder="Tuliskan pertanyaan Anda di sini..."
+              rows={3}
+              className="flex-1 input min-h-[100px] text-sm resize-none"
             />
             <div className="w-28 flex-shrink-0">
               <CompactImageUpload
@@ -306,10 +323,10 @@ function QuestionEditor({
           size="sm"
           onClick={onPrev}
           disabled={questionIndex === 0}
-          className="gap-1.5 h-8 text-xs"
+          className="gap-1.5 h-8 text-xs rounded-lg"
         >
           <ChevronLeft className="w-3.5 h-3.5" />
-          <span className="hidden sm:inline">Previous</span>
+          <span className="hidden sm:inline">Sebelumnya</span>
         </Button>
         <span className="text-xs text-zinc-400 tabular-nums">
             {questionIndex + 1} / {quiz.questions.length}
@@ -319,9 +336,9 @@ function QuestionEditor({
           size="sm"
           onClick={onNext}
           disabled={questionIndex === quiz.questions.length - 1}
-          className="gap-1.5 h-8 text-xs"
+          className="gap-1.5 h-8 text-xs rounded-lg"
         >
-          <span className="hidden sm:inline">Next</span>
+          <span className="hidden sm:inline">Berikutnya</span>
           <ChevronRight className="w-3.5 h-3.5" />
         </Button>
       </div>
@@ -360,10 +377,10 @@ export function QuestionsStep({
         <Button
           size="sm"
           onClick={onAddQuestion}
-          className="gap-1.5 h-8 text-xs bg-zinc-900 hover:bg-zinc-700 dark:bg-white dark:text-zinc-900 dark:hover:bg-zinc-200 text-white"
+          className="button-orange gap-1.5 h-9 text-xs font-bold rounded-lg"
         >
           <Plus className="w-3.5 h-3.5" />
-          Question
+          Tambah Pertanyaan
         </Button>
       </div>
 

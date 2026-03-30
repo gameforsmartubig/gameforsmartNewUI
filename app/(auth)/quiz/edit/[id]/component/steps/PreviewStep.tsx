@@ -5,7 +5,7 @@
 // Tab 3 – quiz summary + questions list read-only preview
 // ============================================================
 
-import { Upload, Eye, CheckCircle2, Globe, Lock, BookOpen, Hash, Languages } from "lucide-react";
+import { Upload, Eye, CheckCircle2, Globe, Lock, BookOpen, Hash, Languages, Sparkles, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -65,170 +65,172 @@ export function PreviewStep({ quiz, categories, languages }: PreviewStepProps) {
   };
 
   const completedCount = quiz.questions.filter(
-    (q) => q.text.trim().length > 0 && q.answers.some((_, i) => q.correct === i.toString())
+    (q) => q.text.trim().length > 0 && q.answers.some((a) => a.id === q.correct)
   ).length;
+  const isFullyComplete = completedCount === quiz.questions.length && quiz.questions.length > 0;
 
   return (
-    <div className="space-y-6 max-w-3xl">
+    <div className="space-y-6 max-w-4xl mx-auto">
 
       {/* Summary card */}
-      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden">
-        <div className="flex items-start gap-4 p-5">
+      <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden">
+        <div className="flex flex-col sm:flex-row">
           {/* Cover */}
-          {quiz.image_url ? (
-            <div className="w-16 h-16 rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 flex-shrink-0">
-              <Image src={quiz.image_url} alt="Cover" width={64} height={64} className="object-cover w-full h-full" />
-            </div>
-          ) : (
-            <div className="w-16 h-16 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-zinc-50 dark:bg-zinc-800 flex items-center justify-center flex-shrink-0">
-              <BookOpen className="w-6 h-6 text-zinc-300 dark:text-zinc-600" />
-            </div>
-          )}
-
-          <div className="flex-1 min-w-0">
-            <h3 className="text-base font-semibold text-zinc-900 dark:text-zinc-100 truncate">
-              {quiz.title || <span className="text-zinc-400">Judul belum diisi</span>}
-            </h3>
-            <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1 line-clamp-2">
-              {quiz.description || "Deskripsi belum diisi"}
-            </p>
-
-            <div className="flex flex-wrap gap-2 mt-3">
-              <Badge variant="secondary" className="gap-1 text-[11px] h-5">
-                <Hash className="w-3 h-3" />
-                {quiz.questions.length} soal
-              </Badge>
-              <Badge variant="outline" className="gap-1 text-[11px] h-5 capitalize">
-                {categories.find((c) => c.value === quiz.category)?.label || quiz.category}
-              </Badge>
-              <Badge variant="outline" className="gap-1 text-[11px] h-5">
-                <Languages className="w-3 h-3" />
-                {languages.find((l) => l.value === quiz.language)?.label || quiz.language}
-              </Badge>
-              <Badge
-                variant="outline"
-                className={cn(
-                  "gap-1 text-[11px] h-5",
-                  quiz.is_public
-                    ? "border-emerald-300 text-emerald-700 dark:border-emerald-700 dark:text-emerald-400"
-                    : "border-zinc-200 text-zinc-500"
-                )}
-              >
-                {quiz.is_public ? <Globe className="w-3 h-3" /> : <Lock className="w-3 h-3" />}
-                {quiz.is_public ? "Public" : "Private"}
-              </Badge>
-            </div>
+          <div className="w-full sm:w-48 p-4 flex items-center justify-center bg-zinc-50 dark:bg-zinc-900 border-b sm:border-b-0 sm:border-r border-zinc-200 dark:border-zinc-800 shrink-0">
+            {quiz.image_url ? (
+              <div className="aspect-video sm:aspect-square w-full rounded-lg overflow-hidden relative border border-zinc-200 dark:border-zinc-700">
+                <Image src={quiz.image_url} alt="Cover" fill className="object-cover" />
+              </div>
+            ) : (
+              <div className="aspect-video sm:aspect-square w-full rounded-lg border-2 border-dashed border-zinc-200 dark:border-zinc-700 bg-zinc-100 dark:bg-zinc-800 flex flex-col items-center justify-center gap-2">
+                <BookOpen className="w-8 h-8 text-zinc-300 dark:text-zinc-600" />
+                <p className="text-[10px] text-zinc-400 font-medium">No Cover</p>
+              </div>
+            )}
           </div>
-        </div>
 
-        {/* Completion bar */}
-        <div className="px-5 py-3 border-t border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs text-zinc-500">Kelengkapan soal</span>
-            <span className="text-xs font-medium text-zinc-700 dark:text-zinc-300 tabular-nums">
-              {completedCount}/{quiz.questions.length}
-            </span>
-          </div>
-          <div className="h-1.5 rounded-full bg-zinc-200 dark:bg-zinc-700 overflow-hidden">
-            <div
-              className={cn(
-                "h-full rounded-full transition-all",
-                completedCount === quiz.questions.length && quiz.questions.length > 0
-                  ? "bg-emerald-500"
-                  : "bg-zinc-400"
-              )}
-              style={{ width: `${quiz.questions.length > 0 ? (completedCount / quiz.questions.length) * 100 : 0}%` }}
-            />
+          {/* Info */}
+          <div className="p-5 flex-1 min-w-0 space-y-4">
+            <div className="flex items-center justify-between gap-2">
+              <Badge variant="outline" className={cn(
+                "text-[10px] font-bold rounded",
+                isFullyComplete ? "border-green-400 text-green-700 bg-green-50 dark:bg-green-900/20 dark:text-green-400" : "border-orange-400 text-orange-700 bg-orange-50 dark:bg-orange-900/20 dark:text-orange-400"
+              )}>
+                {isFullyComplete ? "Ready to Save" : "Progress: " + Math.round((completedCount/quiz.questions.length)*100) + "%"}
+              </Badge>
+              <span className={cn(
+                "inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded",
+                quiz.is_public
+                  ? "bg-green-500 text-white"
+                  : "bg-zinc-200 dark:bg-zinc-700 text-zinc-700 dark:text-zinc-300"
+              )}>
+                {quiz.is_public ? <><Globe className="w-3 h-3" /> Public</> : <><Lock className="w-3 h-3" /> Private</>}
+              </span>
+            </div>
+
+            <div>
+              <h3 className="text-xl font-bold text-zinc-900 dark:text-zinc-100 leading-tight mb-1 truncate">
+                {quiz.title || <span className="text-zinc-300 italic">Untitled Quiz</span>}
+              </h3>
+              <p className="text-sm text-zinc-500 dark:text-zinc-400 line-clamp-2">
+                {quiz.description || "No description provided."}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {[
+                { icon: Hash, text: `${quiz.questions.length} Questions` },
+                { icon: Sparkles, text: categories.find(c => c.value === quiz.category)?.label || quiz.category },
+                { icon: Languages, text: languages.find(l => l.value === quiz.language)?.label || quiz.language },
+              ].map((item, idx) => (
+                <div key={idx} className="flex items-center gap-1.5 text-xs font-semibold text-zinc-600 dark:text-zinc-400 bg-zinc-50 dark:bg-zinc-800 px-2.5 py-1 rounded-lg border border-zinc-100 dark:border-zinc-700">
+                  <item.icon className="w-3 h-3 text-orange-500" />
+                  <span className="capitalize">{item.text}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Progress */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <span className="text-[10px] font-semibold text-zinc-400">Question Completion</span>
+                <span className="text-[10px] font-bold text-zinc-600 dark:text-zinc-300 tabular-nums">{completedCount}/{quiz.questions.length}</span>
+              </div>
+              <div className="h-1.5 rounded-full bg-zinc-100 dark:bg-zinc-800 overflow-hidden">
+                <div
+                  className={cn("h-full rounded-full transition-all duration-500", isFullyComplete ? "bg-green-500" : "bg-orange-500")}
+                  style={{ width: `${quiz.questions.length > 0 ? (completedCount / quiz.questions.length) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Export action */}
-      <div className="flex items-center gap-2">
+      {/* Action buttons */}
+      <div className="flex flex-wrap gap-2">
         <Button
           variant="outline"
           size="sm"
           onClick={handleExport}
           disabled={quiz.questions.length === 0}
-          className="gap-1.5 text-xs h-8"
+          className="gap-1.5 text-xs font-semibold rounded-lg h-9"
         >
           <Upload className="w-3.5 h-3.5" />
-          Export ke Excel
+          Export to Excel
         </Button>
       </div>
 
-      <Separator />
+      <Separator className="bg-zinc-100 dark:bg-zinc-800" />
 
-      {/* Questions preview list */}
-      <div>
-        <div className="flex items-center gap-3 mb-4">
+      {/* Questions list preview */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Eye className="w-4 h-4 text-zinc-500" />
-            <p className="text-sm font-semibold text-zinc-700 dark:text-zinc-300">
-              Questions Preview
-            </p>
+            <Eye className="w-4 h-4 text-zinc-400" />
+            <h4 className="text-sm font-bold text-zinc-900 dark:text-zinc-100">Preview Soal</h4>
           </div>
-          <Badge variant="secondary" className="text-xs">{quiz.questions.length} soal</Badge>
+          <Badge variant="secondary" className="text-[10px] font-bold px-2 py-0 min-h-5">{quiz.questions.length} Questions</Badge>
         </div>
 
         {quiz.questions.length === 0 ? (
-          <div className="rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-700 py-12 text-center">
-            <Eye className="w-8 h-8 mx-auto mb-2 text-zinc-300 dark:text-zinc-600" />
-            <p className="text-sm text-zinc-400 dark:text-zinc-500">
-              No questions to preview
-            </p>
+          <div className="rounded-xl border-2 border-dashed border-zinc-200 dark:border-zinc-800 py-12 text-center">
+            <FileText className="w-8 h-8 text-zinc-300 mx-auto mb-2" />
+            <p className="text-sm text-zinc-400">Belum ada soal</p>
           </div>
         ) : (
-          <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+          <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
             {quiz.questions.map((question, index) => (
               <div
                 key={question.id}
-                className="rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 overflow-hidden"
+                className="rounded-xl border border-zinc-200 dark:border-zinc-800 overflow-hidden bg-white dark:bg-zinc-950"
               >
-                {/* Question text */}
-                <div className="flex items-start gap-3 px-4 py-3 border-b border-zinc-100 dark:border-zinc-800">
-                  <span className="flex-shrink-0 w-6 h-6 rounded-md bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center text-xs font-semibold text-zinc-600 dark:text-zinc-400 tabular-nums">
+                {/* Question body */}
+                <div className="flex items-start gap-4 p-4 border-b border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50">
+                  <div className="w-8 h-8 rounded-lg bg-orange-500 text-white flex items-center justify-center text-xs font-bold shrink-0">
                     {index + 1}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm text-zinc-800 dark:text-zinc-200">
-                      {question.text || <span className="italic text-zinc-400">Pertanyaan kosong</span>}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-bold text-zinc-800 dark:text-zinc-100 leading-relaxed">
+                      {question.text || <span className="text-zinc-300 italic">Pertanyaan kosong</span>}
                     </p>
                     {question.image_url && (
-                      <div className="mt-2 w-16 h-12 rounded overflow-hidden border border-zinc-200 dark:border-zinc-700">
-                        <Image src={question.image_url} alt="Question" width={64} height={48} className="object-cover w-full h-full" />
+                      <div className="mt-3 w-40 aspect-video rounded-lg overflow-hidden border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800">
+                        <img src={question.image_url} alt={`Q ${index + 1}`} className="object-cover w-full h-full" />
                       </div>
                     )}
                   </div>
                 </div>
 
-                {/* Answers */}
-                <div className="grid grid-cols-2 gap-1.5 p-3">
+                {/* Answer choices */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 p-4 bg-white dark:bg-zinc-950">
                   {question.answers.map((answer, aIndex) => {
                     const isCorrect = question.correct === answer.id;
                     return (
                       <div
                         key={answer.id}
                         className={cn(
-                          "flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs",
+                          "flex items-center gap-3 px-3 py-2.5 rounded-lg border text-sm transition-colors",
                           isCorrect
-                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200 dark:bg-emerald-900/20 dark:border-emerald-800 dark:text-emerald-300"
-                            : "bg-zinc-50 text-zinc-600 border border-zinc-100 dark:bg-zinc-800/50 dark:border-zinc-700 dark:text-zinc-400"
+                            ? "bg-emerald-50/50 border-emerald-200 text-emerald-900 dark:bg-emerald-900/10 dark:border-emerald-800 dark:text-emerald-300"
+                            : "border-zinc-100 dark:border-zinc-800 text-zinc-600 dark:text-zinc-400"
                         )}
                       >
                         <div
-                          className="w-4 h-4 rounded flex-shrink-0 flex items-center justify-center text-white text-[9px] font-bold"
+                          className="w-6 h-6 rounded flex items-center justify-center text-white text-[10px] font-bold shrink-0"
                           style={{ backgroundColor: answer.color }}
                         >
                           {String.fromCharCode(65 + aIndex)}
                         </div>
-                        {answer.image_url && (
-                          <div className="w-5 h-5 rounded overflow-hidden flex-shrink-0">
-                            <Image src={answer.image_url} alt="Answer" width={20} height={20} className="object-cover" />
-                          </div>
-                        )}
-                        <span className="flex-1 truncate">{answer.text}</span>
-                        {isCorrect && <CheckCircle2 className="w-3 h-3 text-emerald-500 flex-shrink-0" />}
+                        <div className="flex-1 min-w-0 flex items-center gap-2">
+                           {answer.image_url && (
+                            <div className="w-6 h-6 rounded overflow-hidden flex-shrink-0 border border-zinc-200 dark:border-zinc-700">
+                              <Image src={answer.image_url} alt="A" width={24} height={24} className="object-cover" />
+                            </div>
+                           )}
+                           <span className="truncate text-xs font-medium">{answer.text || "—"}</span>
+                        </div>
+                        {isCorrect && <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />}
                       </div>
                     );
                   })}
