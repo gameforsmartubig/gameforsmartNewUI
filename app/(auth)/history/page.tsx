@@ -19,6 +19,8 @@ export interface QuizHistory {
   application: string;
   role: QuizActivityType;
   hostName?: string;
+  category?: string;
+  language?: string;
 }
 
 async function getQuizHistory(): Promise<QuizHistory[]> {
@@ -85,13 +87,19 @@ async function getQuizHistory(): Promise<QuizHistory[]> {
 
     const ended_at = session.ended_at || new Date().toISOString();
 
+    const quizDetail = session.quiz_detail as any;
+    const category = quizDetail?.category || "";
+    const language = quizDetail?.language || "";
+
     if (isHost) {
       results.push({
         id: `${session.id}-host`,
         quiztitle,
         ended_at,
         application,
-        role: "host"
+        role: "host",
+        category,
+        language,
       });
     }
 
@@ -102,7 +110,9 @@ async function getQuizHistory(): Promise<QuizHistory[]> {
         ended_at,
         application,
         role: "player",
-        hostName: hostMap[session.host_id] || "Unknown Host"
+        hostName: hostMap[session.host_id] || "Unknown Host",
+        category,
+        language,
       });
     }
   }

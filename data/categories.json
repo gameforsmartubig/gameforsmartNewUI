@@ -12,7 +12,8 @@
   { 
     "id": "math",
     "title": "Matematika",
-    "icon": "Calculator" },
+    "icon": "Calculator" 
+  },
   { 
     "id": "history",
     "title": "Sejarah", 

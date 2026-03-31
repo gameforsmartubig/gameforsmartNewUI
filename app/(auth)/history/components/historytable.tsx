@@ -36,9 +36,11 @@ export default function QuizHistoryTable({ data }: Props) {
           <TableHeader>
             <TableRow>
               <TableHead>Quiz</TableHead>
-              <TableHead>Date</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Language</TableHead>
               <TableHead>Application</TableHead>
-              <TableHead className="text-right">Role</TableHead>
+              <TableHead>Date</TableHead>
             </TableRow>
           </TableHeader>
 
@@ -56,6 +58,23 @@ export default function QuizHistoryTable({ data }: Props) {
                     {item.quiztitle}
                   </TableCell>
 
+                  <TableCell title="Category">{item.category || "-"}</TableCell>
+
+                  <TableCell>
+                    <span className={cn(
+                      "inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                      item.role === "host"
+                        ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400"
+                        : "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                    )}>
+                      {item.role}
+                    </span>
+                  </TableCell>
+
+                  <TableCell title="Language">{item.language ? item.language.toUpperCase() : "-"}</TableCell>
+
+                  <TableCell>{item.application}</TableCell>
+
                   <TableCell
                     title={`${new Date(item.ended_at).toLocaleDateString("id-ID", {
                       day: "numeric",
@@ -65,19 +84,6 @@ export default function QuizHistoryTable({ data }: Props) {
                       minute: "2-digit"
                     })}${item.role === "player" && item.hostName ? ` (Host: ${item.hostName})` : ""}`}>
                     {formatTimeAgo(item.ended_at)}
-                  </TableCell>
-
-                  <TableCell>{item.application}</TableCell>
-
-                  <TableCell className="text-right">
-                    <span className={cn(
-                      "inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-                      item.role === "host"
-                        ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400"
-                        : "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
-                    )}>
-                      {item.role}
-                    </span>
                   </TableCell>
                 </TableRow>
               ))

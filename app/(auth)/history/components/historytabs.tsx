@@ -26,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { Dialog, DialogClose, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface Props {
   data: QuizHistory[];
@@ -42,9 +43,32 @@ const time = [
   { value: "this_year", label: "This Year" },
   { value: "last_year", label: "Last Year" }
 ];
+
+const categoryOptions = [
+  { value: "all", label: "All Categories" },
+  { value: "general", label: "Umum" },
+  { value: "science", label: "Sains" },
+  { value: "math", label: "Matematika" },
+  { value: "history", label: "Sejarah" },
+  { value: "geography", label: "Geografi" },
+  { value: "language", label: "Bahasa" },
+  { value: "technology", label: "Teknologi" },
+  { value: "sports", label: "Olahraga" },
+  { value: "entertainment", label: "Hiburan" },
+  { value: "business", label: "Bisnis" },
+];
+
+const languageOptions = [
+  { value: "all", label: "All Languages" },
+  { value: "id", label: "🇮🇩 Indonesia" },
+  { value: "en", label: "🇺🇸 English" },
+];
+
 export default function QuizHistoryTabs({ data }: Props) {
   const [model, setModel] = useState("grid");
   const [filterTime, setFilterTime] = useState("all");
+  const [filterCategory, setFilterCategory] = useState("all");
+  const [filterLanguage, setFilterLanguage] = useState("all");
   const [sort, setSort] = useState("asc");
   const [searchQuery, setSearchQuery] = useState("");
   const [inputValue, setInputValue] = useState("");
@@ -64,6 +88,16 @@ export default function QuizHistoryTabs({ data }: Props) {
           item.quiztitle.toLowerCase().includes(query) ||
           item.application.toLowerCase().includes(query)
       );
+    }
+
+    // Category Filter
+    if (filterCategory !== "all") {
+      result = result.filter((item) => item.category === filterCategory);
+    }
+
+    // Language Filter
+    if (filterLanguage !== "all") {
+      result = result.filter((item) => item.language === filterLanguage);
     }
 
     // Time Filter
@@ -124,7 +158,7 @@ export default function QuizHistoryTabs({ data }: Props) {
     });
 
     return result;
-  }, [data, searchQuery, filterTime, sort]);
+  }, [data, searchQuery, filterCategory, filterLanguage, filterTime, sort]);
 
   const hostData = filteredData.filter((q) => q.role === "host");
   const playerData = filteredData.filter((q) => q.role === "player");
@@ -198,12 +232,38 @@ export default function QuizHistoryTabs({ data }: Props) {
           )}
           <Select value={filterTime} onValueChange={setFilterTime}>
             <SelectTrigger className="input h-8 w-[140px] text-xs font-semibold">
-              <SelectValue placeholder="Status" />
+              <SelectValue placeholder="Time" />
             </SelectTrigger>
             <SelectContent>
-              {time.map((time) => (
-                <SelectItem key={time.value} value={time.value}>
-                  {time.label}
+              {time.map((t) => (
+                <SelectItem key={t.value} value={t.value}>
+                  {t.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {/* Filter Category */}
+          <Select value={filterCategory} onValueChange={setFilterCategory}>
+            <SelectTrigger className="input h-8 w-[140px] text-xs font-semibold">
+              <SelectValue placeholder="Category" />
+            </SelectTrigger>
+            <SelectContent>
+              {categoryOptions.map((cat) => (
+                <SelectItem key={cat.value} value={cat.value}>
+                  {cat.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {/* Filter Language */}
+          <Select value={filterLanguage} onValueChange={setFilterLanguage}>
+            <SelectTrigger className="input h-8 w-[140px] text-xs font-semibold">
+              <SelectValue placeholder="Language" />
+            </SelectTrigger>
+            <SelectContent>
+              {languageOptions.map((lang) => (
+                <SelectItem key={lang.value} value={lang.value}>
+                  {lang.label}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -258,4 +318,4 @@ export default function QuizHistoryTabs({ data }: Props) {
       </TabsContent>
     </Tabs>
   );
-}
+}
