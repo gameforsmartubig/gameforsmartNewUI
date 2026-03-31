@@ -11,6 +11,11 @@ import { formatTimeAgo } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import rawCategories from "@/data/categories.json";
+
+const categoryMap: Record<string, string> = Object.fromEntries(
+  rawCategories.map((c) => [c.id, c.title])
+);
 
 interface Props {
   quiz: QuizHistory[];
@@ -77,7 +82,7 @@ export default function QuizHistoryCard({ quiz }: Props) {
                     <span
                       title="Category"
                       className="rounded-lg border border-green-200 bg-green-50 px-2 py-0.5 text-xs font-bold text-green-700 uppercase dark:border-green-700 dark:bg-green-900/30 dark:text-green-500">
-                      {quiz.category}
+                      {categoryMap[quiz.category] || quiz.category}
                     </span>
                   )}
                   {quiz.language && (

@@ -13,6 +13,11 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { QuizHistory } from "@/app/(auth)/history/page";
 import { formatTimeAgo, cn } from "@/lib/utils";
+import rawCategories from "@/data/categories.json";
+
+const categoryMap: Record<string, string> = Object.fromEntries(
+  rawCategories.map((c) => [c.id, c.title])
+);
 
 interface Props {
   data: QuizHistory[];
@@ -58,7 +63,7 @@ export default function QuizHistoryTable({ data }: Props) {
                     {item.quiztitle}
                   </TableCell>
 
-                  <TableCell title="Category">{item.category || "-"}</TableCell>
+                  <TableCell title="Category">{item.category ? (categoryMap[item.category] || item.category) : "-"}</TableCell>
 
                   <TableCell>
                     <span className={cn(
