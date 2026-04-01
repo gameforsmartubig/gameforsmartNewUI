@@ -16,7 +16,8 @@ import { toast } from "sonner";
 function isExternalGameForSmart(url: string | null): boolean {
   if (!url) return false;
   return (
-    url.startsWith("https://gameforsmart.com")
+    url.startsWith("https://gameforsmart.com") ||
+    url.startsWith("http://gameforsmart.com")
   );
 }
 
@@ -148,19 +149,19 @@ export default function LoginForm() {
       console.log("🔥 Login - gamePin:", gamePin);
       console.log("🔥 Login - isExternal:", isExternal);
 
-      // Tentukan nextPath untuk internal redirect
-      let nextPath = "/dashboard";
+      // Tentukan nextPath untuk internal redirect (selalu lewat /callback agar profile dicek)
+      let nextPath = "/callback";
 
       if (redirectPath) {
         if (isExternal) {
           // Simpan URL external ke cookie tersendiri agar tidak ikut OAuth flow
           document.cookie = `external-redirect=${encodeURIComponent(redirectPath)}; path=/; max-age=3600; SameSite=Lax`;
-          // nextPath tetap /dashboard, callback akan baca cookie
-          nextPath = "/dashboard";
+          // nextPath tetap /callback, callback akan baca cookie
+          nextPath = "/callback";
         } else if (gamePin && !redirectPath.includes(gamePin)) {
-          nextPath = `${redirectPath}?pin=${gamePin}`;
+          nextPath = `/callback?redirect=${encodeURIComponent(redirectPath)}&pin=${gamePin}`;
         } else {
-          nextPath = redirectPath;
+          nextPath = `/callback?redirect=${encodeURIComponent(redirectPath)}`;
         }
       }
 

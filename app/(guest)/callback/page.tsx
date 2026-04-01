@@ -8,7 +8,8 @@ import { supabase } from "@/lib/supabase";
 function isExternalGameForSmart(url: string | null): boolean {
   if (!url) return false;
   return (
-    url.startsWith("https://gameforsmart.com")
+    url.startsWith("https://gameforsmart.com") ||
+    url.startsWith("http://gameforsmart.com")
   );
 }
 
@@ -240,6 +241,13 @@ function AuthCallbackPageContent() {
   };
 
   return (
+    <div className="flex h-screen items-center justify-center">
+      <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-blue-500"></div>
+    </div>
+  );
+
+  /* 
+  return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-orange-50 via-white to-yellow-50/50">
       <div className="mx-auto max-w-md rounded-3xl border border-orange-100 bg-white/40 p-8 text-center shadow-xl shadow-orange-100/20 backdrop-blur-sm">
         {!isError ? (
@@ -285,17 +293,20 @@ function AuthCallbackPageContent() {
       </div>
     </div>
   );
+  */
 }
 
 export default function AuthCallbackPage() {
   return (
     <Suspense
       fallback={
-        <div className="flex min-h-screen items-center justify-center bg-orange-50/30">
-          <div className="text-center">
-            <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-yellow-200 border-t-orange-500"></div>
-            <p className="animate-pulse font-medium text-orange-600">Memuat halaman...</p>
-          </div>
+        //  <div className="flex min-h-screen items-center justify-center bg-orange-50/30">
+        //   <div className="text-center">
+        //     <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-yellow-200 border-t-orange-500"></div>
+        //     <p className="animate-pulse font-medium text-orange-600">Memuat halaman...</p>
+        //   </div>
+        <div className="flex h-screen items-center justify-center">
+          <div className="h-10 w-10 animate-spin rounded-full border-4 border-gray-300 border-t-blue-500"></div>
         </div>
       }>
       <AuthCallbackPageContent />
