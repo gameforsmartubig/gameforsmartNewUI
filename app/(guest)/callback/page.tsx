@@ -4,27 +4,45 @@ import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 
+// Helper: cek apakah URL adalah domain gameforsmart.com (website 1)
+function isExternalGameForSmart(url: string | null): boolean {
+  if (!url) return false;
+  return (
+    url.startsWith("https://gameforsmart.com")
+  );
+}
+
+// Helper: baca nilai cookie berdasarkan nama
+function getCookie(name: string): string | null {
+  const match = document.cookie
+    .split("; ")
+    .find((row) => row.startsWith(`${name}=`));
+  return match ? decodeURIComponent(match.split("=")[1]) : null;
+}
+
+// Helper: hapus cookie
+function deleteCookie(name: string) {
+  document.cookie = `${name}=; path=/; max-age=0; SameSite=Lax`;
+}
+
 function AuthCallbackPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [status, setStatus] = useState("Memproses login...");
   const [isError, setIsError] = useState(false);
 
-  
   useEffect(() => {
-    // Proses callback OAuth dari provider
     const handleAuthCallback = async () => {
       try {
         setStatus("Memverifikasi session...");
 
-        // Handle hash fragment from OAuth redirect
+        // Handle hash fragment dari OAuth redirect
         const hashParams = new URLSearchParams(window.location.hash.substring(1));
         const accessToken = hashParams.get("access_token");
 
         console.log("🔥 Hash params:", window.location.hash);
         console.log("🔥 Access token from hash:", accessToken ? "Found" : "Not found");
 
-        // If we have access token in hash, exchange it for session
         if (accessToken) {
           const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
             access_token: accessToken,
@@ -53,57 +71,89 @@ function AuthCallbackPageContent() {
 
         if (data.session) {
           setStatus("Menyiapkan profil...");
-          // Cek apakah user sudah memiliki profil
           await ensureUserProfile(data.session.user);
 
-          // Check if there's a redirect parameter with game PIN from URL or localStorage
+          // Baca redirect dari URL params
           let redirectPath = searchParams.get("redirect");
           let gamePin = searchParams.get("pin");
 
-          // If not in URL, check localStorage (for OAuth flow)
+          // Fallback ke localStorage jika tidak ada di URL (OAuth flow)
           if (!redirectPath || !gamePin) {
-            redirectPath = localStorage.getItem("oauth_redirect_path");
-            gamePin = localStorage.getItem("oauth_game_pin");
+            redirectPath = redirectPath || localStorage.getItem("oauth_redirect_path");
+            gamePin = gamePin || localStorage.getItem("oauth_game_pin");
 
-            // Clean up localStorage after reading
-            if (redirectPath && gamePin) {
+            if (redirectPath || gamePin) {
               localStorage.removeItem("oauth_redirect_path");
               localStorage.removeItem("oauth_game_pin");
             }
           }
 
+          // Baca cookie external-redirect (disimpan saat Google login dari external URL)
+          const externalRedirectUrl = getCookie("external-redirect");
+          if (externalRedirectUrl) {
+            deleteCookie("external-redirect");
+            console.log("🔥 Found external-redirect cookie:", externalRedirectUrl);
+          }
+
           console.log("🔥 Callback - redirectPath:", redirectPath);
           console.log("🔥 Callback - gamePin:", gamePin);
+          console.log("🔥 Callback - externalRedirectUrl:", externalRedirectUrl);
 
-          // Check profile completeness for dashboard redirection
+          // Cek kelengkapan profil
           const { data: profile } = await supabase
             .from("profiles")
-            .select("username, country_id")
+            .select("id, username, country_id")
             .eq("auth_user_id", data.session.user.id)
             .single();
 
-          // Check if profile needs completion (username or location missing)
+          const safeProfile = profile as any;
+
+          // Simpan profile ID ke localStorage
+          if (safeProfile?.id) {
+            localStorage.setItem("user_id", safeProfile.id);
+          }
+
           const hasValidUsername =
-            profile?.username &&
-            !profile.username.includes("@") &&
-            !profile.username.startsWith("user_") &&
-            profile.username.length >= 3;
-          const hasLocation = profile?.country_id !== null && profile?.country_id !== undefined;
+            safeProfile?.username &&
+            !safeProfile.username.includes("@") &&
+            !safeProfile.username.startsWith("user_") &&
+            safeProfile.username.length >= 3;
+          const hasLocation =
+            safeProfile?.country_id !== null && safeProfile?.country_id !== undefined;
 
           if (!hasValidUsername || !hasLocation) {
-            // Redirect to required page to complete profile
+            // Profil belum lengkap → ke /required
             setStatus("Lengkapi profil Anda...");
+
+            // Jika ada external redirect, simpan ke localStorage supaya tidak hilang
+            if (externalRedirectUrl) {
+              localStorage.setItem("pending_external_redirect", externalRedirectUrl);
+            }
+
             if (redirectPath && gamePin) {
-              console.log("🔥 Redirecting to /required with callback");
-              router.push(`/required?redirect=${redirectPath}&pin=${gamePin}`);
+              console.log("🔥 Redirecting to /required with redirect + pin");
+              router.push(`/required?redirect=${encodeURIComponent(redirectPath)}&pin=${gamePin}`);
+            } else if (redirectPath) {
+              console.log("🔥 Redirecting to /required with redirect");
+              router.push(`/required?redirect=${encodeURIComponent(redirectPath)}`);
             } else {
               console.log("🔥 Redirecting to /required");
               router.push("/required");
             }
+          } else if (externalRedirectUrl) {
+            // Profil lengkap + ada external redirect dari Google OAuth
+            setStatus("Berhasil! Mengarahkan ke halaman pendaftaran...");
+            const token = data.session.access_token;
+            console.log("🔥 Redirecting externally to:", externalRedirectUrl);
+            window.location.href = `${externalRedirectUrl}?token=${encodeURIComponent(token)}`;
           } else if (redirectPath && gamePin) {
             setStatus("Berhasil! Mengarahkan ke game...");
             console.log("🔥 Redirecting to:", `${redirectPath}?pin=${gamePin}`);
             router.push(`${redirectPath}?pin=${gamePin}`);
+          } else if (redirectPath) {
+            setStatus("Berhasil! Mengarahkan...");
+            console.log("🔥 Redirecting to:", redirectPath);
+            router.push(redirectPath);
           } else {
             setStatus("Berhasil! Mengarahkan ke dashboard...");
             console.log("🔥 Redirecting to: /dashboard");
@@ -112,7 +162,6 @@ function AuthCallbackPageContent() {
         } else {
           setStatus("Session tidak ditemukan");
           setIsError(true);
-          // Tidak ada session, kembali ke login
           setTimeout(() => {
             router.push("/login");
           }, 2000);
@@ -130,28 +179,24 @@ function AuthCallbackPageContent() {
     handleAuthCallback();
   }, [router, searchParams]);
 
-  // Fungsi untuk memastikan user memiliki profil
+  // Buat profil baru jika belum ada (untuk OAuth user)
   const ensureUserProfile = async (user: any) => {
     if (!user) return;
 
     try {
-      // Cek apakah profil sudah ada
       const { data: existingProfile, error: profileError } = await supabase
         .from("profiles")
         .select("id")
         .eq("auth_user_id", user.id)
         .single();
 
-      // Jika profil tidak ditemukan, buat profil baru
       if (profileError && profileError.code === "PGRST116") {
         console.log("Creating new profile for OAuth user");
 
-        // Ekstrak username dari email
         let username = "";
         if (user.email) {
           username = user.email.split("@")[0];
 
-          // Tambahkan angka random jika username sudah ada
           const { data: usernameExists } = await supabase
             .from("profiles")
             .select("id")
@@ -165,9 +210,6 @@ function AuthCallbackPageContent() {
           username = `user_${Math.floor(Math.random() * 10000)}`;
         }
 
-        // Buat profil baru dengan semua field yang diperlukan
-        // NOTE: Don't pass 'id' - the trigger will auto-generate XID
-        // Pass 'auth_user_id' to link with auth.users table
         const fullname = user.user_metadata?.full_name || user.user_metadata?.name || username;
 
         const profileData: any = {
@@ -202,9 +244,7 @@ function AuthCallbackPageContent() {
       <div className="mx-auto max-w-md rounded-3xl border border-orange-100 bg-white/40 p-8 text-center shadow-xl shadow-orange-100/20 backdrop-blur-sm">
         {!isError ? (
           <div className="relative mx-auto mb-6 h-16 w-16">
-            {/* Spinner Orange Utama */}
             <div className="absolute inset-0 animate-spin rounded-full border-t-4 border-b-4 border-orange-500"></div>
-            {/* Ring Kuning di dalamnya */}
             <div className="animate-spin-slow absolute inset-2 rounded-full border-r-4 border-l-4 border-yellow-400 opacity-50"></div>
           </div>
         ) : (
@@ -253,7 +293,6 @@ export default function AuthCallbackPage() {
       fallback={
         <div className="flex min-h-screen items-center justify-center bg-orange-50/30">
           <div className="text-center">
-            {/* Loader Fallback dengan warna Orange & Kuning */}
             <div className="mx-auto mb-4 h-12 w-12 animate-spin rounded-full border-4 border-yellow-200 border-t-orange-500"></div>
             <p className="animate-pulse font-medium text-orange-600">Memuat halaman...</p>
           </div>

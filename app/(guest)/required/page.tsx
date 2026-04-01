@@ -14,6 +14,15 @@ import { supabase } from "@/lib/supabase";
 import { LocationSelector, type LocationValue } from "@/components/ui/location-selector";
 import { updateProfileAction, checkUsernameAction } from "@/app/service/profile";
 
+// Helper: cek apakah URL adalah domain gameforsmart.com (website 1)
+function isExternalGameForSmart(url: string | null): boolean {
+  if (!url) return false;
+  return (
+    url.startsWith("https://gameforsmart.com") ||
+    url.startsWith("http://gameforsmart.com")
+  );
+}
+
 const useDebounce = (value: string, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -76,18 +85,17 @@ function RequiredPage() {
   useEffect(() => {
     if (state?.success) {
       toast.success(state.message);
-      // Async refresh di background. Redirect ditangani secara logis oleh
-      // lifecycle effect redirect "Profile is Complete" supaya tidak race condition.
+      // Async refresh di background. Redirect ditangani oleh
+      // lifecycle effect "Profile is Complete" supaya tidak race condition.
       refreshProfile().catch(console.error);
     } else if (state?.error) {
       setErrorLocal(state.error);
     }
   }, [state?.success, state?.error, state?.message]);
 
-  // Initialize username and location from existing profile
+  // Initialize username dan location dari profil yang sudah ada
   useEffect(() => {
     if (profile) {
-      // Only set username if it's a real username (not auto-generated from email)
       if (
         profile.username &&
         !profile.username.includes("@") &&
@@ -96,7 +104,6 @@ function RequiredPage() {
         setUsername(profile.username);
       }
 
-      // Set existing location if available
       if (profile.country_id) {
         setLocation((prev) => ({
           ...prev,
@@ -107,7 +114,7 @@ function RequiredPage() {
     }
   }, [profile]);
 
-  // Redirect if profile is already complete
+  // Redirect jika profil sudah lengkap
   useEffect(() => {
     if (!authLoading && profile) {
       const hasValidUsername =
@@ -118,14 +125,52 @@ function RequiredPage() {
 
       const hasLocation = profile.country_id !== null;
 
-      // Hanya redirect apabila kondisinya terpenuhi SECARA UMUM dan STATE dari form tidak error.
       if (hasValidUsername && hasLocation && (!state || state.success)) {
-        // Profile is complete, redirect
         const redirectPath = searchParams.get("redirect") || "/dashboard";
         const gamePin = searchParams.get("pin");
+        const isExternal = isExternalGameForSmart(redirectPath);
 
-        const url = redirectPath && gamePin ? `${redirectPath}?pin=${gamePin}` : redirectPath;
-        router.push(url);
+        if (isExternal) {
+          // Cek juga pending_external_redirect dari localStorage (dari Google OAuth flow)
+          const pendingExternal =
+            localStorage.getItem("pending_external_redirect") || redirectPath;
+
+          supabase.auth.getSession().then(({ data }) => {
+            const token = data.session?.access_token;
+            if (token) {
+              localStorage.removeItem("pending_external_redirect");
+              console.log("🔥 Required - External redirect to:", pendingExternal);
+              window.location.href = `${pendingExternal}?token=${encodeURIComponent(token)}`;
+            } else {
+              // Fallback jika tidak ada token
+              window.location.href = pendingExternal;
+            }
+          });
+        } else {
+          // Cek apakah ada pending_external_redirect di localStorage
+          // (bisa terjadi jika user masuk via Google OAuth lalu ke /required)
+          const pendingExternal = localStorage.getItem("pending_external_redirect");
+
+          if (pendingExternal) {
+            supabase.auth.getSession().then(({ data }) => {
+              const token = data.session?.access_token;
+              if (token) {
+                localStorage.removeItem("pending_external_redirect");
+                console.log("🔥 Required - Pending external redirect to:", pendingExternal);
+                window.location.href = `${pendingExternal}?token=${encodeURIComponent(token)}`;
+              } else {
+                localStorage.removeItem("pending_external_redirect");
+                window.location.href = pendingExternal;
+              }
+            });
+          } else {
+            // Internal redirect seperti biasa
+            const url =
+              redirectPath && gamePin ? `${redirectPath}?pin=${gamePin}` : redirectPath;
+            console.log("🔥 Required - Internal redirect to:", url);
+            router.push(url);
+          }
+        }
       }
     }
   }, [
@@ -138,12 +183,21 @@ function RequiredPage() {
     state?.success
   ]);
 
-  // Redirect to login if not authenticated
+  // Redirect ke login jika belum authenticated
   useEffect(() => {
     if (!authLoading && !user) {
-      router.push("/auth/login");
+      // Bawa redirect URL supaya tidak hilang setelah login
+      const redirectPath = searchParams.get("redirect");
+      const pendingExternal = localStorage.getItem("pending_external_redirect");
+      const targetRedirect = redirectPath || pendingExternal;
+
+      if (targetRedirect) {
+        router.push(`/auth/login?redirect=${encodeURIComponent(targetRedirect)}`);
+      } else {
+        router.push("/auth/login");
+      }
     }
-  }, [authLoading, user, router]);
+  }, [authLoading, user, router, searchParams]);
 
   const detectLocation = useCallback(async () => {
     if (!navigator.geolocation) {
@@ -233,26 +287,17 @@ function RequiredPage() {
         return;
       }
 
-      // Basic format validation
-      if (usernameToCheck.length > 0 && usernameToCheck.length < 3) {
+      if (usernameToCheck.length < 3) {
         setUsernameValidation({
           isValid: false,
           isChecking: false,
-          message: "Username must be at least 3 characters long"
-        });
-        return;
-      }
-
-      if (usernameToCheck.length > 20) {
-        setUsernameValidation({
-          isValid: false,
-          isChecking: false,
-          message: "Username must be at most 20 characters long"
+          message: "Username must be at least 3 characters"
         });
         return;
       }
 
       const usernameRegex = /^[a-zA-Z0-9_]+$/;
+
       if (usernameToCheck.length > 0 && !usernameRegex.test(usernameToCheck)) {
         setUsernameValidation({
           isValid: false,
@@ -304,7 +349,6 @@ function RequiredPage() {
     e.preventDefault();
     setErrorLocal("");
 
-    // Pre-flight Client Validation
     if (!usernameValidation.isValid || usernameValidation.isChecking) {
       setErrorLocal("Please enter a valid and available username");
       return;
@@ -323,7 +367,7 @@ function RequiredPage() {
 
   const isSaving = isPendingForm || isPendingTrans;
 
-  // Show loading while checking auth state
+  // Loading state
   if (authLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#f0f5f4]">
@@ -335,7 +379,7 @@ function RequiredPage() {
     );
   }
 
-  // Don't render if not authenticated
+  // Jangan render jika belum authenticated
   if (!user || !profile) {
     return null;
   }

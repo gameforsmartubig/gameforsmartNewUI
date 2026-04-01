@@ -13,6 +13,15 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase-browser";
 import { Loader2, Navigation } from "lucide-react";
 
+// Helper: cek apakah URL adalah domain gameforsmart.com (website 1)
+function isExternalGameForSmart(url: string | null): boolean {
+  if (!url) return false;
+  return (
+    url.startsWith("https://gameforsmart.com") ||
+    url.startsWith("http://gameforsmart.com")
+  );
+}
+
 const useDebounce = (value: string, delay: number) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 
@@ -62,15 +71,27 @@ export default function RegisterForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
-  // Redirect if already logged in (but not immediately after registration)
+  // Redirect jika sudah login (tapi bukan setelah baru register)
   useEffect(() => {
     if (!authLoading && user && !justRegistered) {
-      // Only redirect existing users, not newly registered ones
       const redirectPath = searchParams.get("redirect");
       const gamePin = searchParams.get("pin");
+      const isExternal = isExternalGameForSmart(redirectPath);
 
-      if (redirectPath && gamePin) {
+      if (isExternal) {
+        // Ambil token lalu redirect ke website 1
+        supabase.auth.getSession().then(({ data }) => {
+          const token = data.session?.access_token;
+          if (token) {
+            window.location.href = `${redirectPath}?token=${encodeURIComponent(token)}`;
+          } else {
+            window.location.href = redirectPath!;
+          }
+        });
+      } else if (redirectPath && gamePin) {
         router.push(`${redirectPath}?pin=${gamePin}`);
+      } else if (redirectPath) {
+        router.push(redirectPath);
       } else {
         router.push("/dashboard");
       }
@@ -164,14 +185,13 @@ export default function RegisterForm() {
     );
   }, []);
 
-  // Real-time username validation function
+  // Real-time username validation
   const validateUsernameRealtime = useCallback(async (username: string) => {
     if (!username) {
       setUsernameValidation({ isValid: true, isChecking: false, message: "" });
       return;
     }
 
-    // Basic format validation
     if (username.length > 0 && username.length < 3) {
       setUsernameValidation({
         isValid: false,
@@ -233,7 +253,6 @@ export default function RegisterForm() {
         }
       } catch (err) {
         console.error("Username validation catch error:", err);
-        // On any error, assume username is available
         setUsernameValidation({
           isValid: true,
           isChecking: false,
@@ -245,10 +264,9 @@ export default function RegisterForm() {
     }
   }, []);
 
-  // Debounced username for validation
+  // Debounced username untuk validasi
   const debouncedUsername = useDebounce(formData.username, 500);
 
-  // Effect to trigger username validation when debounced username changes
   useEffect(() => {
     if (debouncedUsername) {
       validateUsernameRealtime(debouncedUsername);
@@ -261,14 +279,12 @@ export default function RegisterForm() {
     setError("");
 
     try {
-      // Validate username before proceeding
       if (!usernameValidation.isValid || usernameValidation.isChecking) {
         setError("Please enter a valid and available username");
         setLoading(false);
         return;
       }
 
-      // Check username format and availability one more time
       if (formData.username.length < 3) {
         setError("Username must be at least 3 characters long");
         setLoading(false);
@@ -282,7 +298,7 @@ export default function RegisterForm() {
         return;
       }
 
-      // Final check for username availability
+      // Final check username availability
       const { data: existingUsers, error: checkError } = await supabase
         .from("profiles")
         .select("id, username")
@@ -290,10 +306,7 @@ export default function RegisterForm() {
 
       if (checkError) {
         console.error("Username validation on submit error:", checkError);
-        // If there's an error (e.g., table doesn't exist), proceed with registration
-        // The error might be because this is the first user and table is empty
       } else {
-        // Only check if query was successful
         const usernameExists = existingUsers?.some(
           (profile) => (profile as any).username.toLowerCase() === formData.username.toLowerCase()
         );
@@ -305,10 +318,8 @@ export default function RegisterForm() {
         }
       }
 
-      // Set flag to prevent immediate redirect
       setJustRegistered(true);
 
-      // Tambahkan phone dan location ke parameter signUp
       try {
         await signUp(
           formData.email,
@@ -322,36 +333,46 @@ export default function RegisterForm() {
           formData.phone || null
         );
 
-        // Registration successful
         setRegistrationSuccess(true);
 
-        // Check if we need to redirect to join with game PIN
         const redirectPath = searchParams.get("redirect");
         const gamePin = searchParams.get("pin");
+        const isExternal = isExternalGameForSmart(redirectPath);
+        const hasLocation = location.countryId !== null;
 
-        // Show success message for a moment, then redirect
-        setTimeout(() => {
-          setJustRegistered(false); // Allow redirect
-
-          // Check if location was provided
-          const hasLocation = location.countryId !== null;
+        setTimeout(async () => {
+          setJustRegistered(false);
 
           if (!hasLocation) {
-            // Redirect to required page to complete profile
-            if (redirectPath && gamePin) {
-              router.push(`/required?redirect=${redirectPath}&pin=${gamePin}`);
+            // Profil belum lengkap → ke /required
+            // Encode redirectPath agar tidak hilang (termasuk external URL)
+            if (redirectPath) {
+              router.push(`/required?redirect=${encodeURIComponent(redirectPath)}${gamePin ? `&pin=${gamePin}` : ""}`);
             } else {
               router.push("/required");
             }
+          } else if (isExternal) {
+            // Register berhasil + lokasi lengkap + external redirect
+            // Ambil token terbaru lalu kirim ke website 1
+            const { data: sessionData } = await supabase.auth.getSession();
+            const token = sessionData.session?.access_token;
+            if (token) {
+              console.log("🔥 Register - External redirect to:", redirectPath);
+              window.location.href = `${redirectPath}?token=${encodeURIComponent(token)}`;
+            } else {
+              // Fallback jika token tidak ada
+              window.location.href = redirectPath!;
+            }
           } else if (redirectPath && gamePin) {
             router.push(`${redirectPath}?pin=${gamePin}`);
+          } else if (redirectPath) {
+            router.push(redirectPath);
           } else {
             router.push("/dashboard");
           }
-        }, 2000); // 2 seconds delay
+        }, 2000);
       } catch (signUpError: any) {
         console.error("SignUp error:", signUpError);
-        // If profile creation fails, show specific error
         if (signUpError.message?.includes("profiles")) {
           setError("Gagal membuat profil. Silakan coba lagi atau hubungi admin.");
         } else {
@@ -364,7 +385,7 @@ export default function RegisterForm() {
     } catch (error: any) {
       console.error("Registration error:", error);
       setError(error.message || "Terjadi kesalahan saat mendaftar");
-      setJustRegistered(false); // Reset on error
+      setJustRegistered(false);
     } finally {
       setLoading(false);
     }
@@ -375,19 +396,27 @@ export default function RegisterForm() {
     setError("");
 
     try {
-      // Prepare redirect URL with game PIN parameters if available
       const redirectPath = searchParams.get("redirect");
       const gamePin = searchParams.get("pin");
+      const isExternal = isExternalGameForSmart(redirectPath);
 
-      // Store redirect info in localStorage before OAuth redirect
-      if (redirectPath && gamePin) {
+      console.log("🔥 Register Google - redirectPath:", redirectPath);
+      console.log("🔥 Register Google - isExternal:", isExternal);
+
+      if (isExternal) {
+        // Simpan external URL ke cookie tersendiri, callback akan membacanya
+        document.cookie = `external-redirect=${encodeURIComponent(redirectPath!)}; path=/; max-age=3600; SameSite=Lax`;
+      } else if (redirectPath && gamePin) {
+        // Simpan internal redirect ke localStorage
         localStorage.setItem("oauth_redirect_path", redirectPath);
         localStorage.setItem("oauth_game_pin", gamePin);
+      } else if (redirectPath) {
+        localStorage.setItem("oauth_redirect_path", redirectPath);
       }
 
-      // Gunakan window.location.origin untuk semua environment, ini lebih reliable
-      // karena akan otomatis menggunakan URL yang benar (localhost untuk dev, domain production untuk production)
       const callbackUrl = `${window.location.origin}/auth/callback`;
+
+      console.log("🔥 Register Google - callbackUrl:", callbackUrl);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",

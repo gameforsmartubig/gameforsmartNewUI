@@ -12,11 +12,19 @@ import { useSearchParams } from "next/navigation";
 import { supabase } from "@/lib/supabase-browser";
 import { toast } from "sonner";
 
+// Helper: cek apakah URL adalah domain gameforsmart.com (website 1)
+function isExternalGameForSmart(url: string | null): boolean {
+  if (!url) return false;
+  return (
+    url.startsWith("https://gameforsmart.com")
+  );
+}
+
 export default function LoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({
-    emailOrUsername: "", // Changed to accept either email or username
+    emailOrUsername: "",
     password: ""
   });
   const router = useRouter();
@@ -35,15 +43,14 @@ export default function LoginForm() {
     setError("");
 
     try {
-      // Check if input is an email or username
+      // Cek apakah input adalah email atau username
       const isEmail = formData.emailOrUsername.includes("@");
       let emailToUse = formData.emailOrUsername;
 
-      // If it's not an email, treat it as username and fetch the associated email
+      // Jika bukan email, cari email berdasarkan username
       if (!isEmail) {
         console.log("Login with username:", formData.emailOrUsername);
 
-        // Query the profiles table to get email from username (case-insensitive)
         const { data: profileData, error: profileError } = await supabase
           .from("profiles")
           .select("email")
@@ -59,7 +66,7 @@ export default function LoginForm() {
         console.log("Found email for username:", emailToUse);
       }
 
-      // Now sign in with the email
+      // Sign in dengan email
       const { data, error } = await supabase.auth.signInWithPassword({
         email: emailToUse,
         password: formData.password
@@ -68,11 +75,7 @@ export default function LoginForm() {
       if (error) throw error;
 
       if (data.user) {
-        // Save user ID to localStorage -> MOVED below to use profile.id
-        // localStorage.setItem("user_id", data.user.id);
-
-        // Check if profile needs completion
-        // Check if profile needs completion
+        // Cek kelengkapan profil
         const { data: profile } = await supabase
           .from("profiles")
           .select("id, username, country_id")
@@ -81,7 +84,7 @@ export default function LoginForm() {
 
         const safeProfile = profile as any;
 
-        // Save USER PROFILE ID to localStorage (not auth ID)
+        // Simpan profile ID ke localStorage
         if (safeProfile?.id) {
           localStorage.setItem("user_id", safeProfile.id);
         }
@@ -96,20 +99,26 @@ export default function LoginForm() {
 
         const redirectPath = searchParams.get("redirect");
         const gamePin = searchParams.get("pin");
+        const isExternal = isExternalGameForSmart(redirectPath);
 
         if (!hasValidUsername || !hasLocation) {
-          // Redirect to required page to complete profile
+          // Profil belum lengkap → ke /required
+          // Encode redirectPath supaya tidak hilang di URL
           if (redirectPath && gamePin) {
-            localStorage.setItem("pin", gamePin); // Persist PIN
-            router.push(`/required?redirect=${redirectPath}&pin=${gamePin}`);
+            localStorage.setItem("pin", gamePin);
+            router.push(`/required?redirect=${encodeURIComponent(redirectPath)}&pin=${gamePin}`);
           } else if (redirectPath) {
-            router.push(`/required?redirect=${redirectPath}`);
+            router.push(`/required?redirect=${encodeURIComponent(redirectPath)}`);
           } else {
             router.push("/required");
           }
         } else if (redirectPath) {
-          if (gamePin) {
-            localStorage.setItem("pin", gamePin); // Persist PIN
+          if (isExternal) {
+            // Kirim access token ke website 1 (gameforsmart.com)
+            const token = data.session?.access_token;
+            window.location.href = `${redirectPath}?token=${encodeURIComponent(token!)}`;
+          } else if (gamePin) {
+            localStorage.setItem("pin", gamePin);
             router.push(`${redirectPath}?pin=${gamePin}`);
           } else {
             router.push(redirectPath);
@@ -133,30 +142,35 @@ export default function LoginForm() {
     try {
       const redirectPath = searchParams.get("redirect");
       const gamePin = searchParams.get("pin");
+      const isExternal = isExternalGameForSmart(redirectPath);
 
       console.log("🔥 Login - redirectPath:", redirectPath);
       console.log("🔥 Login - gamePin:", gamePin);
+      console.log("🔥 Login - isExternal:", isExternal);
 
-      // 1. Construct Target Path
+      // Tentukan nextPath untuk internal redirect
       let nextPath = "/dashboard";
+
       if (redirectPath) {
-        if (gamePin && !redirectPath.includes(gamePin)) {
-          // If redirect is generic but we have PIN
+        if (isExternal) {
+          // Simpan URL external ke cookie tersendiri agar tidak ikut OAuth flow
+          document.cookie = `external-redirect=${encodeURIComponent(redirectPath)}; path=/; max-age=3600; SameSite=Lax`;
+          // nextPath tetap /dashboard, callback akan baca cookie
+          nextPath = "/dashboard";
+        } else if (gamePin && !redirectPath.includes(gamePin)) {
           nextPath = `${redirectPath}?pin=${gamePin}`;
         } else {
           nextPath = redirectPath;
         }
       }
 
-      // 2. Save Target Path to Cookie (Server Readable)
-      // This bypasses Supabase Strict Redirect URL checking
+      // Simpan target path ke cookie (dibaca oleh server di /auth/callback)
       document.cookie = `auth-redirect=${encodeURIComponent(nextPath)}; path=/; max-age=3600; SameSite=Lax`;
 
-      // 3. Clean Callback URL (Must exactly match Supabase Whitelist)
       const callbackUrl = `${window.location.origin}/auth/callback`;
 
       console.log("🔥 Login - clean callbackUrl:", callbackUrl);
-      console.log("🔥 Login - target stored in cookie:", nextPath);
+      console.log("🔥 Login - nextPath stored in cookie:", nextPath);
 
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: "google",
@@ -172,6 +186,7 @@ export default function LoginForm() {
       setLoading(false);
     }
   };
+
   return (
     <div className="base-background flex min-h-screen items-center justify-center py-4 lg:h-screen">
       <Card
