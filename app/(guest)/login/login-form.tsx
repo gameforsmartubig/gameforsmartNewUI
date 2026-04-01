@@ -157,7 +157,7 @@ export default function LoginForm() {
           // Simpan URL external ke cookie & localStorage sebagai cadangan
           document.cookie = `external-redirect=${encodeURIComponent(redirectPath)}; path=/; max-age=3600; SameSite=Lax`;
           localStorage.setItem("external-redirect", redirectPath);
-
+          
           // Tetap masukkan ke URL redirect sebagai backup utama
           nextPath = `/callback?redirect=${encodeURIComponent(redirectPath)}`;
         } else if (gamePin && !redirectPath.includes(gamePin)) {
