@@ -89,18 +89,16 @@ function AuthCallbackPageContent() {
             }
           }
 
-          // Baca cookie & localStorage (fallback)
-          const externalFromCookie = getCookie("external-redirect");
-          const externalFromStorage = localStorage.getItem("external-redirect");
-          const externalFromUrl = isExternalGameForSmart(redirectPath) ? redirectPath : null;
-
-          const finalExternalUrl = externalFromUrl || externalFromCookie || externalFromStorage;
-
-          if (finalExternalUrl) {
+          // Baca cookie external-redirect (disimpan saat Google login dari external URL)
+          const externalRedirectUrl = getCookie("external-redirect");
+          if (externalRedirectUrl) {
             deleteCookie("external-redirect");
-            localStorage.removeItem("external-redirect");
-            console.log("🔥 Found external redirect path:", finalExternalUrl);
+            console.log("🔥 Found external-redirect cookie:", externalRedirectUrl);
           }
+
+          console.log("🔥 Callback - redirectPath:", redirectPath);
+          console.log("🔥 Callback - gamePin:", gamePin);
+          console.log("🔥 Callback - externalRedirectUrl:", externalRedirectUrl);
 
           // Cek kelengkapan profil
           const { data: profile } = await supabase
@@ -126,28 +124,40 @@ function AuthCallbackPageContent() {
 
           if (!hasValidUsername || !hasLocation) {
             // Profil belum lengkap → ke /required
+            setStatus("Lengkapi profil Anda...");
+
             // Jika ada external redirect, simpan ke localStorage supaya tidak hilang
-            if (finalExternalUrl) {
-              localStorage.setItem("pending_external_redirect", finalExternalUrl);
+            if (externalRedirectUrl) {
+              localStorage.setItem("pending_external_redirect", externalRedirectUrl);
             }
 
             if (redirectPath && gamePin) {
+              console.log("🔥 Redirecting to /required with redirect + pin");
               router.push(`/required?redirect=${encodeURIComponent(redirectPath)}&pin=${gamePin}`);
             } else if (redirectPath) {
+              console.log("🔥 Redirecting to /required with redirect");
               router.push(`/required?redirect=${encodeURIComponent(redirectPath)}`);
             } else {
+              console.log("🔥 Redirecting to /required");
               router.push("/required");
             }
-          } else if (finalExternalUrl) {
-            // Profil lengkap + ada external redirect (dari landing page)
+          } else if (externalRedirectUrl) {
+            // Profil lengkap + ada external redirect dari Google OAuth
+            setStatus("Berhasil! Mengarahkan ke halaman pendaftaran...");
             const token = data.session.access_token;
-            console.log("🔥 Redirecting externally to:", finalExternalUrl);
-            window.location.href = `${finalExternalUrl}${finalExternalUrl.includes("?") ? "&" : "?"}token=${encodeURIComponent(token)}`;
+            console.log("🔥 Redirecting externally to:", externalRedirectUrl);
+            window.location.href = `${externalRedirectUrl}?token=${encodeURIComponent(token)}`;
           } else if (redirectPath && gamePin) {
+            setStatus("Berhasil! Mengarahkan ke game...");
+            console.log("🔥 Redirecting to:", `${redirectPath}?pin=${gamePin}`);
             router.push(`${redirectPath}?pin=${gamePin}`);
           } else if (redirectPath) {
+            setStatus("Berhasil! Mengarahkan...");
+            console.log("🔥 Redirecting to:", redirectPath);
             router.push(redirectPath);
           } else {
+            setStatus("Berhasil! Mengarahkan ke dashboard...");
+            console.log("🔥 Redirecting to: /dashboard");
             router.push("/dashboard");
           }
         } else {
