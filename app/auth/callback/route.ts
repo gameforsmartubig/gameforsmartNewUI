@@ -9,7 +9,7 @@ export async function GET(request: Request) {
   // Strategy: Check Cookie First -> Then Query Param -> Default
   const cookieStore = await cookies();
   const redirectCookie = cookieStore.get("auth-redirect");
-  let next = redirectCookie?.value ? decodeURIComponent(redirectCookie.value) : (searchParams.get("next") ?? "/dashboard");
+  let next = redirectCookie?.value ? decodeURIComponent(redirectCookie.value) : (searchParams.get("next") ?? "/callback");
 
   console.log("🔄 Auth Callback Hit:", {
     url: request.url,
