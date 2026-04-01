@@ -45,26 +45,33 @@ export default function QuizHistoryCard({ quiz }: Props) {
         {currentItems.map((quiz) => (
           <Card
             key={quiz.id}
-            onClick={() => router.push(`/result/${quiz.id.split("-")[0]}`)}
+            onClick={() => router.push(`/result/${quiz.id}`)}
             className="border-card group relative cursor-pointer overflow-hidden py-0 transition-all hover:shadow-md">
             <div
               className={cn(
                 "vertical-line",
-                quiz.role === "host" ? "bg-green-500" : "bg-yellow-500"
+                quiz.roles.includes("host") && quiz.roles.includes("player")
+                  ? "bg-gradient-to-b from-green-500 to-yellow-500"
+                  : quiz.roles.includes("host") ? "bg-green-500" : "bg-yellow-500"
               )}
             />
             <CardContent className="flex flex-1 flex-col gap-3 px-5 py-4">
               {/* Top Badge */}
               <div className="flex items-center justify-between">
-                <span
-                  className={cn(
-                    "rounded-md border px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase",
-                    quiz.role === "host"
-                      ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400"
-                      : "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
-                  )}>
-                  {quiz.role}
-                </span>
+                <div className="flex items-center gap-1">
+                  {quiz.roles.map((role) => (
+                    <span
+                      key={role}
+                      className={cn(
+                        "rounded-md border px-2 py-0.5 text-[10px] font-bold tracking-wider uppercase",
+                        role === "host"
+                          ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400"
+                          : "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                      )}>
+                      {role}
+                    </span>
+                  ))}
+                </div>
                 <span className="text-[10px] font-medium text-zinc-400">
                   {formatTimeAgo(quiz.ended_at)}
                 </span>
@@ -101,7 +108,7 @@ export default function QuizHistoryCard({ quiz }: Props) {
                   <Gamepad2 size={13} className="text-orange-500" />
                   <span className="max-w-[120px] truncate">{quiz.application}</span>
                 </div>
-                {quiz.role === "player" && quiz.hostName && (
+                {quiz.roles.includes("player") && quiz.hostName && (
                   <div className="flex items-center gap-1.5 text-[10px] text-zinc-400" title="Host">
                     <User size={13} className="text-orange-500" />
                     <span className="max-w-[80px] truncate"> {quiz.hostName}</span>

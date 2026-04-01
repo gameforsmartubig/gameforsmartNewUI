@@ -160,8 +160,8 @@ export default function QuizHistoryTabs({ data }: Props) {
     return result;
   }, [data, searchQuery, filterCategory, filterLanguage, filterTime, sort]);
 
-  const hostData = filteredData.filter((q) => q.role === "host");
-  const playerData = filteredData.filter((q) => q.role === "player");
+  const hostData = filteredData.filter((q) => q.roles.includes("host"));
+  const playerData = filteredData.filter((q) => q.roles.includes("player"));
 
   return (
     <Tabs defaultValue="all" className="w-full">

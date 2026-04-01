@@ -17,7 +17,7 @@ export interface QuizHistory {
   quiztitle: string;
   ended_at: string;
   application: string;
-  role: QuizActivityType;
+  roles: QuizActivityType[];
   hostName?: string;
   category?: string;
   language?: string;
@@ -91,26 +91,19 @@ async function getQuizHistory(): Promise<QuizHistory[]> {
     const category = quizDetail?.category || "";
     const language = quizDetail?.language || "";
 
-    if (isHost) {
-      results.push({
-        id: `${session.id}-host`,
-        quiztitle,
-        ended_at,
-        application,
-        role: "host",
-        category,
-        language,
-      });
-    }
+    // Build roles array
+    const roles: QuizActivityType[] = [];
+    if (isHost) roles.push("host");
+    if (isParticipant) roles.push("player");
 
-    if (isParticipant) {
+    if (roles.length > 0) {
       results.push({
-        id: `${session.id}-player`,
+        id: session.id,
         quiztitle,
         ended_at,
         application,
-        role: "player",
-        hostName: hostMap[session.host_id] || "Unknown Host",
+        roles,
+        hostName: isParticipant ? (hostMap[session.host_id] || "Unknown Host") : undefined,
         category,
         language,
       });

@@ -66,14 +66,20 @@ export default function QuizHistoryTable({ data }: Props) {
                   <TableCell title="Category">{item.category ? (categoryMap[item.category] || item.category) : "-"}</TableCell>
 
                   <TableCell>
-                    <span className={cn(
-                      "inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
-                      item.role === "host"
-                        ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400"
-                        : "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
-                    )}>
-                      {item.role}
-                    </span>
+                    <div className="flex items-center gap-1">
+                      {item.roles.map((role) => (
+                        <span
+                          key={role}
+                          className={cn(
+                            "inline-flex items-center rounded-md border px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider",
+                            role === "host"
+                              ? "border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-900/30 dark:text-green-400"
+                              : "border-yellow-200 bg-yellow-50 text-yellow-700 dark:border-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400"
+                          )}>
+                          {role}
+                        </span>
+                      ))}
+                    </div>
                   </TableCell>
 
                   <TableCell title="Language">{item.language ? item.language.toUpperCase() : "-"}</TableCell>
@@ -87,7 +93,7 @@ export default function QuizHistoryTable({ data }: Props) {
                       year: "numeric",
                       hour: "2-digit",
                       minute: "2-digit"
-                    })}${item.role === "player" && item.hostName ? ` (Host: ${item.hostName})` : ""}`}>
+                    })}${item.roles.includes("player") && item.hostName ? ` (Host: ${item.hostName})` : ""}`}>
                     {formatTimeAgo(item.ended_at)}
                   </TableCell>
                 </TableRow>
