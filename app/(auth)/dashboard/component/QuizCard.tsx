@@ -141,10 +141,10 @@ export function QuizCard({
         )}
 
         {/* Kreator */}
-        <div className="flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-zinc-400">
+        <Link href={`/profile/${quiz.creator}`} className="flex items-center gap-2 text-sm font-semibold text-zinc-700 dark:text-zinc-400" >
           <User size={14} className="text-orange-500" />
           <span className="line-clamp-1">{quiz.creator}</span>
-        </div>
+        </Link>
 
         {/* Stats + tombol aksi */}
         <div className="mt-auto flex items-end justify-between gap-3 pt-3">

@@ -110,7 +110,7 @@ export default function QuizHistoryCard({ quiz }: Props) {
                 </div>
                 {quiz.roles.includes("player") && quiz.hostName && (
                   <div
-                    className="flex cursor-pointer items-center gap-1.5 text-[10px] text-zinc-400 transition-colors hover:text-orange-500"
+                    className="flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-0.5 text-[10px] text-zinc-400 transition-colors hover:bg-orange-500/10 hover:text-orange-500 p-2"
                     title={`Host: ${quiz.hostName}`}
                     onClick={(e) => {
                       e.stopPropagation();
