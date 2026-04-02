@@ -12,6 +12,7 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import rawCategories from "@/data/categories.json";
+import Link from "next/link";
 
 const categoryMap: Record<string, string> = Object.fromEntries(
   rawCategories.map((c) => [c.id, c.title])
@@ -109,20 +110,23 @@ export default function QuizHistoryCard({ quiz }: Props) {
                   <span className="max-w-[120px] truncate">{quiz.application}</span>
                 </div>
                 {quiz.roles.includes("player") && quiz.hostName && (
-                  <div
+                  <Link
+                    target="_blank"
+                    href={`/profile/${quiz.hostUsername}`}
                     className="flex cursor-pointer items-center gap-1.5 rounded-lg px-2 py-0.5 text-[10px] text-zinc-400 transition-colors hover:bg-orange-500/10 hover:text-orange-500 p-2"
                     title={`Host: ${quiz.hostName}`}
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (quiz.hostUsername) {
-                        router.push(`/profile/${quiz.hostUsername}`);
-                      }
-                    }}>
+                      // if (quiz.hostUsername) {
+                      //   window.open(`/profile/${quiz.hostUsername}`, "_blank");
+                      // }
+                    }}
+                    >
                     <User size={13} className="text-orange-500" />
                     <span className="max-w-[80px] truncate underline decoration-dotted underline-offset-2">
                       {quiz.hostName}
                     </span>
-                  </div>
+                  </Link>
                 )}
               </div>
             </CardContent>

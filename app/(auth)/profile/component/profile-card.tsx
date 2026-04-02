@@ -3,14 +3,37 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Profile } from "@/app/service/profile/profile.service";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog";
+import { QRCodeSVG } from "qrcode.react";
+import { QrCode } from "lucide-react";
 
-
-export function ProfileCard({
-  profile
-}: { profile: Profile }) {
+export function ProfileCard({ profile }: { profile: Profile }) {
   return (
-    <Card className="w-[340px]">
+    <Card className="relative w-[340px]">
       <CardContent className="p-6 text-center">
+        <div className="absolute right-4 top-4">
+          <Dialog>
+            <DialogTrigger asChild>
+              <div className="border border-orange-black rounded-lg p-1" title="Share Profile">
+              <QrCode />
+              </div>
+            </DialogTrigger>
+            <DialogContent className="flex flex-col items-center sm:max-w-[620px]">
+              <DialogHeader>
+                <DialogTitle className="text-orange-600">Share Profile</DialogTitle>
+              </DialogHeader>
+              <div className="rounded-xl border border-orange-100 bg-white p-4 shadow-lg">
+                <QRCodeSVG value={profile.username} size={540} level="H" />
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
         <Avatar className="mx-auto h-24 w-24">
           <AvatarImage src={profile.avatar} alt={profile.fullName} />
           <AvatarFallback className="rounded-lg">
