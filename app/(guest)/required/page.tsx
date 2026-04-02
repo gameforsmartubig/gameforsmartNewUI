@@ -390,14 +390,14 @@ function RequiredPage() {
 
     // Build FormData explicitly from React state (don't rely on hidden inputs)
     const formData = new FormData();
-    formData.set("currentUserId", profile.id);
+    formData.set("currentUserId", (profile as any).id);
     formData.set("username", username);
     formData.set("countryId", String(location.countryId || ""));
     formData.set("stateId", String(location.stateId || ""));
     formData.set("cityId", String(location.cityId || ""));
 
     console.log("🔥 Required - Submitting FormData:", {
-      currentUserId: profile.id,
+      currentUserId: (profile as any).id,
       username,
       countryId: location.countryId,
       stateId: location.stateId,
