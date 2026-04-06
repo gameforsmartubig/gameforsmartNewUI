@@ -41,7 +41,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <SidebarMenu>
           <SidebarMenuItem>
-                <div className="h-14 flex items-center justify-center group-data-[collapsible=icon]:px-0!">
+                <Link href="/dashboard" className="h-14 flex items-center justify-center group-data-[collapsible=icon]:px-0!">
                   <Image
                         src="/logo.png"
                         width={100}
@@ -58,7 +58,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
                         alt="gameforsmart logo"
                         unoptimized
                       />
-                </div>
+                </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
