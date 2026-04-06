@@ -69,7 +69,7 @@ export function QuizCard({
             <span title="Language" className="rounded-lg border border-yellow-200 bg-yellow-50 px-2 py-0.5 text-xs font-bold text-yellow-700 uppercase dark:border-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-500">
               {quiz.language}
             </span>
-            <span className="rounded-lg border border-yellow-200 bg-yellow-50 px-2 py-0.5 text-xs font-bold text-yellow-700 uppercase dark:border-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-500">
+            <span title={quiz._raw?.isPublic ? "Public" : "Private"} className="rounded-lg border border-yellow-200 bg-yellow-50 px-2 py-0.5 text-xs font-bold text-yellow-700 uppercase dark:border-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-500">
               {quiz._raw?.isPublic ? <Globe size={16}/> : <Lock size={16}/>}
             </span>
           </div>
