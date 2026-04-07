@@ -9,7 +9,7 @@ module.exports = {
             instances: "max",
             autorestart: true,
             watch: false,
-            max_memory_restart: "2G",
+            max_memory_restart: "3G",
             env: {
                 NODE_ENV: "production",
             }
