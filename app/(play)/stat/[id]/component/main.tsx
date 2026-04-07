@@ -16,7 +16,10 @@ import {
   MessageSquare,
   Loader2,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  CircleCheck,
+  CircleX,
+  Percent
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
@@ -410,11 +413,22 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
                           {isHost && stats && (
                             <>
                               <Badge
+                              title="precentage correct"
                                 variant="secondary"
                                 className="rounded-md border-orange-100 bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700 hover:bg-orange-100">
-                                <span>{stats.percentCorrect}%</span> |
-                                <span>{stats.correctCount} correct</span> |
-                                <span>{stats.incorrectCount} incorrect</span>
+                                <span className="flex items-center gap-1"><Percent size={12}/> {stats.percentCorrect}</span>
+                              </Badge>
+                              <Badge
+                              title="correct"
+                                variant="secondary"
+                                className="rounded-md border-orange-100 bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700 hover:bg-orange-100">
+                                <span className="flex items-center gap-1"><CircleCheck size={12}/> {stats.correctCount}</span> 
+                              </Badge>
+                              <Badge
+                              title="incorrect"
+                                variant="secondary"
+                                className="rounded-md border-orange-100 bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700 hover:bg-orange-100">
+                                <span className="flex items-center gap-1"><CircleX size={12}/> {stats.incorrectCount}</span>
                               </Badge>
                             </>
                           )}
