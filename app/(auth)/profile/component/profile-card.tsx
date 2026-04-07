@@ -26,10 +26,10 @@ export function ProfileCard({ profile }: { profile: Profile }) {
             </DialogTrigger>
             <DialogContent className="flex flex-col items-center sm:max-w-[620px]">
               <DialogHeader>
-                <DialogTitle className="text-orange-600">Share Profile</DialogTitle>
+                <DialogTitle className="text-orange-600">{profile.username}</DialogTitle>
               </DialogHeader>
               <div className="rounded-xl border border-orange-100 bg-white p-4 shadow-lg">
-                <QRCodeSVG value={profile.username} size={540} level="H" />
+                <QRCodeSVG value={`${window.location.origin}/profile/${profile.username}`} size={540} level="H" />
               </div>
             </DialogContent>
           </Dialog>
