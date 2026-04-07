@@ -1,7 +1,7 @@
 module.exports = {
     apps: [
         {
-            name: "zombie-rawr",
+            name: "App",
             script: "node_modules/next/dist/bin/next",
             args: "start -p 3008",
             cwd: "./",
