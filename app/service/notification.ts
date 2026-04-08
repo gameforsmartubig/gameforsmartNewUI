@@ -51,20 +51,20 @@ function resolveSessionUrl(
   const app = (application || "").toLowerCase().trim();
   switch (app) {
     case "crazyrace":
-      return { url: `https://crazy-race-next.vercel.app/join/${code}`, openInNewTab: true };
+      return { url: `https://crazyrace.gameforsmart.com/join/${code}`, openInNewTab: true };
     case "memoryquiz":
-      return { url: `https://memorygame-quiz.vercel.app/join/${code}`, openInNewTab: true };
+      return { url: `https://memoryquiz.gameforsmart.com/join/${code}`, openInNewTab: true };
     case "quizrush":
-      return { url: `https://quizrun.vercel.app/join/${code}`, openInNewTab: true };
+      return { url: `https://quizrush.gameforsmart.com/join/${code}`, openInNewTab: true };
     case "space quiz":
     case "spacequiz":
-      return { url: `https://spacequizv1.vercel.app/join/${code}`, openInNewTab: true };
+      return { url: `https://spacequiz.gameforsmart.com/join/${code}`, openInNewTab: true };
     case "axiom":
-      return { url: `https://axiomay.vercel.app/join/${code}`, openInNewTab: true };
+      return { url: `https://axiom.gameforsmart.com/join/${code}`, openInNewTab: true };
     case "zigma":
       return { url: `https://zigma.gameforsmart.com/join/${code}`, openInNewTab: true };
     default:
-      return { url: `https://gameforsmartnewui.vercel.app/join/${code}`, openInNewTab: false };
+      return { url: `https://app.gameforsmart.com/join/${code}`, openInNewTab: false };
   }
 }
 

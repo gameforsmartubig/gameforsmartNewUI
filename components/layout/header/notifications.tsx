@@ -116,24 +116,24 @@ const Notifications = () => {
 
           switch (application) {
             case "crazyrace":
-              targetUrl = `https://crazy-race-next.vercel.app/join/${code}`;
+              targetUrl = `https://crazyrace.gameforsmart.com/join/${code}`;
               openInNewTab = true;
               break;
             case "memoryquiz":
-              targetUrl = `https://memorygame-quiz.vercel.app/join/${code}`;
+              targetUrl = `https://memoryquiz.gameforsmart.com/join/${code}`;
               openInNewTab = true;
               break;
             case "quizrush":
-              targetUrl = `https://quizrun.vercel.app/join/${code}`;
+              targetUrl = `https://quizrush.gameforsmart.com/join/${code}`;
               openInNewTab = true;
               break;
             case "space quiz":
             case "spacequiz":
-              targetUrl = `https://spacequizv1.vercel.app/join/${code}`;
+              targetUrl = `https://spacequiz.gameforsmart.com/join/${code}`;
               openInNewTab = true;
               break;
             case "axiom":
-              targetUrl = `https://axiomay.vercel.app/join/${code}`;
+              targetUrl = `https://axiom.gameforsmart.com/join/${code}`;
               openInNewTab = true;
               break;
             case "zigma":
@@ -142,7 +142,7 @@ const Notifications = () => {
               break;
             case "Quiz V2":
             default:
-              targetUrl = `https://gameforsmartnewui.vercel.app/join/${code}`;
+              targetUrl = `https://app.gameforsmart.com/join/${code}`;
               openInNewTab = false;
               break;
           }
