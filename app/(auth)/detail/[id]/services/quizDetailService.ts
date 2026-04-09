@@ -120,3 +120,65 @@ export async function toggleFavorite(
 
   return { updatedQuizFavs, updatedProfileFavs };
 }
+
+// ─── fetchQuizLocationChart ─────────────────────────────────
+
+export interface ChartItem {
+  name: string;
+  value: number;
+}
+
+export interface QuizLocationChartData {
+  countryData: ChartItem[];
+  stateData: ChartItem[];
+}
+
+/**
+ * Fetch game sessions that used this quiz, join country/state names,
+ * aggregate counts, and return top 5 for each.
+ */
+export async function fetchQuizLocationChart(
+  quizId: string
+): Promise<QuizLocationChartData> {
+  const { data: sessions, error } = await supabase
+    .from("game_sessions")
+    .select(
+      `country_id, state_id,
+       countries!game_sessions_country_id_fkey(name),
+       states!game_sessions_state_id_fkey(name)`
+    )
+    .eq("quiz_id", quizId);
+
+  if (error) throw error;
+  if (!sessions || sessions.length === 0) {
+    return { countryData: [], stateData: [] };
+  }
+
+  const countryMap = new Map<string, number>();
+  const stateMap = new Map<string, number>();
+
+  sessions.forEach((s: any) => {
+    const countryName =
+      (Array.isArray(s.countries) ? s.countries[0]?.name : s.countries?.name) || null;
+    const stateName =
+      (Array.isArray(s.states) ? s.states[0]?.name : s.states?.name) || null;
+
+    if (countryName) {
+      countryMap.set(countryName, (countryMap.get(countryName) || 0) + 1);
+    }
+    if (stateName) {
+      stateMap.set(stateName, (stateMap.get(stateName) || 0) + 1);
+    }
+  });
+
+  const toTop5 = (map: Map<string, number>): ChartItem[] =>
+    [...map.entries()]
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 5);
+
+  return {
+    countryData: toTop5(countryMap),
+    stateData: toTop5(stateMap),
+  };
+}

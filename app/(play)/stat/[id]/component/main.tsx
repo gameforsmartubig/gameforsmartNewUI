@@ -415,19 +415,19 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
                               <Badge
                               title="precentage correct"
                                 variant="secondary"
-                                className="rounded-md border-orange-100 bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700 hover:bg-orange-100">
+                                className="rounded-md border-orange-100 bg-yellow-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-yellow-700">
                                 <span className="flex items-center gap-1"><Percent size={12}/> {stats.percentCorrect}</span>
                               </Badge>
                               <Badge
                               title="correct"
                                 variant="secondary"
-                                className="rounded-md border-orange-100 bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700 hover:bg-orange-100">
+                                className="rounded-md border-orange-100 bg-green-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-green-700">
                                 <span className="flex items-center gap-1"><CircleCheck size={12}/> {stats.correctCount}</span> 
                               </Badge>
                               <Badge
                               title="incorrect"
                                 variant="secondary"
-                                className="rounded-md border-orange-100 bg-orange-50 px-2 py-0.5 text-xs font-medium text-orange-700 hover:bg-orange-100">
+                                className="rounded-md border-orange-100 bg-red-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-red-700">
                                 <span className="flex items-center gap-1"><CircleX size={12}/> {stats.incorrectCount}</span>
                               </Badge>
                             </>

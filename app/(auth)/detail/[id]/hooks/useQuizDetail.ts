@@ -13,8 +13,10 @@ import { useToast } from "@/hooks/use-toast";
 import {
   fetchQuizDetail,
   toggleFavorite,
+  fetchQuizLocationChart,
 } from "../services/quizDetailService";
 import type { QuizDetail } from "../types";
+import type { ChartItem } from "../services/quizDetailService";
 
 export function useQuizDetail(quizId: string) {
   const { user }   = useAuth();
@@ -30,6 +32,11 @@ export function useQuizDetail(quizId: string) {
   const [copied,                setCopied]                = useState(false);
   const [profileId,             setProfileId]             = useState<string | null>(null);
   const [userFavoriteQuizIds,   setUserFavoriteQuizIds]   = useState<string[]>([]);
+
+  // Chart state
+  const [countryData,  setCountryData]  = useState<ChartItem[]>([]);
+  const [stateData,    setStateData]    = useState<ChartItem[]>([]);
+  const [chartLoading, setChartLoading] = useState(true);
 
   // ── Load ────────────────────────────────────────────────────
   useEffect(() => {
@@ -55,19 +62,28 @@ export function useQuizDetail(quizId: string) {
 
   const load = async () => {
     setLoading(true);
+    setChartLoading(true);
     try {
-      const result = await fetchQuizDetail(quizId, user?.id);
+      // Fetch quiz detail and chart data in parallel
+      const [result, chartData] = await Promise.all([
+        fetchQuizDetail(quizId, user?.id),
+        fetchQuizLocationChart(quizId),
+      ]);
 
       setQuiz(result.quiz);
       setProfileId(result.profileId);
       setUserFavoriteQuizIds(result.userFavoriteQuizIds);
       setIsFavorited(result.quiz.is_favorited);
       setFavoriteCount(result.quiz.favorite_count);
+
+      setCountryData(chartData.countryData);
+      setStateData(chartData.stateData);
     } catch (error) {
       console.error("[useQuizDetail] load:", error);
       toast({ title: "Error", description: "Failed to load quiz", variant: "destructive" });
     } finally {
       setLoading(false);
+      setChartLoading(false);
     }
   };
 
@@ -163,6 +179,11 @@ export function useQuizDetail(quizId: string) {
     copied,
     isCreator,
     questionCount,
+    // Chart
+    countryData,
+    stateData,
+    chartLoading,
+    // Actions
     handleToggleFavorite,
     handleHostQuiz,
     handleTryout,

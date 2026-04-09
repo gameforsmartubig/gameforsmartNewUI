@@ -27,6 +27,7 @@ export default function QuizDetailPage() {
     quiz, loading,
     isFavorited, favoriteCount, isTogglingFavorite,
     copied, isCreator, questionCount,
+    countryData, stateData, chartLoading,
     handleToggleFavorite, handleHostQuiz, handleTryout,
     handleEdit, handleShare,
   } = useQuizDetail(quizId);
@@ -108,7 +109,11 @@ export default function QuizDetailPage() {
         />
 
          {/* ── Chart ────────────────────────── */}
-        <QuizChart quizId={quizId} />
+        <QuizChart
+          countryData={countryData}
+          stateData={stateData}
+          loading={chartLoading}
+        />
 
         {/* ── Questions preview (creator only) ─────────── */}
         {isCreator && (
