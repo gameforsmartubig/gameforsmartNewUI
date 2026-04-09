@@ -45,10 +45,34 @@ export async function middleware(request: NextRequest) {
 
   // 3. Get User Session
   // This will refresh the session if needed using the cookies configured above
-  const {
+  let {
     data: { user },
     error
   } = await supabase.auth.getUser();
+
+  // 3.5. SSO Fallback for Server Side Rendering
+  // Jika user tidak ditemukan dari cookie standar sb-..., cek gfs-session
+  if (!user) {
+    const ssoCookie = request.cookies.get("gfs-session")?.value;
+    if (ssoCookie) {
+      try {
+        const decoded = decodeURIComponent(ssoCookie);
+        const [access_token, refresh_token] = decoded.split("|");
+        if (access_token && refresh_token) {
+          const { data, error: setSessionError } = await supabase.auth.setSession({
+            access_token,
+            refresh_token
+          });
+          if (!setSessionError && data.session?.user) {
+            user = data.session.user;
+            console.log("🟢 Middleware: Sesi berhasil direstore dari cookie gfs-session!");
+          }
+        }
+      } catch (e) {
+        console.error("Middleware SSO Recovery Error:", e);
+      }
+    }
+  }
 
   try {
     const pathname = request.nextUrl.pathname;
@@ -132,8 +156,7 @@ export async function middleware(request: NextRequest) {
 
     if (isProtectedRoute) {
       // Enforce Authentication
-      const hasSsoCookie = request.cookies.has("gfs-session");
-      if (!user && !hasSsoCookie) {
+      if (!user) {
         console.log("⛔️ Middleware: Redirecting unauth user to login");
         const url = request.nextUrl.clone();
         url.pathname = "/login";

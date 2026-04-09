@@ -120,9 +120,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const { data, error } = await supabase.auth.setSession(cookieSession);
           if (!error && data.session) {
             session = data.session;
-            console.log('[SSO] Sesi berhasil dipulihkan! Memuat ulang halaman untuk memicu Server Components...');
-            window.location.reload();
-            return; // Hentikan eksekusi selanjutnya karena halaman akan reload
+            console.log('[SSO] Sesi berhasil dipulihkan!');
           } else {
             console.warn('[SSO] Token expired, menghapus cookie');
             syncSessionCookie(null);
