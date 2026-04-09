@@ -104,6 +104,8 @@ function AuthCallbackPageContent() {
               console.log("🔥 Found external-redirect in localStorage:", externalRedirectUrl);
             }
           }
+          // SELALU HAPUS AGAR TIDAK NYANGKUT UNTUK LOGIN BERIKUTNYA
+          localStorage.removeItem("pending_external_redirect");
 
           console.log("🔥 Callback - redirectPath:", redirectPath);
           console.log("🔥 Callback - gamePin:", gamePin);

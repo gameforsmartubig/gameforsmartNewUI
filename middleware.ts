@@ -132,8 +132,9 @@ export async function middleware(request: NextRequest) {
 
     if (isProtectedRoute) {
       // Enforce Authentication
-      if (!user) {
-        console.log("⛔ Middleware: Redirecting unauth user to login");
+      const hasSsoCookie = request.cookies.has("gfs-session");
+      if (!user && !hasSsoCookie) {
+        console.log("⛔️ Middleware: Redirecting unauth user to login");
         const url = request.nextUrl.clone();
         url.pathname = "/login";
         // Add redirect param so we can send them back after login
