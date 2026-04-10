@@ -23,6 +23,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
+import { Progress } from "@/components/ui/progress";
 
 interface Question {
   id: string;
@@ -562,7 +563,7 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
                         </div>
 
                         {/* Footer: Progress / Stats */}
-                        {/* {isHost && stats && (
+                        {isHost && stats && (
                           <div className="space-y-2 px-4 pt-0 pb-4">
                             <div className="text-muted-foreground flex items-center justify-between text-xs font-medium tracking-wide uppercase">
                               <span>Accuracy</span>
@@ -581,12 +582,12 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
                                     : "bg-red-500"
                               }
                             />
-                            <div className="text-muted-foreground flex justify-between text-[10px]">
+                            {/* <div className="text-muted-foreground flex justify-between text-[10px]">
                               <span>{stats.correctCount} correct</span>
                               <span>{stats.incorrectCount} incorrect</span>
-                            </div>
+                            </div> */}
                           </div>
-                        )} */}
+                        )}
 
                         {/* For Player: Show their answer if wrong */}
                         {!isHost && myStatus?.status === "incorrect" && (
