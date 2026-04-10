@@ -223,6 +223,8 @@ export function resolveSessionUrl(
       return { url: `https://axiom.gameforsmart.com/join/${code}`, openInNewTab: true };
     case "zigma":
       return { url: `https://zigma.gameforsmart.com/join/${code}`, openInNewTab: true };
+    case "nitroquiz":
+      return { url: `https://nitroquiz.gameforsmart.com/join/${code}`, openInNewTab: true };
     default:
       return { url: `https://app.gameforsmart.com/join/${code}`, openInNewTab: false };
   }

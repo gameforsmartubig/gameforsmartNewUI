@@ -140,6 +140,10 @@ const Notifications = () => {
               targetUrl = `https://zigma.gameforsmart.com/join/${code}`;
               openInNewTab = true;
               break;
+            case "nitroquiz":
+              targetUrl = `https://nitroquiz.gameforsmart.com/join/${code}`;
+              openInNewTab = true;
+              break;
             case "Quiz V2":
             default:
               targetUrl = `https://app.gameforsmart.com/join/${code}`;
