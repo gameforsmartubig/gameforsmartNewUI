@@ -1,32 +1,28 @@
 stages:
-  - test
-  - deploy
+  - build_and_deploy
 
-# TAHAP 1: PENGECEKAN KODE (TESTING)
-check_code:
-  stage: test
-  tags:
-    - nodejs # Sesuaikan dengan tag runner kamu, atau hapus baris tags ini jika runner tidak pakai tag
-  script:
-    - echo "Sedang mengecek kelayakan kodingan..."
-    - npm install
-    # Jika kamu belum punya script test, baris di bawah bisa dikomentari dulu
-    - npm test || echo "Test belum dikonfigurasi, lanjut..." 
-  only:
-    - main
-
-# TAHAP 2: PENGIRIMAN KE SERVER (DEPLOY)
-deploy_to_aapanel:
-  stage: deploy
+deploy_proyek:
+  stage: build_and_deploy
   tags:
     - nodejs
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+      - node_modules/
   script:
-    - echo "Kodingan aman! Mengirim ke aaPanel..."
-    - ssh -o StrictHostKeyChecking=no root@192.168.1.157 "
-        cd /www/wwwroot/gameforsmartNewUI && 
-        git pull origin main && 
-        npm install && 
-        pm2 restart all || echo 'Aplikasi sudah terupdate!'
-      "
+    - echo "🚀 Memulai proses kilat..."
+    
+    # 1. Install & Build di Robot Runner (Jauh lebih cepat daripada lewat SSH)
+    - npm ci --prefer-offline
+    - npm run build
+    
+    # 2. Kirim SEMUA file yang sudah jadi (termasuk node_modules) ke aaPanel
+    # Ini jauh lebih cepat daripada nunggu 'npm install' di server tujuan
+    - rsync -avz --delete --exclude '.git' ./ root@192.168.1.157:/www/wwwroot/gameforsmartNewUI/
+    
+    # 3. Server aaPanel CUMA diperintah restart (Tugas ringan)
+    - ssh -o StrictHostKeyChecking=no root@192.168.1.157 "pm2 startOrReload /www/wwwroot/gameforsmartNewUI/ecosystem.config.js"
+    
+    - echo "✅ Selesai dalam sekejap!"
   only:
     - main
