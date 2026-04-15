@@ -12,17 +12,20 @@ deploy_proyek:
   script:
     - echo "🚀 Memulai proses kilat..."
     
-    # 1. Install & Build di Robot Runner (Jauh lebih cepat daripada lewat SSH)
+    # 1. Install & Build di Robot Runner
     - npm ci --prefer-offline
     - npm run build
     
-    # 2. Kirim SEMUA file yang sudah jadi (termasuk node_modules) ke aaPanel
-    # Ini jauh lebih cepat daripada nunggu 'npm install' di server tujuan
-    - rsync -avz --delete --exclude '.git' ./ root@192.168.1.157:/www/wwwroot/gameforsmartNewUI/
+    # 2. Kirim file TANPA -v dan EXCLUDE node_modules
+    # Pakai -az saja (a=archive, z=compress). Tanpa 'v' agar log tidak penuh.
+    - rsync -az --delete --exclude '.git' --exclude 'node_modules' ./ root@192.168.1.157:/www/wwwroot/gameforsmartNewUI/
     
-    # 3. Server aaPanel CUMA diperintah restart (Tugas ringan)
-    - ssh -o StrictHostKeyChecking=no root@192.168.1.157 "pm2 startOrReload /www/wwwroot/gameforsmartNewUI/ecosystem.config.js"
-    
-    - echo "✅ Selesai dalam sekejap!"
+    # 3. Server aaPanel cuma install yang penting (Production) & Restart
+    - ssh -o StrictHostKeyChecking=no root@192.168.1.157 "
+        cd /www/wwwroot/gameforsmartNewUI && 
+        npm install --production && 
+        pm2 startOrReload ecosystem.config.js --update-env &&
+        echo '✅ Deploy Berhasil!'
+      "
   only:
     - main
