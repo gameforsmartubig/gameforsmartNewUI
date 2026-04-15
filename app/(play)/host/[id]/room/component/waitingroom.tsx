@@ -58,6 +58,7 @@ import {
 } from "@/lib/server-time";
 import { motion, AnimatePresence } from "framer-motion";
 import { InviteGroup, InviteFriend } from "./dialogInvite";
+import QRCode from "react-qr-code";
 
 interface WaitingRoomProps {
   sessionId: string;
@@ -606,9 +607,12 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
                         Join Game {gameSession.game_pin}
                       </DialogTitle>
                     </DialogHeader>
-                    <div className="rounded-xl border border-orange-100 bg-white p-4 shadow-lg">
+                    {/* <div className="rounded-xl border border-orange-100 bg-white p-4 shadow-lg">
                       <QRCodeSVG value={joinLink} size={540} level="H" />
-                    </div>
+                    </div> */}
+                    <div className="rounded-xl border border-orange-100 bg-white p-4 shadow-lg aspect-square w-full">
+                <QRCode value={joinLink} level="H" style={{ height: 'auto', maxWidth: '100%', width: '100%' }} />
+              </div>
                     <div className="text-xl font-medium text-orange-800 dark:text-zinc-400">
                       {joinLink}
                     </div>

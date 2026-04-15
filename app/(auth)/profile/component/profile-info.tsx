@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 export function ProfileInfo({ personal, address, onEdit  }: {personal: PersonalInfo, address: AddressInfo, onEdit: () => void}) {
 
   return (
-    <Card className="flex-1">
+    <Card className="flex-2">
       <CardHeader className="flex flex-row items-center justify-between">
         <div>
           <CardTitle>Personal Information</CardTitle>
@@ -23,7 +23,7 @@ export function ProfileInfo({ personal, address, onEdit  }: {personal: PersonalI
       <CardContent className="space-y-8">
 
         {/* PERSONAL INFO */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
 
           <div>
             <p className="text-xs text-muted-foreground">NICKNAME</p>
@@ -73,7 +73,7 @@ export function ProfileInfo({ personal, address, onEdit  }: {personal: PersonalI
 
           <h3 className="font-semibold mb-4">Address Details</h3>
 
-          <div className="grid grid-cols-3 gap-6 bg-muted rounded-lg p-6">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 bg-muted rounded-lg p-6">
 
             <div>
               <p className="text-xs text-muted-foreground">COUNTRY</p>

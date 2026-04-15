@@ -12,10 +12,12 @@ import {
 } from "@/components/ui/dialog";
 import { QRCodeSVG } from "qrcode.react";
 import { QrCode } from "lucide-react";
+import QRCode from "react-qr-code";
+
 
 export function ProfileCard({ profile }: { profile: Profile }) {
   return (
-    <Card className="relative w-[340px]">
+    <Card className="relative flex-1">
       <CardContent className="p-6 text-center">
         <div className="absolute right-4 top-4">
           <Dialog>
@@ -28,8 +30,8 @@ export function ProfileCard({ profile }: { profile: Profile }) {
               <DialogHeader>
                 <DialogTitle className="text-orange-600">{profile.username}</DialogTitle>
               </DialogHeader>
-              <div className="rounded-xl border border-orange-100 bg-white p-4 shadow-lg">
-                <QRCodeSVG value={`${window.location.origin}/profile/${profile.username}`} size={540} level="H" />
+              <div className="rounded-xl border border-orange-100 bg-white p-4 shadow-lg aspect-square w-full">
+                <QRCode value={`${window.location.origin}/profile/${profile.username}`} level="H" style={{ height: 'auto', maxWidth: '100%', width: '100%' }} />
               </div>
             </DialogContent>
           </Dialog>

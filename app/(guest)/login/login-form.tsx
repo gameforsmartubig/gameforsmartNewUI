@@ -199,7 +199,7 @@ export default function LoginForm() {
   return (
     <div className="base-background flex min-h-screen items-center justify-center py-4 lg:h-screen">
       <Card
-        className="card mx-auto w-96"
+        className="card sm:mx-auto w-96 mx-4"
         style={{ "--card-border-w": "4px" } as React.CSSProperties}>
         <CardHeader>
           <div className="flex items-center justify-center">
