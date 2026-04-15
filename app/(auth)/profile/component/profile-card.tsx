@@ -36,6 +36,9 @@ export function ProfileCard({ profile }: { profile: Profile }) {
             </DialogContent>
           </Dialog>
         </div>
+
+
+        
         <Avatar className="mx-auto h-24 w-24">
           <AvatarImage src={profile.avatar} alt={profile.fullName} />
           <AvatarFallback className="rounded-lg">
