@@ -19,7 +19,14 @@ import {
   ChevronDown,
   CircleCheck,
   CircleX,
-  Percent
+  Percent,
+  FileText,
+  Download,
+  CircleQuestionMark,
+  User,
+  Clock,
+  Timer,
+  Gamepad2
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
@@ -125,11 +132,11 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
           return;
         }
 
-        const hostCheck = 
-          profileId === session.host_id || 
-          userRole === "admin" || 
+        const hostCheck =
+          profileId === session.host_id ||
+          userRole === "admin" ||
           (localUserId && localUserId === session.host_id);
-          
+
         setIsHost(!!hostCheck);
 
         const quiz = Array.isArray(session.quizzes) ? session.quizzes[0] : session.quizzes;
@@ -174,7 +181,7 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
           const me = mappedPlayers.find(
             (p) => p.id === profileId || (localUserId && p.id === localUserId)
           );
-          
+
           if (me) {
             setCurrentPlayerId(me.id);
           } else if (!hostCheck) {
@@ -296,6 +303,10 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
           </h1>
         </div>
         <div className="flex items-center gap-3">
+          <Button variant="outline" className="gap-2 bg-orange-300 text-white">
+            <Download className="h-4 w-4" />
+            <p>Download PDF</p>
+          </Button>
           <Button variant="outline" onClick={toggleCollapseAll} className="gap-2">
             {isCollapsedAll ? (
               <ChevronDown className="h-4 w-4" />
@@ -315,9 +326,9 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
       <div className="flex-1 overflow-y-auto bg-slate-50/30">
         <div className="container mx-auto max-w-6xl space-y-4 p-6 pt-0 pb-20">
           {/* Summary Cards (Host Only) */}
-          {isHost && (
+          {/* {isHost && (
             <div className="grid grid-cols-3 gap-3 md:gap-4">
-              {/* Questions Card */}
+              Questions Card
               <Card className="!gap-2 border-none bg-orange-50/50 !py-2.5 shadow-sm transition-colors hover:bg-blue-50">
                 <CardContent className="flex flex-col items-center justify-between gap-1.5 p-3 md:flex-row md:items-start md:gap-4">
                   <div className="order-2 flex flex-col items-center md:order-1 md:items-start">
@@ -334,7 +345,7 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
                 </CardContent>
               </Card>
 
-              {/* Answers Card */}
+              Answers Card
               <Card className="!gap-2 border-none bg-amber-50/50 !py-2.5 shadow-sm transition-colors hover:bg-amber-50">
                 <CardContent className="flex flex-col items-center justify-between gap-1.5 p-3 md:flex-row md:items-start md:gap-4">
                   <div className="order-2 flex flex-col items-center md:order-1 md:items-start">
@@ -351,7 +362,7 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
                 </CardContent>
               </Card>
 
-              {/* Correct Card */}
+              Correct Card
               <Card className="!gap-2 border-none bg-green-50/50 !py-2.5 shadow-sm transition-colors hover:bg-green-50">
                 <CardContent className="flex flex-col items-center justify-between gap-1.5 p-3 md:flex-row md:items-start md:gap-4">
                   <div className="order-2 flex flex-col items-center md:order-1 md:items-start">
@@ -368,7 +379,32 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
                 </CardContent>
               </Card>
             </div>
-          )}
+          )} */}
+          <Card className="border-none bg-gray-50 shadow-mdA transition-colors hover:bg-gray-100">
+            <CardContent className="space-y-2">
+              <div>
+                <h2 className="text-2xl font-bold">Quiz matematika dasar perkalian dibawah 50</h2>
+              </div>
+              <div className="flex items-center gap-4">
+                <div title="questions" className="flex items-center gap-1">
+                  <CircleQuestionMark size={16} />
+                  <p>{totalQuestions}</p>
+                </div>
+                <div title="players" className="flex items-center gap-1">
+                  <User size={16} />
+                  <p>{players.length}</p>
+                </div>
+                <div title="durations" className="flex items-center gap-1">
+                  <Timer size={16} />
+                  <p>9:25</p>
+                </div>
+                <div title="Application" className="flex items-center gap-1">
+                  <Gamepad2 size={16} />
+                  <p>Axiom</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
 
           {/* 4. Question Cards List */}
           <div className="space-y-4">
@@ -414,22 +450,28 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
                           {isHost && stats && (
                             <>
                               <Badge
-                              title="precentage correct"
+                                title="precentage correct"
                                 variant="secondary"
                                 className="rounded-md border-orange-100 bg-yellow-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-yellow-700">
-                                <span className="flex items-center gap-1"><Percent size={12}/> {stats.percentCorrect}</span>
+                                <span className="flex items-center gap-1">
+                                  <Percent size={12} /> {stats.percentCorrect}
+                                </span>
                               </Badge>
                               <Badge
-                              title="correct"
+                                title="correct"
                                 variant="secondary"
                                 className="rounded-md border-orange-100 bg-green-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-green-700">
-                                <span className="flex items-center gap-1"><CircleCheck size={12}/> {stats.correctCount}</span> 
+                                <span className="flex items-center gap-1">
+                                  <CircleCheck size={12} /> {stats.correctCount}
+                                </span>
                               </Badge>
                               <Badge
-                              title="incorrect"
+                                title="incorrect"
                                 variant="secondary"
                                 className="rounded-md border-orange-100 bg-red-600 px-2 py-0.5 text-xs font-medium text-white hover:bg-red-700">
-                                <span className="flex items-center gap-1"><CircleX size={12}/> {stats.incorrectCount}</span>
+                                <span className="flex items-center gap-1">
+                                  <CircleX size={12} /> {stats.incorrectCount}
+                                </span>
                               </Badge>
                             </>
                           )}
@@ -578,7 +620,6 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
                                 stats.percentCorrect == 100
                                   ? "bg-green-500"
                                   : stats.percentCorrect >= 67
-                                  
                                     ? "bg-yellow-500"
                                     : stats.percentCorrect >= 34
                                       ? "bg-orange-600"
