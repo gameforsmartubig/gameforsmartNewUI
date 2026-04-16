@@ -475,7 +475,7 @@ export default function StatisticsPage({ params }: { params: Promise<{ id: strin
       <div className="flex-1 overflow-y-auto bg-slate-50/30">
         <div className="container mx-auto max-w-6xl space-y-4 p-6 pt-0 pb-20">
           {/* Summary Cards (Host Only) */}
-          <Card className="border-none bg-gray-50 shadow-mdA transition-colors hover:bg-gray-100">
+          <Card className="border-none bg-gray-50 shadow-md transition-colors hover:bg-gray-100">
             <CardContent className="space-y-2">
               <div>
                 <h2 className="text-2xl font-bold">
