@@ -1,30 +1,30 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { ProfileCard, ProfileInfo, EditProfile } from "./"
+import { useState } from "react";
+import { ProfileCard } from "./profile-card";
+import { ProfileInfo } from "./profile-info";
+import { EditProfile } from "./edit-profile";
+import type { ProfileData } from "../types";
 
-export function ProfileView({ data }: any) {
+interface ProfileViewProps {
+  data: ProfileData;
+}
 
-  const [isEditing, setIsEditing] = useState(false)
+export function ProfileView({ data }: ProfileViewProps) {
+  const [isEditing, setIsEditing] = useState(false);
 
   if (isEditing) {
-    return (
-      <EditProfile
-        data={data}
-        onCancel={() => setIsEditing(false)}
-      />
-    )
+    return <EditProfile data={data} onCancel={() => setIsEditing(false)} />;
   }
 
   return (
     <div className="flex flex-col md:flex-row gap-6">
       <ProfileCard profile={data.profile} />
-
       <ProfileInfo
         personal={data.personal}
         address={data.address}
         onEdit={() => setIsEditing(true)}
       />
     </div>
-  )
+  );
 }
