@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -29,11 +29,9 @@ import {
   supabaseRealtime
 } from "@/lib/supabase-realtime";
 import { supabase } from "@/lib/supabase";
-// Import hook from host component (adjust path as needed)
-import { useGameTimer } from "@/app/(play)/host/[id]/play/component/game-timer";
+import { useGameTimer, useGameCountdown, GameCountdown } from "@/app/(play)/component/game-timer";
 import { cn } from "@/lib/utils";
-import { motion, AnimatePresence } from "framer-motion";
-import { getServerNow, calculateOffsetFromTimestamp } from "@/lib/server-time";
+import { getServerNow } from "@/lib/server-time";
 
 interface Question {
   id: string;
@@ -51,8 +49,6 @@ interface PlayProps {
 
 export default function Play({ sessionId }: PlayProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  // const participantId = searchParams.get("participant");
   const [participantId, setParticipantId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -113,74 +109,29 @@ export default function Play({ sessionId }: PlayProps) {
   const [showLoader, setShowLoader] = useState(false);
   const [isStateRestored, setIsStateRestored] = useState(false);
 
-  // Initial countdown setup
-  const [countdownLeft, setCountdownLeft] = useState<number | null>(null);
-  const [showCountdown, setShowCountdown] = useState(false);
+  // Track countdown_started_at from RT subscription
+  const [countdownStartedAt, setCountdownStartedAt] = useState<string | null>(null);
 
-  const [serverTimeReady, setServerTimeReady] = useState(false);
-
-  // Helper to refresh session for timer sync
-  const refreshSession = async () => {
-    try {
-      // Try RT first
-      let sess = await getGameSessionRT(sessionId);
-      // If fails or empty, maybe fallback? For now RT is primary for timer.
-      if (sess) {
-        setSession(sess);
+  // DB-synced countdown using countdown_started_at from game_sessions_rt
+  const { countdownLeft, showCountdown } = useGameCountdown({
+    countdownStartedAt,
+    countdownDuration: 10,
+    onCountdownFinished: async () => {
+      try {
+        const sess = await getGameSessionRT(sessionId);
+        if (sess) {
+          setSession(sess);
+          if (sess.countdown_started_at) {
+            setCountdownStartedAt(sess.countdown_started_at);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to refresh session after countdown", e);
       }
-    } catch (e) {
-      console.error("Failed to refresh session", e);
-    }
-  };
+    },
+  });
 
-  // Simple Countdown Effect - just count down every second
-  // Robust Countdown Timer using Date.now() for Sync Accuracy
-  useEffect(() => {
-    const ts = searchParams.get("ts");
-    if (!ts) return; // Only run if we have a target start time
 
-    const startTime = new Date(ts).getTime();
-    const duration = 10000;
-    const targetEndTime = startTime + duration; // 10s from ts
-
-    // Function to calculate and update state
-    const tick = () => {
-      const now = Date.now();
-      const remainingMs = targetEndTime - now;
-
-      // Finish condition - Clean & Instant
-      if (remainingMs <= 0) {
-        setShowCountdown(false);
-        setCountdownLeft(null);
-        refreshSession();
-        return false; // Stop timer
-      }
-
-      // Too late condition
-      if (remainingMs < -5000) {
-        setShowCountdown(false);
-        setCountdownLeft(null);
-        return false;
-      }
-
-      // Valid countdown
-      const seconds = Math.ceil(remainingMs / 1000);
-      setCountdownLeft(seconds);
-      setShowCountdown(true);
-      return true; // Continue
-    };
-
-    // Run immediately on mount/param change
-    if (tick()) {
-      // Loop with setInterval (self-correcting)
-      const interval = setInterval(() => {
-        if (!tick()) clearInterval(interval);
-      }, 100); // High frequency check for smooth updates
-
-      return () => clearInterval(interval);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
 
   // Polling for started_at: Keep checking until it's available
   useEffect(() => {
@@ -354,6 +305,10 @@ export default function Play({ sessionId }: PlayProps) {
 
       if (sess) {
         setSession(sess);
+        // Feed countdown_started_at to the countdown hook
+        if (sess.countdown_started_at) {
+          setCountdownStartedAt(sess.countdown_started_at);
+        }
         if (sess.status === "finished") {
           router.push(`/result/${sessionId}`);
         }
@@ -373,6 +328,10 @@ export default function Play({ sessionId }: PlayProps) {
     const channel = subscribeToGameRT(sessionId, {
       onSessionChange: (updated) => {
         setSession((prev) => (prev ? { ...prev, ...updated } : null));
+        // Feed countdown_started_at to the countdown hook
+        if (updated.countdown_started_at) {
+          setCountdownStartedAt(updated.countdown_started_at);
+        }
         if (updated.status === "finished") {
           router.push(`/result/${sessionId}`);
         }
@@ -397,30 +356,7 @@ export default function Play({ sessionId }: PlayProps) {
     }
   }, [responses, flagged, isStateRestored, sessionId, participantId]);
 
-  // Sync Server Time
-  useEffect(() => {
-    setServerTimeReady(true);
-  }, []);
 
-  // Simple Countdown Effect - just count down every second
-  useEffect(() => {
-    if (!showCountdown || countdownLeft === null) return;
-
-    if (countdownLeft <= 0) {
-      // Countdown finished
-      setTimeout(() => {
-        setShowCountdown(false);
-        setCountdownLeft(null);
-      }, 500);
-      return;
-    }
-
-    const timer = setTimeout(() => {
-      setCountdownLeft((prev) => (prev !== null ? prev - 1 : null));
-    }, 1000);
-
-    return () => clearTimeout(timer);
-  }, [showCountdown, countdownLeft]);
 
   // Navigation Handlers
   const handleNext = () => {
@@ -574,34 +510,11 @@ export default function Play({ sessionId }: PlayProps) {
   return (
     <div className={`base-background min-h-screen w-full transition-colors duration-300`}>
       {/* Countdown Overlay */}
-      <div
-        className={`base-background fixed inset-0 z-[100] flex items-center justify-center transition-opacity duration-300 ${
-          showCountdown ? "visible opacity-100" : "pointer-events-none invisible opacity-0"
-        }`}>
-        <div className="flex flex-col items-center gap-8">
-          <AnimatePresence mode="wait">
-            {countdownLeft !== null && countdownLeft > 0 && (
-              <motion.div
-                key={countdownLeft}
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 1.5, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="relative">
-                <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-orange-600 to-yellow-600 opacity-40 blur-lg"></div>
-                <div className="relative flex h-40 w-40 items-center justify-center rounded-full border-4 border-orange-500 bg-orange-200 shadow-2xl">
-                  <span className="bg-gradient-to-br from-orange-600 to-yellow-600 bg-clip-text text-8xl font-black text-transparent">
-                    {countdownLeft}
-                  </span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <h2 className="animate-pulse text-4xl font-bold tracking-widest text-white uppercase">
-            Get Ready!
-          </h2>
-        </div>
-      </div>
+      <GameCountdown
+        countdownLeft={countdownLeft}
+        showCountdown={showCountdown}
+        title="Get Ready!"
+      />
 
       {/* Main Content - Only rendered after countdown finished */}
       {isLoading || showCountdown ? (

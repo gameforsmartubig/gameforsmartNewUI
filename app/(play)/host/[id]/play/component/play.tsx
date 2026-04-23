@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, use } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -29,10 +29,10 @@ import {
   GameParticipantRT,
   supabaseRealtime
 } from "@/lib/supabase-realtime";
-import { motion, AnimatePresence } from "framer-motion";
-import { GameTimer, GameTimerProgress } from "./game-timer";
-import { supabase } from "@/lib/supabase"; // Use generic client for profiles if needed
-import { getServerNow, calculateOffsetFromTimestamp } from "@/lib/server-time";
+import { GameTimer, GameTimerProgress, useGameCountdown, GameCountdown } from "@/app/(play)/component/game-timer";
+import { supabase } from "@/lib/supabase";
+import { getServerNow } from "@/lib/server-time";
+import { motion, AnimatePresence } from "motion/react";
 
 interface PlayProps {
   sessionId: string;
@@ -40,7 +40,6 @@ interface PlayProps {
 
 export default function Play({ sessionId }: PlayProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const [session, setSession] = useState<GameSessionRT | null>(null);
   const [participants, setParticipants] = useState<
     Array<GameParticipantRT & { avatar_url?: string }>
@@ -48,53 +47,17 @@ export default function Play({ sessionId }: PlayProps) {
   const [loading, setLoading] = useState(true);
   const [showLoader, setShowLoader] = useState(false);
 
-  // Initial countdown setup
-  const [countdownLeft, setCountdownLeft] = useState<number | null>(null);
-  const [showCountdown, setShowCountdown] = useState(false);
+  // Track countdown_started_at from RT subscription
+  const [countdownStartedAt, setCountdownStartedAt] = useState<string | null>(null);
 
-  // Robust Countdown Timer using Date.now() for Host Sync
-  useEffect(() => {
-    const ts = searchParams.get("ts");
-    if (!ts) return;
-
-    const startTime = new Date(ts).getTime();
-    const duration = 10000;
-    const targetEndTime = startTime + duration;
-
-    const tick = () => {
-      const now = Date.now();
-      const remainingMs = targetEndTime - now;
-
-      // Finish condition - Clean & Instant
-      if (remainingMs <= 0) {
-        setShowCountdown(false);
-        setCountdownLeft(null);
-        fetchSessionData(); // Sync Host
-        return false;
-      }
-
-      // Too late condition
-      if (remainingMs < -5000) {
-        setShowCountdown(false);
-        setCountdownLeft(null);
-        return false;
-      }
-
-      // Valid countdown
-      const seconds = Math.ceil(remainingMs / 1000);
-      setCountdownLeft(seconds);
-      setShowCountdown(true);
-      return true;
-    };
-
-    if (tick()) {
-      const interval = setInterval(() => {
-        if (!tick()) clearInterval(interval);
-      }, 100);
-      return () => clearInterval(interval);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  // DB-synced countdown using countdown_started_at from game_sessions_rt
+  const { countdownLeft, showCountdown } = useGameCountdown({
+    countdownStartedAt,
+    countdownDuration: 10,
+    onCountdownFinished: () => {
+      fetchSessionData();
+    },
+  });
 
   // Profile cache
   const profileCache = useRef(new Map<string, string>());
@@ -109,6 +72,10 @@ export default function Play({ sessionId }: PlayProps) {
         return;
       }
       setSession(sess);
+      // Feed countdown_started_at to the countdown hook
+      if (sess.countdown_started_at) {
+        setCountdownStartedAt(sess.countdown_started_at);
+      }
 
       const parts = await getParticipantsRT(sessionId);
       // Fetch profiles
@@ -176,6 +143,10 @@ export default function Play({ sessionId }: PlayProps) {
     const channel = subscribeToGameRT(sessionId, {
       onSessionChange: (updatedSession) => {
         setSession((prev) => (prev ? { ...prev, ...updatedSession } : null));
+        // Feed countdown_started_at to the countdown hook
+        if (updatedSession.countdown_started_at) {
+          setCountdownStartedAt(updatedSession.countdown_started_at);
+        }
         if (updatedSession.status === "finished") {
           router.push(`/result/${sessionId}`);
         }
@@ -262,36 +233,12 @@ export default function Play({ sessionId }: PlayProps) {
   return (
     <div
       className={`base-background min-h-screen w-full transition-colors duration-300 dark:bg-zinc-950`}>
-      {/* Countdown Overlay - Diperbarui ke Orange & Kuning */}
-      <div
-        className={`base-background fixed inset-0 z-[100] flex items-center justify-center backdrop-blur-md transition-opacity duration-300 ${
-          showCountdown ? "visible opacity-100" : "pointer-events-none invisible opacity-0"
-        }`}>
-        <div className="flex flex-col items-center gap-8">
-          <AnimatePresence mode="wait">
-            {countdownLeft !== null && countdownLeft > 0 && (
-              <motion.div
-                key={countdownLeft}
-                initial={{ scale: 0.5, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 1.5, opacity: 0 }}
-                transition={{ duration: 0.3 }}
-                className="relative">
-                {/* Glow Efek Orange/Kuning */}
-                <div className="absolute inset-0 animate-pulse rounded-full bg-gradient-to-r from-orange-600 to-yellow-500 opacity-40 blur-xl"></div>
-                <div className="relative flex h-40 w-40 items-center justify-center rounded-full border-4 border-orange-500 bg-orange-200 shadow-2xl dark:bg-zinc-900">
-                  <span className="bg-gradient-to-br from-orange-600 to-yellow-500 bg-clip-text text-8xl font-black text-transparent">
-                    {countdownLeft}
-                  </span>
-                </div>
-              </motion.div>
-            )}
-          </AnimatePresence>
-          <h2 className="animate-pulse text-4xl font-bold tracking-widest text-orange-500 uppercase dark:text-orange-400">
-            Game Starting...
-          </h2>
-        </div>
-      </div>
+      {/* Countdown Overlay */}
+      <GameCountdown
+        countdownLeft={countdownLeft}
+        showCountdown={showCountdown}
+        title="Game Starting..."
+      />
 
       {/* Main Content */}
       {isLoading || showCountdown ? (

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useRef, use } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -31,10 +31,8 @@ import {
 } from "@/lib/supabase-realtime";
 import {
   calculateServerTimeOffset,
-  getServerNow,
-  calculateOffsetFromTimestamp
+  getServerNow
 } from "@/lib/server-time";
-import { motion, AnimatePresence } from "framer-motion";
 
 interface WaitingRoomProps {
   sessionId: string;
@@ -42,8 +40,6 @@ interface WaitingRoomProps {
 
 export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  // const participantId = searchParams.get("participant"); // REMOVED
   const [participantId, setParticipantId] = useState<string | null>(null);
 
   useEffect(() => {
@@ -323,12 +319,8 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
 
     const channel = subscribeToCountdownBroadcast(sessionId, (payload) => {
       // Received countdown start from broadcast -> REDIRECT IMMEDIATELY
-      // The Play Screen will show the countdown overlay based on 'ts'
-      if (payload.startedAt) {
-        router.push(`/player/${sessionId}/play?ts=${payload.startedAt}`);
-      } else {
-        router.push(`/player/${sessionId}/play`);
-      }
+      // The Play Screen will show the countdown overlay based on countdown_started_at from DB
+      router.push(`/player/${sessionId}/play`);
     });
 
     return () => {

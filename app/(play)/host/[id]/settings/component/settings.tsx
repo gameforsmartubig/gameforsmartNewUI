@@ -250,8 +250,7 @@ export function Settings({ params }: { params: Promise<{ id: string }> }) {
           .catch((err) => console.error("Edge Function error:", err));
 
         // 3. Redirect to player play
-        const now = new Date().toISOString();
-        router.push(`/player/${sessionId}/play?ts=${now}`);
+        router.push(`/player/${sessionId}/play`);
       } else {
         router.push(`/host/${sessionId}/room`);
       }

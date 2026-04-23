@@ -144,11 +144,10 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
         console.warn("Countdown channel not ready");
       }
 
-      // 2. Redirect immediately to play screen (Old Design)
-      // The play screen will handle the countdown using the 'ts' parameter
+      // 2. Redirect immediately to play screen
       const targetUrl = isHostJoined
-        ? `/player/${sessionId}/play?ts=${now}`
-        : `/host/${sessionId}/play?ts=${now}`;
+        ? `/player/${sessionId}/play`
+        : `/host/${sessionId}/play`;
       router.push(targetUrl);
 
       // 3. Call Edge Function in background (it will handle DB updates)
@@ -171,8 +170,8 @@ export default function WaitingRoom({ sessionId }: WaitingRoomProps) {
       // If we receive broadcast (e.g. from another tab or glitch), redirect
       if (payload.startedAt) {
         const targetUrl = isHostJoined
-          ? `/player/${sessionId}/play?ts=${payload.startedAt}`
-          : `/host/${sessionId}/play?ts=${payload.startedAt}`;
+          ? `/player/${sessionId}/play`
+          : `/host/${sessionId}/play`;
         router.push(targetUrl);
       }
     });
