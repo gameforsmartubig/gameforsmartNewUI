@@ -47,6 +47,7 @@ interface HostLeaderboardProps {
 interface PlayerResultProps {
   player: Player & { rank: number; totalPlayers: number };
   onStatistics?: () => void;
+  isFinished?: boolean;
 }
 
 // ========== COMPONENTS ==========
@@ -319,7 +320,7 @@ function HostLeaderboard({ players, onStatistics, onExport, onRestart }: HostLea
 }
 
 // Player View: Personal Result
-function PlayerResult({ player, onStatistics }: PlayerResultProps) {
+function PlayerResult({ player, onStatistics, isFinished = false }: PlayerResultProps) {
   const router = useRouter();
 
   const formatDuration = (ms: number) => {
@@ -371,10 +372,18 @@ function PlayerResult({ player, onStatistics }: PlayerResultProps) {
                     <Trophy className="h-3 w-3 text-yellow-500" />
                     <span>
                       Rank{" "}
-                      <span className="font-bold text-orange-600 dark:text-orange-400">
-                        #{player.rank}
-                      </span>{" "}
-                      of {player.totalPlayers}
+                      {isFinished ? (
+                        <span className="font-bold text-orange-600 dark:text-orange-400">
+                          #{player.rank}
+                        </span>
+                      ) : (
+                        <span className="animate-pulse font-bold text-orange-600 dark:text-orange-400">
+                          #?
+                        </span>
+                      )}{" "}
+                      of
+                      {" "}
+                      {isFinished ? (<span>{player.totalPlayers}</span>):( <span>?</span>)}
                     </span>
                   </div>
                   <div className="flex items-center gap-1">
@@ -455,10 +464,11 @@ function PlayerResult({ player, onStatistics }: PlayerResultProps) {
 }
 
 // ========== MAIN COMPONENT ==========
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { Span } from "next/dist/trace";
 
 export default function Leaderboard() {
   const { id } = useParams() as { id: string };
@@ -466,12 +476,17 @@ export default function Leaderboard() {
   const [loading, setLoading] = useState(true);
   const [isSyncing, setIsSyncing] = useState(true);
   const [isHost, setIsHost] = useState(false);
+  const [isFinished, setIsFinished] = useState(false);
   const [players, setPlayers] = useState<Player[]>([]);
   const [currentPlayer, setCurrentPlayer] = useState<
     (Player & { rank: number; totalPlayers: number }) | null
   >(null);
 
   const [questions, setQuestions] = useState<any[]>([]);
+
+  // Track whether the user has been verified as a valid participant/host.
+  // Prevents realtime re-fetches from incorrectly redirecting already-verified users.
+  const hasVerifiedRef = useRef(false);
 
   const handleDashboard = () => {
     router.push("/dashboard");
@@ -717,6 +732,10 @@ export default function Leaderboard() {
           const hostCheck = profileId === session.host_id || userRole === "admin";
           console.log("Setting isHost to:", hostCheck);
           setIsHost(hostCheck);
+          if (hostCheck) hasVerifiedRef.current = true; // Host is always verified
+
+          // Track session status for rank visibility
+          setIsFinished(session.status === "finished");
 
           // Extract questions
           // Extract questions
@@ -864,14 +883,16 @@ export default function Leaderboard() {
 
             if (foundPlayerIndex !== -1) {
               const p = mappedPlayers[foundPlayerIndex];
+              hasVerifiedRef.current = true; // Mark as verified participant
               setCurrentPlayer({
                 ...p,
                 rank: foundPlayerIndex + 1,
                 totalPlayers: mappedPlayers.length
               });
-            } else if (!hostCheck) {
-              // If NOT host AND NOT a participant -> Observer/Guest
-              // Requirement: Redirect to dashboard
+            } else if (!hostCheck && !hasVerifiedRef.current) {
+              // Only redirect on initial load. If user was already verified
+              // (via a previous successful fetch), skip the redirect to avoid
+              // race conditions from realtime-triggered re-fetches.
               console.log("User is neither Host nor Participant. Redirecting...");
               toast.error("You are not part of this game session.");
               router.push("/dashboard");
@@ -956,7 +977,7 @@ export default function Leaderboard() {
           onStatistics={() => router.push("/stat/" + id)}
         />
       ) : currentPlayer ? (
-        <PlayerResult player={currentPlayer} onStatistics={() => router.push("/stat/" + id)} />
+        <PlayerResult player={currentPlayer} onStatistics={() => router.push("/stat/" + id)} isFinished={isFinished} />
       ) : (
         <div className="flex flex-1 items-center justify-center p-4 text-center">
           <div className="max-w-md space-y-4">
