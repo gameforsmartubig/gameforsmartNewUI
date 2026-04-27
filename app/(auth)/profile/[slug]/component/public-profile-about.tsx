@@ -26,15 +26,8 @@ function AboutField({ label, children }: AboutFieldProps) {
 
 export function PublicProfileAbout({ data }: PublicProfileAboutProps) {
   return (
-    <Card className="border-0 shadow-xl">
-      <CardHeader className="pb-4">
-        <CardTitle className="text-lg font-semibold text-gray-900 dark:text-white">
-          About
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent>
-        <div className="grid grid-cols-2 gap-x-6 gap-y-5">
+    <div className="flex-1 ">
+      <div className="grid grid-cols-2 gap-x-6 gap-y-5">
           <AboutField label="Nickname">
             {data.nickname || "-"}
           </AboutField>
@@ -65,7 +58,6 @@ export function PublicProfileAbout({ data }: PublicProfileAboutProps) {
             </div>
           </AboutField>
         </div>
-      </CardContent>
-    </Card>
+    </div>
   );
 }
