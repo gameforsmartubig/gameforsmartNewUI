@@ -6,7 +6,7 @@ export async function generateMetadata() {
     title: "Register",
     description:
       "A login form with email and password. There's an option to login with Google and a link to sign up if you don't have an account.",
-    canonical: "/register/v2"
+    canonical: "/register"
   });
 }
 

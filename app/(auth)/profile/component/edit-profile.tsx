@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/select";
 import { LocationSelector } from "@/components/ui/location-selector";
 import { AvatarUpload } from "./avatar-upload";
-import { useEditProfile } from "../hooks/use-edit-profile";
+import { useEditProfile } from "../hooks/use-profile";
 import type { ProfileData } from "../types";
 
 interface EditProfileProps {

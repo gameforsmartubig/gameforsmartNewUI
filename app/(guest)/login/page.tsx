@@ -6,7 +6,7 @@ export function generateMetadata() {
     title: "Login",
     description:
       "A login form with email and password. There's an option to login with Google and a link to sign up if you don't have an account.",
-    canonical: "/login/v2"
+    canonical: "/login"
   });
 }
 

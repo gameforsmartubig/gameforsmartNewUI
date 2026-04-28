@@ -41,6 +41,7 @@ export interface ProfileData {
 // ─── Public Profile Types ─────────────────────────────────────────────────────
 
 export interface PublicProfileData {
+  id: string;
   found: boolean;
   profile: Profile;
   nickname: string;

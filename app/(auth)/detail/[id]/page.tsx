@@ -3,13 +3,17 @@
 // Extracts params server-side and passes quizId to client component.
 // ============================================================
 
-import type { Metadata } from "next";
 import QuizDetail from "./components/Quizdetail";
+import { generateMeta } from "@/lib/utils";
 
-export const metadata: Metadata = {
-  title: "Quiz Detail | Game For Smart",
-  description: "View quiz details, statistics, and questions.",
-};
+export async function generateMetadata() {
+  return generateMeta({
+    title: "Quiz Detail",
+    description:
+      "View quiz details, statistics, and questions.",
+    canonical: "/detail/[id]"
+  });
+}
 
 export default async function QuizDetailPage({
   params,

@@ -8,6 +8,15 @@
 
 // import { QuizPageWithLoading } from "@/components/ui/page-with-loading";
 import { EditQuizContent } from "./component/EditQuizContent";
+import { generateMeta } from "@/lib/utils";
+
+export async function generateMetadata() {
+  return generateMeta({
+    title: "Edit Quiz",
+    description: "Edit your quiz.",
+    canonical: "/quiz/edit/[id]"
+  });
+}
 
 export default function EditQuizPage({
   params,

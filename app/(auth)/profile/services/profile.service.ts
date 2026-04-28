@@ -149,6 +149,7 @@ export async function getProfileData(): Promise<ProfileData> {
  */
 export async function getPublicProfileData(slug: string): Promise<PublicProfileData> {
   const notFound: PublicProfileData = {
+    id: "",
     found: false,
     profile: {
       fullName: "Not Found",
@@ -194,6 +195,7 @@ export async function getPublicProfileData(slug: string): Promise<PublicProfileD
   );
 
   return {
+    id: profileData.id,
     found: true,
     profile: {
       fullName: profileData.fullname || "Anonymous User",

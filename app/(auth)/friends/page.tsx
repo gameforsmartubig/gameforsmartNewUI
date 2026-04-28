@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 export async function generateMetadata() {
   return generateMeta({
     title: "Friends",
-    description: "A friends dashboard",
+    description: "View your friends and find new ones.",
     canonical: "/friends"
   });
 }

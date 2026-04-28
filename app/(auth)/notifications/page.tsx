@@ -5,7 +5,7 @@ export async function generateMetadata() {
   return generateMeta({
     title: "Notifications",
     description:
-      "Stay updated with your latest notifications, messages, and alerts in the Game For Smart ecosystem. Built with Next.js.",
+      "Stay updated with your latest notifications, messages, and alerts.",
     canonical: "/notifications"
   });
 }

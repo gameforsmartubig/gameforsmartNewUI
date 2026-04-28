@@ -6,7 +6,7 @@ export async function generateMetadata() {
   return generateMeta({
     title: "History",
     description: "Track your quiz participation and hosting activity in one place.",
-    canonical: "/quiz-history"
+    canonical: "/history"
   });
 }
 

@@ -5,7 +5,7 @@ import { getProfileData } from "./services/profile.service";
 export async function generateMetadata() {
   return generateMeta({
     title: "Profile",
-    description: "Profile page",
+    description: "View and manage your profile.",
     canonical: "/profile"
   });
 }
