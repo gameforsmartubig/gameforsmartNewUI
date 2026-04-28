@@ -5,6 +5,7 @@ import { ProfileCard } from "./profile-card";
 import { ProfileInfo } from "./profile-info";
 import { EditProfile } from "./edit-profile";
 import type { ProfileData } from "../types";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface ProfileViewProps {
   data: ProfileData;
@@ -18,13 +19,15 @@ export function ProfileView({ data }: ProfileViewProps) {
   }
 
   return (
-    <div className="flex flex-col md:flex-row gap-6">
-      <ProfileCard profile={data.profile} />
-      <ProfileInfo
-        personal={data.personal}
-        address={data.address}
-        onEdit={() => setIsEditing(true)}
-      />
-    </div>
+    <Card>
+      <CardContent className="flex flex-col gap-6 ">
+        <ProfileCard profile={data.profile} onEdit={() => setIsEditing(true)}/>
+          <hr />
+        <ProfileInfo
+          personal={data.personal}
+          address={data.address}
+        />
+      </CardContent>
+    </Card>
   );
 }
