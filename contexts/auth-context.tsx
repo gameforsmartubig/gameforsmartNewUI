@@ -4,7 +4,7 @@ import type React from "react";
 
 import { createContext, useContext, useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
-import { getSessionFromCookie, supabase, syncSessionCookie } from "@/lib/supabase-browser";
+import { supabase } from "@/lib/supabase-browser";
 
 // OPTIMIZED: Centralized profile data - single source of truth
 export interface ProfileData {
@@ -107,41 +107,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   useEffect(() => {
+    let currentUserId: string | null | undefined = undefined;
+
     // Get initial session
     const initSession = async () => {
-      let { data: { session } } = await supabase.auth.getSession();
-
-      // Deteksi Zombie Session: Sesi lokal ada, tapi SSO cookie GA ADA (berarti sudah logout di app lain)
-      const cookieSession = getSessionFromCookie();
-      if (session && !cookieSession) {
-        console.log('[SSO] Terdeteksi sisa sesi lokal padahal SSO cookie kosong. Menghapus sesi...');
-        await supabase.auth.signOut();
-        session = null;
-      }
-
-      // SSO: Coba pulihkan sesi dari shared cookie jika tidak ada
-      if (!session && cookieSession) {
-        console.log('[SSO] Mencoba pulihkan sesi dari shared cookie (setSession)...');
-        // Pakai setSession untuk menghindari rotasi token
-        const { data, error } = await supabase.auth.setSession(cookieSession);
-        if (!error && data.session) {
-          session = data.session;
-          console.log('[SSO] Sesi berhasil dipulihkan! Memuat ulang halaman untuk memicu Server Components...');
-          window.location.reload();
-          return; // Hentikan eksekusi selanjutnya karena halaman akan reload
-        } else {
-          console.warn('[SSO] Token expired, menghapus cookie');
-          syncSessionCookie(null);
-        }
-      }
-
+      const { data: { session } } = await supabase.auth.getSession();
+      currentUserId = session?.user?.id || null;
       setUser(session?.user ?? null);
-      if (session?.user && session) {
-        // Hanya sync ulang jika origin kita benar-benar punya session aktif yang valid
-        syncSessionCookie({
-          access_token: session.access_token,
-          refresh_token: session.refresh_token
-        });
+      
+      if (session?.user) {
         await fetchProfile(session.user.id);
 
         // SSO REDIRECT: Jika sudah login tapi ada di /login atau /register, lempar ke /callback
@@ -157,33 +131,46 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initSession();
 
-    // Listen for auth changes
+    // Check if there is a session change (across subdomains)
+    const checkSession = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        const newUserId = user?.id || null;
+
+        if (currentUserId !== undefined && newUserId !== currentUserId) {
+          console.log("[AuthContext] Session change detected across tabs/subdomains! Reloading...");
+          window.location.reload();
+        }
+      } catch (err) {
+        console.error("[AuthContext] Error checking session:", err);
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        checkSession();
+      }
+    };
+
+    window.addEventListener("visibilitychange", handleVisibilityChange);
+    window.addEventListener("focus", checkSession);
+
+    // Listen for auth changes in current tab
     const {
       data: { subscription }
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
       
-      if (event === "SIGNED_IN" && currentUser && session) {
-        // Sync tokens ke shared cookie saat login berhasil
-        syncSessionCookie({
-          access_token: session.access_token,
-          refresh_token: session.refresh_token
-        });
-        fetchProfile(session.user.id);
-      } else if (event === "TOKEN_REFRESHED" && session) {
-        // Update cookie saat token di-refresh (token baru untuk semua app)
-        syncSessionCookie({
-          access_token: session.access_token,
-          refresh_token: session.refresh_token
-        });
+      if (event === "SIGNED_IN" && currentUser) {
+        fetchProfile(currentUser.id);
+        checkSession();
       } else if (event === "SIGNED_OUT") {
-        // Hapus shared cookie saat logout -> semua app ikut logout
-        syncSessionCookie(null);
         localStorage.removeItem("user_id"); // Clear from localStorage
         setUser(null);
         setProfile(null);
         setProfileId(null);
+        checkSession();
 
         // FORCE REDIRECT: Jika sedang di dashboard/protected, tendang ke login
         if (typeof window !== 'undefined') {
@@ -200,49 +187,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
     });
 
-    // SINKRONISASI ANTAR-TAB: Cek cookie saat user kembali ke tab ini
-    const syncFromCookie = async () => {
-      const cookieSession = getSessionFromCookie();
-      const { data: { session: localSession } } = await supabase.auth.getSession();
-      const isLocallyLoggedIn = !!localSession;
-
-      // Logout sync: cookie kosong tapi kita masih login
-      if (!cookieSession && isLocallyLoggedIn) {
-        console.log('[SSO] Logout terdeteksi di app lain, sinkronisasi...');
-        await supabase.auth.signOut();
-        window.location.reload();
-        return;
-      }
-
-      // Token sync: cookie ada dan kita sudah login, pastikan token sama
-      if (cookieSession && isLocallyLoggedIn) {
-        if (localSession.access_token !== cookieSession.access_token) {
-          console.log('[SSO] Token baru terdeteksi, mengupdate session lokal...');
-          await supabase.auth.setSession(cookieSession);
-        }
-      }
-      
-      // Jika belum login, tapi tiba-tiba ada cookie (baru login di tab lain)
-      if (!isLocallyLoggedIn && cookieSession) {
-        console.log('[SSO] Login dari tab lain terdeteksi, sinkronisasi...');
-        await supabase.auth.setSession(cookieSession);
-        window.location.reload();
-      }
-    };
-
-    window.addEventListener('focus', syncFromCookie);
-    const onVisibilityChange = () => {
-      if (document.visibilityState === 'visible') syncFromCookie();
-    };
-    window.addEventListener('visibilitychange', onVisibilityChange);
-
-
     return () => {
       subscription.unsubscribe();
-      window.removeEventListener('focus', syncFromCookie);
-      window.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener("visibilitychange", handleVisibilityChange);
+      window.removeEventListener("focus", checkSession);
     };
-  }, []); // Kosongkan dependency agar tidak subscribe berulang kali
+  }, []);
 
 
 

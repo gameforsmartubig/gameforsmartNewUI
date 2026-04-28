@@ -19,8 +19,8 @@ if (typeof window !== "undefined") {
 export const supabaseRealtime: SupabaseClient | null = isRealtimeDbConfigured
   ? createClient(realtimeUrl!, realtimeAnonKey!, {
       auth: {
-        autoRefreshToken: true,
-        persistSession: true,
+        persistSession: false,
+        autoRefreshToken: false,
         detectSessionInUrl: false
       },
       realtime: {
