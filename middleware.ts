@@ -20,6 +20,12 @@ export async function middleware(request: NextRequest) {
   });
 
   // 2. Setup Supabase Client
+  const host = request.headers.get("host") || "";
+  const isProdDomain = host.endsWith("gameforsmart.com");
+  const isVercel = host.endsWith(".vercel.app");
+  const isNgrok = host.includes("ngrok-free.app") || host.includes("ngrok.io");
+  const isSecureContext = isProdDomain || isVercel || isNgrok;
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -35,9 +41,15 @@ export async function middleware(request: NextRequest) {
           response = NextResponse.next({
             request
           });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options)
-          );
+          cookiesToSet.forEach(({ name, value, options }) => {
+            const cookieOptions = {
+              ...options,
+              secure: isSecureContext,
+              sameSite: "lax" as const,
+              ...(isProdDomain && { domain: ".gameforsmart.com" })
+            };
+            response.cookies.set(name, value, cookieOptions);
+          });
         }
       }
     }
@@ -132,8 +144,7 @@ export async function middleware(request: NextRequest) {
 
     if (isProtectedRoute) {
       // Enforce Authentication
-      const hasSsoCookie = request.cookies.has("gfs-session");
-      if (!user && !hasSsoCookie) {
+      if (!user) {
         console.log("⛔️ Middleware: Redirecting unauth user to login");
         const url = request.nextUrl.clone();
         url.pathname = "/login";
@@ -155,8 +166,7 @@ export async function middleware(request: NextRequest) {
 
     // Redirect authenticated users away from login/register
     if (pathname.startsWith("/login") || pathname.startsWith("/register")) {
-      const hasSsoCookie = request.cookies.has("gfs-session");
-      if (user || hasSsoCookie) {
+      if (user) {
         return NextResponse.redirect(new URL("/callback", request.url));
       }
     }

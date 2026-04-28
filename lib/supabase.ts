@@ -1,4 +1,4 @@
-import { createClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 import { clientEnv, validateClientEnv } from "./env-config";
 
 // Validate environment configuration
@@ -24,16 +24,19 @@ if (supabaseUrl === "https://placeholder.supabase.co" || supabaseAnonKey === "pl
   );
 }
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
-  },
+const isProd = typeof window !== "undefined" && window.location.hostname.endsWith("gameforsmart.com");
+
+export const supabase = createBrowserClient(supabaseUrl, supabaseAnonKey, {
   realtime: {
     params: {
       eventsPerSecond: 10
     }
+  },
+  cookieOptions: {
+    domain: isProd ? ".gameforsmart.com" : undefined,
+    path: "/",
+    sameSite: "lax",
+    secure: isProd,
   }
 });
 
